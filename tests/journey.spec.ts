@@ -48,8 +48,13 @@ test('filtering narrows the list and survives a reload', async ({ page }) => {
 	await page.getByTestId('filter-gender-female-btn').click();
 	await expect(page).toHaveURL(/gender=female/);
 
+	// Polled, not sampled once: the URL updates before the list re-renders, so a
+	// single read lands on the old count roughly one run in ten.
+	await expect
+		.poll(() => page.getByTestId('cats-list').getByRole('link').count())
+		.toBeLessThan(all);
+
 	const filtered = await page.getByTestId('cats-list').getByRole('link').count();
-	expect(filtered).toBeLessThan(all);
 
 	// The filter lives in the URL, so a reload — or a shared link — keeps it.
 	await page.reload();

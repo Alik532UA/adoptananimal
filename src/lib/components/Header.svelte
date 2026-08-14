@@ -6,11 +6,13 @@
 	import { base } from '$app/paths';
 	import { splitLocale } from '$lib/i18n/locales';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
 
 	let mobileMenuOpen = $state(false);
-	let langMenuOpen = $state(false);
-	let styleMenuOpen = $state(false);
-	let themeMenuOpen = $state(false);
+
+	// One name rather than three booleans: opening a menu closes the others by
+	// construction, instead of by remembering to reset the other two every time.
+	let openMenu = $state<'theme' | 'style' | 'lang' | null>(null);
 
 	const locales: { id: Locale; label: string; flags: string[] }[] = [
 		{ id: 'en', label: 'English', flags: ['/images/flags/en.svg'] },
@@ -46,63 +48,16 @@
 
 	function closeMenu() {
 		mobileMenuOpen = false;
-		langMenuOpen = false;
-		styleMenuOpen = false;
-		themeMenuOpen = false;
-	}
-
-	function closeDropdowns() {
-		langMenuOpen = false;
-		styleMenuOpen = false;
-		themeMenuOpen = false;
+		openMenu = null;
 	}
 
 	// Close the dropdowns on any outside click. In an $effect so the listener is
 	// removed with the component instead of outliving it.
 	$effect(() => {
-		window.addEventListener('click', closeDropdowns);
-		return () => window.removeEventListener('click', closeDropdowns);
+		const close = () => (openMenu = null);
+		window.addEventListener('click', close);
+		return () => window.removeEventListener('click', close);
 	});
-
-	/**
-	 * Keyboard behaviour for an open dropdown: Escape closes it and hands focus back
-	 * to the button that opened it, arrows walk the items, Home/End jump to the ends.
-	 * Without this a keyboard user could open a menu and have no way out of it.
-	 */
-	function handleMenuKeydown(event: KeyboardEvent) {
-		const menu = event.currentTarget as HTMLElement;
-		const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')];
-		const index = items.indexOf(document.activeElement as HTMLElement);
-
-		switch (event.key) {
-			case 'Escape':
-				event.stopPropagation();
-				closeDropdowns();
-				menu.closest('.header__dropdown')?.querySelector('button')?.focus();
-				break;
-			case 'ArrowDown':
-				event.preventDefault();
-				items[(index + 1) % items.length]?.focus();
-				break;
-			case 'ArrowUp':
-				event.preventDefault();
-				items[(index - 1 + items.length) % items.length]?.focus();
-				break;
-			case 'Home':
-				event.preventDefault();
-				items[0]?.focus();
-				break;
-			case 'End':
-				event.preventDefault();
-				items.at(-1)?.focus();
-				break;
-		}
-	}
-
-	/** Moves focus into a menu as it opens, so the arrow keys have somewhere to start. */
-	function focusFirstItem(node: HTMLElement) {
-		node.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
-	}
 
 	/**
 	 * The same page in another language. Built from the current pathname so the
@@ -162,157 +117,93 @@
 			</a>
 
 			<div class="header__controls">
-				<!-- Theme Toggle -->
-				<div class="header__dropdown">
-					<button
-						class="header__control-btn"
-						onclick={(e) => {
-							e.stopPropagation();
-							themeMenuOpen = !themeMenuOpen;
-							styleMenuOpen = false;
-							langMenuOpen = false;
-						}}
-						aria-label={t('a11y.toggleTheme')}
-						aria-expanded={themeMenuOpen}
-						aria-haspopup="menu"
-						data-testid="theme-toggle-btn"
-					>
+				<DropdownMenu
+					label={t('a11y.toggleTheme')}
+					testId="theme"
+					items={themes.map((theme) => ({
+						id: theme.id,
+						label: t(theme.labelKey),
+						active: settings.theme === theme.id
+					}))}
+					open={openMenu === 'theme'}
+					onToggle={(next) => (openMenu = next ? 'theme' : null)}
+					onselect={(id) => {
+						settings.setTheme(id as Theme);
+						openMenu = null;
+					}}
+				>
+					{#snippet trigger()}
 						<Icon
-							name={themes.find((t) => t.id === settings.theme)?.icon || 'moon'}
+							name={themes.find((x) => x.id === settings.theme)?.icon ?? 'moon'}
 							size="1.2rem"
 						/>
-					</button>
-					{#if themeMenuOpen}
-						<div
-							class="dropdown-menu"
-							role="menu"
-							tabindex="-1"
-							onkeydown={handleMenuKeydown}
-							{@attach focusFirstItem}
-						>
-							{#each themes as theme (theme.id)}
-								<button
-									class="dropdown-item"
-									class:dropdown-item--active={settings.theme === theme.id}
-									onclick={() => {
-										settings.setTheme(theme.id);
-										themeMenuOpen = false;
-									}}
-									role="menuitem"
-									data-testid="theme-option-{theme.id}-btn"
-								>
-									<Icon name={theme.icon} size="1.1rem" />
-									<span>{t(theme.labelKey)}</span>
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
+					{/snippet}
+					{#snippet itemVisual(item)}
+						<Icon name={themes.find((x) => x.id === item.id)?.icon ?? 'moon'} size="1.1rem" />
+					{/snippet}
+				</DropdownMenu>
 
-				<!-- Style Toggle -->
-				<div class="header__dropdown">
-					<button
-						class="header__control-btn"
-						onclick={(e) => {
-							e.stopPropagation();
-							styleMenuOpen = !styleMenuOpen;
-							langMenuOpen = false;
-							themeMenuOpen = false;
-						}}
-						aria-label={t('a11y.toggleStyle')}
-						aria-expanded={styleMenuOpen}
-						aria-haspopup="menu"
-						data-testid="style-toggle-btn"
-					>
+				<DropdownMenu
+					label={t('a11y.toggleStyle')}
+					testId="style"
+					items={styles.map((style) => ({
+						id: style.id,
+						label: t(style.labelKey),
+						active: settings.style === style.id
+					}))}
+					open={openMenu === 'style'}
+					onToggle={(next) => (openMenu = next ? 'style' : null)}
+					onselect={(id) => {
+						settings.setStyle(id as SiteStyle);
+						openMenu = null;
+					}}
+				>
+					{#snippet trigger()}
 						<Icon
-							name={styles.find((s) => s.id === settings.style)?.icon || 'sparkles'}
+							name={styles.find((x) => x.id === settings.style)?.icon ?? 'sparkles'}
 							size="1.2rem"
 						/>
-					</button>
-					{#if styleMenuOpen}
-						<div
-							class="dropdown-menu"
-							role="menu"
-							tabindex="-1"
-							onkeydown={handleMenuKeydown}
-							{@attach focusFirstItem}
-						>
-							{#each styles as style (style.id)}
-								<button
-									class="dropdown-item"
-									class:dropdown-item--active={settings.style === style.id}
-									onclick={() => {
-										settings.setStyle(style.id);
-										styleMenuOpen = false;
-									}}
-									role="menuitem"
-									data-testid="style-option-{style.id}-btn"
-								>
-									<Icon name={style.icon} size="1.1rem" />
-									<span>{t(style.labelKey)}</span>
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
+					{/snippet}
+					{#snippet itemVisual(item)}
+						<Icon name={styles.find((x) => x.id === item.id)?.icon ?? 'sparkles'} size="1.1rem" />
+					{/snippet}
+				</DropdownMenu>
 
-				<!-- Language Toggle -->
-				<div class="header__dropdown">
-					<button
-						class="header__control-btn lang-btn"
-						onclick={(e) => {
-							e.stopPropagation();
-							langMenuOpen = !langMenuOpen;
-							styleMenuOpen = false;
-							themeMenuOpen = false;
-						}}
-						aria-label={t('a11y.toggleLanguage')}
-						aria-expanded={langMenuOpen}
-						aria-haspopup="menu"
-						data-testid="lang-toggle-btn"
-					>
-						<div class="lang-btn__flags">
-							{#each locales.find((l) => l.id === settings.locale)?.flags || [] as flag (flag)}
-								<img src={withBase(flag)} alt="" class="flag-icon" />
+				<DropdownMenu
+					label={t('a11y.toggleLanguage')}
+					testId="lang"
+					items={locales.map((locale) => ({
+						id: locale.id,
+						label: locale.label,
+						href: localeHref(locale.id),
+						hreflang: locale.id,
+						active: settings.locale === locale.id
+					}))}
+					open={openMenu === 'lang'}
+					onToggle={(next) => (openMenu = next ? 'lang' : null)}
+					onselect={(id) => {
+						settings.setLocale(id as Locale);
+						openMenu = null;
+					}}
+				>
+					{#snippet trigger()}
+						<span class="header__lang">
+							<span class="header__flags">
+								{#each locales.find((l) => l.id === settings.locale)?.flags ?? [] as flag (flag)}
+									<img src={withBase(flag)} alt="" class="header__flag" />
+								{/each}
+							</span>
+							<span class="header__lang-code">{settings.locale.toUpperCase()}</span>
+						</span>
+					{/snippet}
+					{#snippet itemVisual(item)}
+						<span class="header__flags">
+							{#each locales.find((l) => l.id === item.id)?.flags ?? [] as flag (flag)}
+								<img src={withBase(flag)} alt="" class="header__flag" />
 							{/each}
-						</div>
-						<span class="lang-btn__code">{settings.locale.toUpperCase()}</span>
-					</button>
-
-					{#if langMenuOpen}
-						<div
-							class="dropdown-menu"
-							role="menu"
-							tabindex="-1"
-							onkeydown={handleMenuKeydown}
-							{@attach focusFirstItem}
-						>
-							{#each locales as locale (locale.id)}
-								<!-- An <a>, not a button: switching language changes the address, so it
-									 must be openable in a new tab and visible to a crawler. -->
-								<a
-									class="dropdown-item"
-									class:dropdown-item--active={settings.locale === locale.id}
-									href={localeHref(locale.id)}
-									hreflang={locale.id}
-									onclick={() => {
-										settings.setLocale(locale.id);
-										langMenuOpen = false;
-									}}
-									role="menuitem"
-									data-testid="lang-option-{locale.id}-link"
-								>
-									<div class="dropdown-item__flags">
-										{#each locale.flags as flag (flag)}
-											<img src={withBase(flag)} alt="" class="flag-icon" />
-										{/each}
-									</div>
-									<span class="dropdown-label">{locale.label}</span>
-								</a>
-							{/each}
-						</div>
-					{/if}
-				</div>
+						</span>
+					{/snippet}
+				</DropdownMenu>
 			</div>
 		</nav>
 
@@ -413,109 +304,6 @@
 		gap: var(--space-xs);
 		margin-left: var(--space-md);
 		padding-left: var(--space-md);
-	}
-
-	.header__control-btn {
-		width: 44px;
-		height: 44px;
-		border-radius: var(--radius-md);
-		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
-		-webkit-backdrop-filter: blur(var(--glass-blur));
-		border: none;
-		color: var(--color-text);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.1rem;
-		transition: all var(--transition-fast);
-		cursor: pointer;
-		box-shadow: var(--shadow-sm);
-	}
-
-	.header__control-btn:hover {
-		background: var(--color-primary);
-		color: white;
-		transform: translateY(-1px);
-	}
-
-	.lang-btn {
-		width: auto;
-		min-width: 64px;
-		padding: 0 10px;
-		gap: 8px;
-	}
-
-	.lang-btn__flags,
-	.dropdown-item__flags {
-		display: flex;
-		gap: 2px;
-	}
-
-	.flag-icon {
-		width: 18px;
-		height: 12px;
-		object-fit: cover;
-		border-radius: 1px;
-		border: none;
-	}
-
-	.header__dropdown {
-		position: relative;
-	}
-
-	.dropdown-menu {
-		position: absolute;
-		top: calc(100% + 8px);
-		right: 0;
-		background: var(--color-bg-card);
-		border: none;
-		border-radius: var(--radius-md);
-		box-shadow: var(--shadow-lg);
-		padding: 6px;
-		min-width: 180px;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		z-index: 100;
-		animation: slideDown 0.2s ease-out;
-	}
-
-	.dropdown-item {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 10px 14px;
-		border-radius: var(--radius-sm);
-		border: none;
-		background: transparent;
-		color: var(--color-text);
-		font-family: inherit;
-		font-size: 0.95rem;
-		cursor: pointer;
-		width: 100%;
-		text-align: left;
-	}
-
-	.dropdown-item:hover {
-		background: var(--color-bg-warm);
-		color: var(--color-primary);
-	}
-
-	.dropdown-item--active {
-		background: var(--color-primary);
-		color: white;
-	}
-
-	@keyframes slideDown {
-		from {
-			opacity: 0;
-			transform: translateY(-10px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
 	}
 
 	.header__burger {
