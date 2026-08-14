@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
  */
 
 const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'] as const;
-const PAGES = ['/', '/adopt/cat', '/adopt/cat/basti', '/apply', '/favorites'];
+const PAGES = ['/', '/adopt/cat', '/adopt/cat/basti', '/apply', '/apply/form', '/favorites'];
 
 /**
  * Waits for every running animation on the element to finish.
@@ -36,6 +36,9 @@ const settle = (locator: import('@playwright/test').Locator) =>
 const audit = (page: import('@playwright/test').Page) =>
 	new AxeBuilder({ page })
 		.exclude('.animal-card--adopted')
+		// Someone else's document: axe cannot audit across the origin boundary, and
+		// what is inside is not ours to fix.
+		.exclude('iframe')
 		.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
 		.analyze();
 

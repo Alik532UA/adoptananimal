@@ -13,7 +13,7 @@ const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'] as const;
 test.describe('the application form', () => {
 	for (const theme of THEMES) {
 		test(`fields read as fields in theme ${theme}`, async ({ page }) => {
-			await page.goto('/apply');
+			await page.goto('/apply/form');
 			await page.evaluate((t) => localStorage.setItem('adoptananimal_theme', t), theme);
 			await page.reload();
 
@@ -59,7 +59,7 @@ test.describe('the application form', () => {
 	}
 
 	test('the card does not cover the text above it', async ({ page }) => {
-		await page.goto('/apply');
+		await page.goto('/apply/form');
 
 		const gap = await page.evaluate(() => {
 			const subtitle = document.querySelector('.apply-hero__subtitle')!.getBoundingClientRect();
@@ -280,5 +280,62 @@ test.describe('the list filters', () => {
 
 		expect(males.length).toBeGreaterThan(0);
 		expect(males.length).toBeLessThan(all.length);
+	});
+});
+
+test.describe('the application page', () => {
+	test('embeds the Google form and offers a way out of the frame', async ({ page }) => {
+		await page.goto('/apply');
+
+		const frame = page.getByTestId('apply-google-form-container');
+		await expect(frame).toBeVisible();
+		await expect(frame).toHaveAttribute('src', /docs\.google\.com\/forms\/.*embedded=true/);
+		// A frame with no accessible name is an unlabelled document to a screen reader.
+		await expect(frame).toHaveAttribute('title', /.+/);
+
+		// Extensions and corporate proxies block third-party frames; a form nobody can
+		// reach is the same as no form.
+		await expect(page.getByTestId('apply-google-form-link')).toHaveAttribute(
+			'href',
+			/docs\.google\.com/
+		);
+	});
+
+	for (const [width, minHeight] of [
+		[1200, 1750],
+		[900, 1750],
+		[400, 2150]
+	] as const) {
+		test(`gives the form room rather than a scrollbar at ${width}px`, async ({ page }) => {
+			// Measured against the live form: it needs 1703px at 750px wide and 2138px at
+			// 320px. A frame shorter than that scrolls inside a page that already scrolls,
+			// which is what this guards against.
+			await page.setViewportSize({ width, height: 900 });
+			await page.goto('/apply');
+
+			const height = await page
+				.getByTestId('apply-google-form-container')
+				.evaluate((el) => el.getBoundingClientRect().height);
+
+			expect(Math.round(height)).toBeGreaterThanOrEqual(minHeight);
+		});
+	}
+
+	test('names the animal carried over from its page', async ({ page }) => {
+		await page.goto('/apply?animal=Basti');
+		await expect(page.getByTestId('apply-chosen-animal-text')).toContainText('Basti');
+
+		await page.goto('/apply');
+		await expect(page.getByTestId('apply-chosen-animal-text')).toHaveCount(0);
+	});
+
+	test('keeps the previous on-site form reachable and out of the index', async ({ page }) => {
+		await page.goto('/apply/form');
+
+		await expect(page.getByTestId('adoption-form')).toBeVisible();
+		await expect(page.getByTestId('apply-backup-notice-text')).toBeVisible();
+
+		// Unlinked and duplicating /apply in purpose, so it must not be indexed.
+		await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
 	});
 });

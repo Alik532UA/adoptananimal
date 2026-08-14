@@ -31,12 +31,14 @@ test('a visitor can go from the home page to an application for a specific cat',
 	await page.getByTestId('apply-top-link').click();
 	await expect(page).toHaveURL(/\/apply\?animal=/);
 
-	// The animal travels with the visitor instead of having to be typed again.
-	await expect(page.getByTestId('form-animal-input')).toHaveValue(name ?? '');
+	// Applications go through an embedded Google form, which cannot be prefilled from
+	// here, so the animal is named on the page instead of being silently dropped.
+	await expect(page.getByTestId('apply-google-form-container')).toBeVisible();
+	await expect(page.getByTestId('apply-chosen-animal-text')).toContainText(name ?? '');
 });
 
 test('the form refuses to submit empty and says what is wrong', async ({ page }) => {
-	await page.goto('/apply');
+	await page.goto('/apply/form');
 
 	await page.getByTestId('apply-submit-btn').click();
 

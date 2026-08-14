@@ -193,5 +193,11 @@ export const uk = {
 	'list.dog.subtitle': 'Врятовані в Україні собаки, готові до прихистку',
 	'list.cat.subtitle': 'Врятовані в Україні коти, готові до прихистку',
 	'list.stats.waiting': 'шукають дім',
-	'list.stats.adopted': 'вже в родині'
+	'list.stats.adopted': 'вже в родині',
+	'apply.form.embedTitle': 'Форма заявки на прихисток',
+	'apply.form.loading': 'Завантажуємо форму заявки…',
+	'apply.form.openInNewTab': 'Відкрити форму в новій вкладці',
+	'apply.form.chosenAnimal': 'Ви подаєте заявку на {name} — вкажіть це імʼя у формі.',
+	'apply.form.backupNotice':
+		'Це попередня форма на сайті, збережена як запасна. Заявки збираються через Google-форму на сторінці подання.'
 } as const;

@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
 
 test('clicking an email copies it and offers to open the mail app', async ({ page, context }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-	await page.goto('/apply');
+	await page.goto('/apply/form');
 
 	await page.getByTestId('apply-contact-email-link').click();
 
@@ -18,7 +18,7 @@ test('clicking an email copies it and offers to open the mail app', async ({ pag
 	await expect(page.getByTestId('toast-action-btn')).toBeVisible();
 
 	// No mail client was launched behind the visitor's back.
-	await expect(page).toHaveURL(/\/apply$/);
+	await expect(page).toHaveURL(/\/apply\/form$/);
 
 	const clipboard = await page.evaluate(() => navigator.clipboard.readText());
 	expect(clipboard).toBe('info@notpfote.de');
@@ -29,7 +29,7 @@ test('the countdown stops under a real pointer and resumes after it leaves', asy
 	context
 }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-	await page.goto('/apply');
+	await page.goto('/apply/form');
 	await page.getByTestId('apply-contact-email-link').click();
 
 	const toast = page.getByTestId('toast-success-toast');
@@ -50,7 +50,7 @@ test('the countdown stops under a real pointer and resumes after it leaves', asy
 
 test('the toast is announced rather than only shown', async ({ page, context }) => {
 	await context.grantPermissions(['clipboard-write']);
-	await page.goto('/apply');
+	await page.goto('/apply/form');
 	await page.getByTestId('apply-contact-email-link').click();
 
 	// status, not alert: a copied address is not an interruption.

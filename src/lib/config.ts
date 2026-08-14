@@ -33,6 +33,18 @@ export const CONTACT_EMAIL = {
 /** Address the adoption form writes to. */
 export const ADOPTION_EMAIL = CONTACT_EMAIL.notpfote;
 
+/**
+ * The Google Form the shelter collects applications through — the same one the
+ * previous site embedded. `?embedded=true` is what strips Google's own page chrome.
+ *
+ * The host must also be listed in `frame-src` in svelte.config.js: a CSP without a
+ * directive for a resource type blocks it, and a blocked frame fails silently.
+ */
+export const GOOGLE_FORM_URL =
+	'https://docs.google.com/forms/d/e/1FAIpQLSfE2I8DI1hBkK9VesiGx8GU0t03UdD2YvdGpgM2Y8GTxsdSOg/viewform';
+
+export const GOOGLE_FORM_EMBED_URL = `${GOOGLE_FORM_URL}?embedded=true`;
+
 /** Image used for link previews when a page has nothing more specific. */
 export const DEFAULT_OG_IMAGE = '/images/logo/adoptananimal_logo_Notpfote.webp';
 

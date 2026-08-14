@@ -44,6 +44,9 @@ const config = {
 				'font-src': ['self', 'https://fonts.gstatic.com'],
 				'img-src': ['self', 'data:', 'https://www.transparenttextures.com'],
 				'connect-src': ['self'],
+				// The embedded application form. Without this the iframe is blocked and the
+				// page shows an empty box with nothing in the console to explain it.
+				'frame-src': ['https://docs.google.com'],
 				'frame-ancestors': ['none'],
 				'base-uri': ['self'],
 				'form-action': ['none']

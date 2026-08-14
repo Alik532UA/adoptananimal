@@ -191,5 +191,11 @@ export const nl = {
 	'list.dog.subtitle': 'In Oekraïne geredde honden, klaar voor adoptie',
 	'list.cat.subtitle': 'In Oekraïne geredde katten, klaar voor adoptie',
 	'list.stats.waiting': 'zoeken een thuis',
-	'list.stats.adopted': 'al geadopteerd'
+	'list.stats.adopted': 'al geadopteerd',
+	'apply.form.embedTitle': 'Aanvraagformulier voor adoptie',
+	'apply.form.loading': 'Het aanvraagformulier wordt geladen…',
+	'apply.form.openInNewTab': 'Formulier in een nieuw tabblad openen',
+	'apply.form.chosenAnimal': 'U vraagt {name} aan — vul deze naam in het formulier in.',
+	'apply.form.backupNotice':
+		'Dit is het vorige formulier op de site, bewaard als reserve. Aanvragen worden verzameld via het Google-formulier op de aanvraagpagina.'
 } as const;

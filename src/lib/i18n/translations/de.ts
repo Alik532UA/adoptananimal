@@ -195,5 +195,12 @@ export const de = {
 	'list.dog.subtitle': 'In der Ukraine gerettete Hunde, bereit zur Adoption',
 	'list.cat.subtitle': 'In der Ukraine gerettete Katzen, bereit zur Adoption',
 	'list.stats.waiting': 'suchen ein Zuhause',
-	'list.stats.adopted': 'bereits vermittelt'
+	'list.stats.adopted': 'bereits vermittelt',
+	'apply.form.embedTitle': 'Antragsformular für die Adoption',
+	'apply.form.loading': 'Das Antragsformular wird geladen…',
+	'apply.form.openInNewTab': 'Formular in neuem Tab öffnen',
+	'apply.form.chosenAnimal':
+		'Sie bewerben sich für {name} — bitte tragen Sie diesen Namen im Formular ein.',
+	'apply.form.backupNotice':
+		'Dies ist das frühere Formular auf der Website, als Reserve aufbewahrt. Anträge werden über das Google-Formular auf der Antragsseite gesammelt.'
 } as const;

@@ -191,7 +191,13 @@ export const en = {
 	'list.dog.subtitle': 'Rescued dogs from Ukraine, ready for adoption',
 	'list.cat.subtitle': 'Rescued cats from Ukraine, ready for adoption',
 	'list.stats.waiting': 'looking for a home',
-	'list.stats.adopted': 'already adopted'
+	'list.stats.adopted': 'already adopted',
+	'apply.form.embedTitle': 'Adoption application form',
+	'apply.form.loading': 'Loading the application form…',
+	'apply.form.openInNewTab': 'Open the form in a new tab',
+	'apply.form.chosenAnimal': 'You are applying for {name} — please enter this name in the form.',
+	'apply.form.backupNotice':
+		'This is the previous on-site form, kept as a fallback. Applications are collected through the Google form on the application page.'
 } as const;
 
 export type TranslationKey = keyof typeof en;
