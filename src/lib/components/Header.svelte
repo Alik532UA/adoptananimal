@@ -7,6 +7,7 @@
 	import { splitLocale } from '$lib/i18n/locales';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
+	import { clamp01, SETTLE_DISTANCE, tabShape } from '$lib/utils/tabWave';
 
 	let mobileMenuOpen = $state(false);
 
@@ -82,47 +83,43 @@
 
 	let headerInnerElement: HTMLElement | undefined = $state();
 	let indicatorX = $state(0);
-	let indicatorTotalWidth = $state(288);
-	let indicatorPath = $state(
-		'M 0 48 C 56.3 48 62.5 0 100 0 L 132 0 C 169.5 0 175.8 48 232 48 L 0 48 Z'
-	);
+	let activeWidth = $state(132);
 	let indicatorVisible = $state(false);
 	let isMounted = $state(false);
 
-	function updateIndicator() {
+	/** 0 while the page is at the top, 1 once the coloured band has scrolled away. */
+	let scrollProgress = $state(0);
+
+	// Measuring is the only part that touches the DOM; the shape itself is derived,
+	// so it follows both the active tab and the scroll without a second code path.
+	const indicator = $derived(tabShape(activeWidth, scrollProgress));
+
+	function measureIndicator() {
 		if (!headerInnerElement) return;
+
 		const activeEl = headerInnerElement.querySelector<HTMLElement>(
 			'.header__link--active, .header__logo--active'
 		);
-		if (activeEl) {
-			const containerRect = headerInnerElement.getBoundingClientRect();
-			const activeRect = activeEl.getBoundingClientRect();
 
-			const W = activeRect.width;
-			const S = 100; // ширина бокових спусків (slope width)
-			const T = Math.max(12, W - 48); // ширина верхнього плато залежно від ширини кнопки
-			const totalW = 2 * S + T;
+		const activeRect = activeEl?.getBoundingClientRect();
 
-			const cp1x = (S * 0.5625).toFixed(1);
-			const cp2x = (S * 0.625).toFixed(1);
-			const x1 = S;
-			const x2 = S + T;
-			const cp3x = (x2 + S * 0.375).toFixed(1);
-			const cp4x = (x2 + S * 0.4375).toFixed(1);
-			const x3 = totalW;
-
-			indicatorPath = `M 0 48 C ${cp1x} 48 ${cp2x} 0 ${x1} 0 L ${x2} 0 C ${cp3x} 0 ${cp4x} 48 ${x3} 48 L 0 48 Z`;
-			indicatorTotalWidth = totalW;
-			indicatorX = activeRect.left - containerRect.left + W / 2;
-			indicatorVisible = true;
-		} else {
+		// Zero width means the nav is collapsed behind the burger, where there is no tab
+		// to point at. Drawing one anyway produced a wave for an element nobody could see.
+		if (!activeEl || !activeRect || activeRect.width === 0) {
 			indicatorVisible = false;
+			return;
 		}
+
+		const containerRect = headerInnerElement.getBoundingClientRect();
+
+		activeWidth = activeRect.width;
+		indicatorX = activeRect.left - containerRect.left + activeRect.width / 2;
+		indicatorVisible = true;
 	}
 
 	$effect(() => {
 		const _ = page.url.pathname;
-		updateIndicator();
+		measureIndicator();
 		if (!isMounted && indicatorVisible) {
 			requestAnimationFrame(() => {
 				isMounted = true;
@@ -131,9 +128,27 @@
 	});
 
 	$effect(() => {
-		if (typeof window === 'undefined') return;
-		window.addEventListener('resize', updateIndicator);
-		return () => window.removeEventListener('resize', updateIndicator);
+		window.addEventListener('resize', measureIndicator);
+		return () => window.removeEventListener('resize', measureIndicator);
+	});
+
+	// One read per frame: the shape is recomputed on every scroll event otherwise, and
+	// this one runs while the user is dragging the page.
+	$effect(() => {
+		let queued = false;
+
+		const onScroll = () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => {
+				scrollProgress = clamp01(window.scrollY / SETTLE_DISTANCE);
+				queued = false;
+			});
+		};
+
+		onScroll();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
 	});
 
 	const activeColor = $derived.by(() => {
@@ -167,10 +182,10 @@
 			>
 				<svg
 					class="header__wave"
-					viewBox="0 0 {indicatorTotalWidth} 48"
-					style="width: {indicatorTotalWidth}px; left: -{indicatorTotalWidth / 2}px;"
+					viewBox="0 0 {indicator.totalWidth} 48"
+					style="width: {indicator.totalWidth}px; left: -{indicator.totalWidth / 2}px;"
 				>
-					<path d={indicatorPath} fill="var(--active-tab-bg)" />
+					<path d={indicator.path} fill="var(--active-tab-bg)" />
 				</svg>
 			</div>
 		{/if}
