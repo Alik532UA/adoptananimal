@@ -175,5 +175,9 @@ export const uk = {
 	'country.ua': 'Україна',
 	'country.de': 'Німеччина',
 	'country.at': 'Австрія',
-	'country.nl': 'Нідерланди'
+	'country.nl': 'Нідерланди',
+	'a11y.dismissNotification': 'Закрити сповіщення',
+	'contact.emailCopied': 'Адресу скопійовано',
+	'contact.openMailClient': 'Відкрити пошту',
+	'contact.copyFailed': 'Не вдалося скопіювати — відкриваємо пошту'
 } as const;

@@ -100,8 +100,9 @@
 
 	@media (max-width: 600px) {
 		.log-fab {
-			width: 40px;
-			height: 40px;
+			/* 44px, not 40: WCAG 2.5.8 target size applies most on touch screens */
+			width: 44px;
+			height: 44px;
 			bottom: 12px;
 			left: 12px;
 		}

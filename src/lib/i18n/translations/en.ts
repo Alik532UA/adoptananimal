@@ -175,7 +175,11 @@ export const en = {
 	'country.ua': 'Ukraine',
 	'country.de': 'Germany',
 	'country.at': 'Austria',
-	'country.nl': 'Netherlands'
+	'country.nl': 'Netherlands',
+	'a11y.dismissNotification': 'Dismiss notification',
+	'contact.emailCopied': 'Email address copied',
+	'contact.openMailClient': 'Open mail app',
+	'contact.copyFailed': 'Could not copy — opening your mail app'
 } as const;
 
 export type TranslationKey = keyof typeof en;

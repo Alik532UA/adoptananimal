@@ -1,7 +1,7 @@
 {
 	"name": "adoptananimal",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.2.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -15,7 +15,9 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"check:i18n": "tsx src/lib/i18n/validator.ts",
-		"check:build": "node scripts/check-build.js"
+		"check:build": "node scripts/check-build.js",
+		"version:patch": "npm version patch --no-git-tag-version",
+		"version:minor": "npm version minor --no-git-tag-version"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.4",

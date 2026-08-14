@@ -179,5 +179,9 @@ export const de = {
 	'country.ua': 'Ukraine',
 	'country.de': 'Deutschland',
 	'country.at': 'Österreich',
-	'country.nl': 'Niederlande'
+	'country.nl': 'Niederlande',
+	'a11y.dismissNotification': 'Benachrichtigung schließen',
+	'contact.emailCopied': 'E-Mail-Adresse kopiert',
+	'contact.openMailClient': 'E-Mail-Programm öffnen',
+	'contact.copyFailed': 'Kopieren fehlgeschlagen — E-Mail-Programm wird geöffnet'
 } as const;

@@ -194,7 +194,8 @@
 	}
 
 	.filter-input:focus {
-		outline: none;
+		/* No outline: none — the global :focus-visible rule in app.css is the
+		   only focus indicator these fields have. */
 		background: var(--color-bg-surface);
 		box-shadow: 0 0 0 3px var(--color-primary-light);
 	}

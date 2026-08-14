@@ -4,6 +4,8 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { adoptionSchema, type AdoptionForm } from '$lib/data/schemas';
+	import { ADOPTION_EMAIL } from '$lib/config';
+	import { handleEmailClick } from '$lib/utils/emailAction';
 
 	let formData = $state<AdoptionForm>({
 		name: '',
@@ -55,7 +57,7 @@ Message:
 ${formData.message}
 		`.trim();
 
-		const mailtoLink = `mailto:info@notpfote.de?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+		const mailtoLink = `mailto:${ADOPTION_EMAIL}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
 		window.location.href = mailtoLink;
 		isSubmitted = true;
 	}
@@ -290,8 +292,15 @@ ${formData.message}
 						{t('apply.contact.title')}
 					</h3>
 					<p class="contact-text">{t('apply.contact.text')}</p>
-					<a href="mailto:info@notpfote.de" class="contact-email">
-						<strong>info@notpfote.de</strong>
+					<!-- Stays an <a href="mailto:"> so it still works without JS; the handler
+						 copies the address and offers to open the mail app instead. -->
+					<a
+						href="mailto:{ADOPTION_EMAIL}"
+						class="contact-email"
+						onclick={(e) => handleEmailClick(e, ADOPTION_EMAIL)}
+						data-testid="apply-contact-email-link"
+					>
+						<strong>{ADOPTION_EMAIL}</strong>
 					</a>
 				</div>
 			</aside>
@@ -441,7 +450,8 @@ ${formData.message}
 
 	input:focus,
 	textarea:focus {
-		outline: none;
+		/* No outline: none — the global :focus-visible rule in app.css is the
+		   only focus indicator these fields have. */
 		background: var(--color-bg-card);
 		transform: translateY(-2px);
 		box-shadow: 0 0 0 3px var(--color-primary-light);

@@ -23,7 +23,8 @@
 		Tag,
 		ArrowRight,
 		ArrowLeft,
-		ArrowUp
+		ArrowUp,
+		X
 	} from 'lucide-svelte';
 
 	interface Props {
@@ -54,7 +55,8 @@
 			| 'color'
 			| 'arrow-right'
 			| 'arrow-left'
-			| 'arrow-up';
+			| 'arrow-up'
+			| 'close';
 		size?: string | number;
 		class?: string;
 		strokeWidth?: number;
@@ -129,6 +131,8 @@
 			<ArrowLeft {size} class={className} {strokeWidth} />
 		{:else if name === 'arrow-up'}
 			<ArrowUp {size} class={className} {strokeWidth} />
+		{:else if name === 'close'}
+			<X {size} class={className} {strokeWidth} />
 		{/if}
 	{/key}
 </span>

@@ -49,18 +49,58 @@
 		themeMenuOpen = false;
 	}
 
+	function closeDropdowns() {
+		langMenuOpen = false;
+		styleMenuOpen = false;
+		themeMenuOpen = false;
+	}
+
 	// Close the dropdowns on any outside click. In an $effect so the listener is
 	// removed with the component instead of outliving it.
 	$effect(() => {
-		const closeDropdowns = () => {
-			langMenuOpen = false;
-			styleMenuOpen = false;
-			themeMenuOpen = false;
-		};
-
 		window.addEventListener('click', closeDropdowns);
 		return () => window.removeEventListener('click', closeDropdowns);
 	});
+
+	/**
+	 * Keyboard behaviour for an open dropdown: Escape closes it and hands focus back
+	 * to the button that opened it, arrows walk the items, Home/End jump to the ends.
+	 * Without this a keyboard user could open a menu and have no way out of it.
+	 */
+	function handleMenuKeydown(event: KeyboardEvent) {
+		const menu = event.currentTarget as HTMLElement;
+		const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+		const index = items.indexOf(document.activeElement as HTMLElement);
+
+		switch (event.key) {
+			case 'Escape':
+				event.stopPropagation();
+				closeDropdowns();
+				menu.closest('.header__dropdown')?.querySelector('button')?.focus();
+				break;
+			case 'ArrowDown':
+				event.preventDefault();
+				items[(index + 1) % items.length]?.focus();
+				break;
+			case 'ArrowUp':
+				event.preventDefault();
+				items[(index - 1 + items.length) % items.length]?.focus();
+				break;
+			case 'Home':
+				event.preventDefault();
+				items[0]?.focus();
+				break;
+			case 'End':
+				event.preventDefault();
+				items.at(-1)?.focus();
+				break;
+		}
+	}
+
+	/** Moves focus into a menu as it opens, so the arrow keys have somewhere to start. */
+	function focusFirstItem(node: HTMLElement) {
+		node.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+	}
 
 	const navItems: { href: string; label: TranslationKey }[] = [
 		{ href: '/', label: 'nav.home' },
@@ -113,6 +153,8 @@
 							langMenuOpen = false;
 						}}
 						aria-label={t('a11y.toggleTheme')}
+						aria-expanded={themeMenuOpen}
+						aria-haspopup="menu"
 						data-testid="theme-toggle-btn"
 					>
 						<Icon
@@ -121,7 +163,13 @@
 						/>
 					</button>
 					{#if themeMenuOpen}
-						<div class="dropdown-menu" role="menu">
+						<div
+							class="dropdown-menu"
+							role="menu"
+							tabindex="-1"
+							onkeydown={handleMenuKeydown}
+							{@attach focusFirstItem}
+						>
 							{#each themes as theme (theme.id)}
 								<button
 									class="dropdown-item"
@@ -153,6 +201,7 @@
 						}}
 						aria-label={t('a11y.toggleStyle')}
 						aria-expanded={styleMenuOpen}
+						aria-haspopup="menu"
 						data-testid="style-toggle-btn"
 					>
 						<Icon
@@ -161,7 +210,13 @@
 						/>
 					</button>
 					{#if styleMenuOpen}
-						<div class="dropdown-menu" role="menu">
+						<div
+							class="dropdown-menu"
+							role="menu"
+							tabindex="-1"
+							onkeydown={handleMenuKeydown}
+							{@attach focusFirstItem}
+						>
 							{#each styles as style (style.id)}
 								<button
 									class="dropdown-item"
@@ -192,6 +247,8 @@
 							themeMenuOpen = false;
 						}}
 						aria-label={t('a11y.toggleLanguage')}
+						aria-expanded={langMenuOpen}
+						aria-haspopup="menu"
 						data-testid="lang-toggle-btn"
 					>
 						<div class="lang-btn__flags">
@@ -203,7 +260,13 @@
 					</button>
 
 					{#if langMenuOpen}
-						<div class="dropdown-menu" role="menu">
+						<div
+							class="dropdown-menu"
+							role="menu"
+							tabindex="-1"
+							onkeydown={handleMenuKeydown}
+							{@attach focusFirstItem}
+						>
 							{#each locales as locale (locale.id)}
 								<button
 									class="dropdown-item"

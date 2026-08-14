@@ -19,6 +19,18 @@ export const SITE_ORIGIN = __SITE_ORIGIN__;
  */
 export const SITE_BASE = __BASE_PATH__;
 
+/**
+ * Contact addresses, in one place. They used to be typed out in the footer and again
+ * in the apply form, which is how two copies of the same address start to differ.
+ */
+export const CONTACT_EMAIL = {
+	notpfote: 'info@notpfote.de',
+	vetcrew: 'vet.crew.cooperation@gmail.com'
+} as const;
+
+/** Address the adoption form writes to. */
+export const ADOPTION_EMAIL = CONTACT_EMAIL.notpfote;
+
 /** Image used for link previews when a page has nothing more specific. */
 export const DEFAULT_OG_IMAGE = '/images/logo/adoptananimal_logo_Notpfote.webp';
 

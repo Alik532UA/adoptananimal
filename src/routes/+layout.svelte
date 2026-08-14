@@ -1,15 +1,15 @@
 <script lang="ts">
 	import '../app.css';
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
 	import { t } from '$lib/i18n';
 	import { page } from '$app/state';
 	import { absoluteFromPathname, absoluteFromRoot, DEFAULT_OG_IMAGE } from '$lib/config';
 	import { onNavigate } from '$app/navigation';
 	import { logService } from '$lib/services/logService.svelte';
+	import { webVitals } from '$lib/controllers/webVitals.svelte';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import LogCopyButton from '$lib/components/LogCopyButton.svelte';
+	import Toast from '$lib/components/ui/Toast.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
 	let { children } = $props();
@@ -52,7 +52,8 @@
 		});
 	});
 
-	onMount(() => {
+	// Global error reporting. In an $effect so the listeners come and go with the layout.
+	$effect(() => {
 		const handleRejection = (event: PromiseRejectionEvent) => {
 			logService.error('app', `Unhandled Promise Rejection: ${event.reason}`);
 		};
@@ -67,51 +68,15 @@
 		window.addEventListener('unhandledrejection', handleRejection);
 		window.addEventListener('error', handleError);
 
-		// Performance Monitoring (Web Vitals)
-		if (browser && 'PerformanceObserver' in window) {
-			try {
-				// LCP (Largest Contentful Paint)
-				const lcpObserver = new PerformanceObserver((entryList) => {
-					const entries = entryList.getEntries();
-					const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
-						startTime: number;
-					};
-					logService.perf('LCP', `${lastEntry.startTime.toFixed(0)}ms`);
-				});
-				lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-
-				// CLS (Cumulative Layout Shift)
-				let clsValue = 0;
-				const clsObserver = new PerformanceObserver((entryList) => {
-					for (const entry of entryList.getEntries() as (PerformanceEntry & {
-						value: number;
-						hadRecentInput: boolean;
-					})[]) {
-						if (!entry.hadRecentInput) {
-							clsValue += entry.value;
-						}
-					}
-					logService.perf('CLS', clsValue.toFixed(4));
-				});
-				clsObserver.observe({ type: 'layout-shift', buffered: true });
-
-				// FID (First Input Delay)
-				const fidObserver = new PerformanceObserver((entryList) => {
-					for (const entry of entryList.getEntries()) {
-						logService.perf('FID', `${entry.duration.toFixed(0)}ms`);
-					}
-				});
-				fidObserver.observe({ type: 'first-input', buffered: true });
-			} catch {
-				logService.warn('performance', 'PerformanceObserver failed to initialize');
-			}
-		}
-
 		return () => {
 			window.removeEventListener('unhandledrejection', handleRejection);
 			window.removeEventListener('error', handleError);
 		};
 	});
+
+	// Three PerformanceObservers and their cleanup are logic, so they live in a
+	// controller; this is just the mount point.
+	$effect(() => webVitals.start());
 </script>
 
 <svelte:head>
@@ -138,7 +103,23 @@
 
 <div class="app-shell">
 	<main class="main" id="main-content">
-		{@render children()}
+		<svelte:boundary onerror={(error) => logService.error('app', `Render error: ${error}`)}>
+			{@render children()}
+
+			<!-- The error itself is logged in onerror above; the user gets a message they
+				 can act on, never a raw error string (ERROR-HANDLING § CRITICAL). -->
+			{#snippet failed(_error, reset)}
+				<section class="boundary section">
+					<div class="container boundary__inner">
+						<h1>{t('error.server.title')}</h1>
+						<p>{t('error.generic')}</p>
+						<button class="btn btn--primary" onclick={reset} data-testid="boundary-retry-btn">
+							{t('error.retry')}
+						</button>
+					</div>
+				</section>
+			{/snippet}
+		</svelte:boundary>
 	</main>
 
 	<Footer />
@@ -152,6 +133,8 @@
 >
 	<Icon name="arrow-up" size="1.5rem" />
 </button>
+
+<Toast />
 
 <LogCopyButton />
 
@@ -212,6 +195,15 @@
 	.main {
 		flex: 1;
 		padding-top: 72px;
+	}
+
+	.boundary__inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-lg);
+		text-align: center;
+		padding: var(--space-4xl) 0;
 	}
 
 	/* View Transitions effects */

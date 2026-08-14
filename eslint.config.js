@@ -49,7 +49,14 @@ export default defineConfig(
 
 			// Errors, not warnings: a warning that nobody has to fix is not a gate.
 			'@typescript-eslint/no-explicit-any': 'error',
-			'svelte/require-each-key': 'error'
+			'svelte/require-each-key': 'error',
+
+			// A leading underscore marks a parameter that exists only to reach the next
+			// one — e.g. `failed(_error, reset)` in a boundary snippet.
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
+			]
 		}
 	}
 );

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { withBase } from '$lib/utils/withBase';
+	import { handleEmailClick } from '$lib/utils/emailAction';
+	import { CONTACT_EMAIL } from '$lib/config';
 
 	let activeOrg = $state<string | null>(null);
 
@@ -49,7 +51,7 @@
 				},
 				{
 					id: 'mail',
-					url: 'mailto:info@notpfote.de',
+					url: `mailto:${CONTACT_EMAIL.notpfote}`,
 					icon: '/images/social_media/Gmail_Logo_512px-50q.png'
 				}
 			]
@@ -82,7 +84,7 @@
 				},
 				{
 					id: 'mail',
-					url: 'mailto:vet.crew.cooperation@gmail.com',
+					url: `mailto:${CONTACT_EMAIL.vetcrew}`,
 					icon: '/images/social_media/Gmail_Logo_512px-50q.png'
 				}
 			]
@@ -138,6 +140,10 @@
 									rel="noopener noreferrer"
 									class="footer__social-icon-link"
 									style="--index: {i}"
+									onclick={(e) =>
+										social.url.startsWith('mailto:')
+											? handleEmailClick(e, social.url.slice('mailto:'.length))
+											: undefined}
 									title="{org.name} — {SOCIAL_NAMES[social.id] ?? social.id}"
 									data-testid="footer-org-{org.id}-{social.id}-link"
 								>
@@ -152,6 +158,10 @@
 					</div>
 				{/each}
 			</div>
+
+			<!-- Build-time constant, never a hardcoded string: a version that drifts from
+				 the real release is worse than none when reading a bug report. -->
+			<p class="footer__version" data-testid="footer-version-text">v{__APP_VERSION__}</p>
 		</div>
 	</div>
 </footer>
@@ -168,6 +178,14 @@
 		-webkit-backdrop-filter: blur(var(--glass-blur));
 		color: var(--color-text);
 		padding: var(--space-xl) 0;
+	}
+
+	.footer__version {
+		margin-top: var(--space-lg);
+		text-align: center;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+		opacity: 0.7;
 	}
 
 	.footer__logos {
@@ -274,12 +292,28 @@
 	}
 
 	@media (max-width: 1024px) {
+		.footer__version {
+			margin-top: var(--space-lg);
+			text-align: center;
+			font-size: 0.75rem;
+			color: var(--color-text-muted);
+			opacity: 0.7;
+		}
+
 		.footer__logos {
 			gap: var(--space-2xl);
 		}
 	}
 
 	@media (max-width: 768px) {
+		.footer__version {
+			margin-top: var(--space-lg);
+			text-align: center;
+			font-size: 0.75rem;
+			color: var(--color-text-muted);
+			opacity: 0.7;
+		}
+
 		.footer__logos {
 			flex-direction: column;
 			gap: 60px;
