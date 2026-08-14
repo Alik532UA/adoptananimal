@@ -1,0 +1,10 @@
+node_modules/
+build/
+dist/
+.svelte-kit/
+.private/
+.read_for_AI/
+*.lock
+package-lock.json
+.git/
+.vscode/

@@ -1,0 +1,71 @@
+[data-style='minimal'] {
+	/* Typography - Monospace for that Linux feel */
+	--font-main:
+		ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Monaco, Consolas, 'Courier New',
+		monospace;
+	--font-accent: var(--font-main);
+
+	/* Shape - Strict 0px radius */
+	--radius-lg: 0px;
+	--radius-md: 0px;
+	--radius-sm: 0px;
+	--radius-full: 0px;
+
+	/* Shadows - No shadows in minimal style */
+	--shadow-sm: none;
+	--shadow-md: none;
+	--shadow-lg: none;
+	--shadow-xl: none;
+}
+
+/* Minimal specific overrides - Layout & Display */
+[data-style='minimal'] .hero__visual,
+[data-style='minimal'] .hero__emoji-group,
+[data-style='minimal'] .category-card__emoji,
+[data-style='minimal'] .hero__shape,
+[data-style='minimal'] .about__note-visual,
+[data-style='minimal'] .hero__badge {
+	display: none !important;
+}
+
+[data-style='minimal'] .btn {
+	background: var(--color-text);
+	color: var(--color-bg) !important;
+	text-transform: uppercase;
+	font-weight: 800;
+	letter-spacing: 2px;
+	transition: none;
+}
+
+[data-style='minimal'] .btn:hover {
+	opacity: 0.8;
+	transform: none;
+}
+
+[data-style='minimal'] .animal-card {
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur));
+	-webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+[data-style='minimal'] .badge {
+	background: var(--color-text) !important;
+	color: var(--color-bg) !important;
+}
+
+[data-style='minimal'] .adoption-status-banner {
+	border-radius: 0;
+}
+
+[data-style='minimal'] .filter-bar {
+	box-shadow: none;
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur));
+	-webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+[data-style='minimal'] .hero {
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur));
+	-webkit-backdrop-filter: blur(var(--glass-blur));
+}

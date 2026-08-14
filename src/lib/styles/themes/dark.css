@@ -1,0 +1,70 @@
+:root,
+[data-theme='dark'] {
+	/* Palette */
+	--color-primary: #93bf4c;
+	--color-primary-light: #a4d45c;
+	--color-primary-dark: #598f3a;
+	--color-secondary: #ffb327;
+	--color-secondary-light: #ffc04a;
+
+	/* Backgrounds */
+	--color-bg: #1a1a1a;
+	--bg-image: url('/images/background/bg-dark-v01.webp');
+	--color-bg-surface: #242424;
+	--color-bg-warm: #132510;
+	--color-bg-card: #2a2a2a;
+	--color-bg-card-hover: #3a3a3a;
+
+	/* Text */
+	--color-text: #e5e5e5;
+	--color-text-muted: #a0a0a0;
+	--color-text-light: #cccccc;
+	--color-text-on-accent: #13371b;
+
+	/* Border & UI */
+	--color-border: transparent;
+	--header-bg: var(--glass-bg);
+	--header-border: transparent;
+	--footer-bg: #132510;
+	--footer-wave: #132510;
+	--gradient-hero: linear-gradient(135deg, #2a3d1d, #132510);
+	--gradient-accent: linear-gradient(135deg, #93bf4c, #ffb327);
+
+	/* Components */
+	--about-note-bg: var(--glass-bg);
+	--about-note-border: transparent;
+	--apply-highlight-bg: #2a3d1d;
+	--apply-email-bg: #3a5a2a;
+	--cat-card-bg: #2a3d1d;
+	--dog-card-bg: #3a5a2a;
+	--cat-hero: #2a3d1d;
+	--dog-hero: #3a5a2a;
+
+	/* UI Alpha & Overlays */
+	--color-overlay: rgba(0, 0, 0, 0.4);
+	--color-overlay-light: rgba(255, 255, 255, 0.1);
+	--color-border-alpha: rgba(255, 255, 255, 0.15);
+
+	/* Shadows */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+	--shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.7);
+	--shadow-xl: 0 20px 32px rgba(0, 0, 0, 0.8);
+
+	/* Specific colors */
+	--color-success: #93bf4c;
+	--color-error: #ff6b6b;
+	--color-stat: var(--color-accent);
+
+	/* Hero Shapes */
+	--hero-shape-color-1: var(--color-primary-light);
+	--hero-shape-color-2: var(--color-primary-dark);
+	--hero-shape-opacity: 0.12;
+
+	/* Links */
+	--color-link: var(--color-primary);
+	--color-link-hover: var(--color-primary-light);
+	--footer-text: #e5e5e5;
+	--footer-link: var(--color-primary);
+	--footer-link-hover: var(--color-primary-light);
+}

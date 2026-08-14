@@ -1,0 +1,69 @@
+[data-theme='orange-purple'] {
+	/* Palette */
+	--color-primary: #ff8c00;
+	--color-primary-light: #ffa500;
+	--color-primary-dark: #e67e00;
+	--color-secondary: #4a2e7a;
+	--color-secondary-light: #5a189a;
+
+	/* Backgrounds */
+	--color-bg: #1a0f2e;
+	--bg-image: url('/images/background/bg-orange-purple-v01.webp');
+	--color-bg-surface: #261742;
+	--color-bg-warm: #2d1a4d;
+	--color-bg-card: #261742;
+	--color-bg-card-hover: #351e63;
+
+	/* Text */
+	--color-text: #f0e6ff;
+	--color-text-muted: #b3a0cc;
+	--color-text-light: #d1c1eb;
+	--color-text-on-accent: #1a0f2e;
+
+	/* Border & UI */
+	--color-border: transparent;
+	--header-bg: var(--glass-bg);
+	--header-border: transparent;
+	--footer-bg: #1a0f2e;
+	--footer-wave: #1a0f2e;
+	--gradient-hero: linear-gradient(135deg, #4a2e7a, #1a0f2e);
+	--gradient-accent: linear-gradient(135deg, #ff8c00, #ffb327);
+
+	/* Components */
+	--about-note-bg: var(--glass-bg);
+	--about-note-border: transparent;
+	--apply-highlight-bg: #351e63;
+	--apply-email-bg: #4a2e7a;
+	--cat-card-bg: #2d1a4d;
+	--dog-card-bg: #261742;
+	--cat-hero: #4a2e7a;
+	--dog-hero: #2d1a4d;
+
+	/* UI Alpha & Overlays */
+	--color-overlay: rgba(26, 15, 46, 0.6);
+	--color-overlay-light: rgba(255, 255, 255, 0.1);
+	--color-border-alpha: rgba(255, 255, 255, 0.1);
+
+	/* Shadows */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+	--shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
+	--shadow-xl: 0 20px 32px rgba(0, 0, 0, 0.6);
+
+	/* Specific colors */
+	--color-success: #93bf4c;
+	--color-error: #ff6b6b;
+	--color-stat: #ff8c00;
+
+	/* Hero Shapes */
+	--hero-shape-color-1: var(--color-secondary-light);
+	--hero-shape-color-2: var(--color-primary);
+	--hero-shape-opacity: 0.15;
+
+	/* Links */
+	--color-link: var(--color-primary);
+	--color-link-hover: var(--color-primary-light);
+	--footer-text: #f0e6ff;
+	--footer-link: var(--color-primary);
+	--footer-link-hover: var(--color-primary-light);
+}

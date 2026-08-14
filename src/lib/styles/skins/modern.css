@@ -1,0 +1,28 @@
+[data-style='modern'] {
+	/* Typography */
+	--font-main: 'Inter', sans-serif;
+	--font-accent: 'Outfit', sans-serif;
+
+	/* Shape */
+	--radius-2xl: 40px;
+	--radius-xl: 32px;
+	--radius-lg: 24px;
+	--radius-md: 12px;
+	--radius-sm: 8px;
+	--radius-full: 9999px;
+
+	/* Shadows are inherited from the theme to match palette intensity */
+}
+
+[data-style='modern'] .btn {
+	box-shadow: var(--shadow-md);
+}
+
+[data-style='modern'] .hero__title {
+	font-size: 4rem;
+}
+
+[data-style='modern'] .animal-card:hover {
+	transform: translateY(-8px);
+	box-shadow: var(--shadow-lg);
+}

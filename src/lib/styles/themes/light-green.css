@@ -1,0 +1,69 @@
+[data-theme='light-green'] {
+	/* Palette */
+	--color-primary: #598f3a;
+	--color-primary-light: #93bf4c;
+	--color-primary-dark: #4a7a2e;
+	--color-secondary: #ffb327;
+	--color-secondary-light: #ffc04a;
+
+	/* Backgrounds */
+	--color-bg: #f2f5ec;
+	--bg-image: url('/images/background/bg-light-green-v01.webp');
+	--color-bg-surface: #e4ebd8;
+	--color-bg-warm: #f9fff4;
+	--color-bg-card: #ffffff;
+	--color-bg-card-hover: #f9fff4;
+
+	/* Text */
+	--color-text: #262626;
+	--color-text-muted: #4a5a3a;
+	--color-text-light: #666666;
+	--color-text-on-accent: #13371b;
+
+	/* Border & UI */
+	--color-border: transparent;
+	--header-bg: var(--glass-bg);
+	--header-border: transparent;
+	--footer-bg: #598f3a;
+	--footer-wave: #598f3a;
+	--gradient-hero: linear-gradient(135deg, #598f3a, #93bf4c);
+	--gradient-accent: linear-gradient(135deg, #598f3a, #ffb327);
+
+	/* Components */
+	--about-note-bg: var(--glass-bg);
+	--about-note-border: transparent;
+	--apply-highlight-bg: #f9fff4;
+	--apply-email-bg: #e4ebd8;
+	--cat-card-bg: #e4ebd8;
+	--dog-card-bg: #f2f5ec;
+	--cat-hero: #598f3a;
+	--dog-hero: #93bf4c;
+
+	/* UI Alpha & Overlays */
+	--color-overlay: rgba(89, 143, 58, 0.2);
+	--color-overlay-light: rgba(255, 255, 255, 0.6);
+	--color-border-alpha: rgba(0, 0, 0, 0.05);
+
+	/* Shadows */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.15);
+	--shadow-xl: 0 20px 32px rgba(0, 0, 0, 0.2);
+
+	/* Specific colors */
+	--color-success: #598f3a;
+	--color-error: #d44;
+	--color-stat: #13371b;
+
+	/* Hero Shapes */
+	--hero-shape-color-1: var(--color-primary);
+	--hero-shape-color-2: var(--color-secondary);
+	--hero-shape-opacity: 0.08;
+
+	/* Links */
+	--color-link: var(--color-primary-dark);
+	--color-link-hover: var(--color-primary);
+	--footer-text: #ffffff;
+	--footer-link: var(--color-secondary-light);
+	--footer-link-hover: #ffffff;
+}
