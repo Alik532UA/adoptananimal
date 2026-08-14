@@ -29,6 +29,13 @@
 	let lastTime: number = 0;
 	let virtualScrollLeft: number = 0;
 	let currentSpeed: number = 0;
+	/**
+	 * Which way it drifts on its own: 1 right, -1 left.
+	 *
+	 * Set from the last thing the visitor did. Someone scrolling back to a card they
+	 * passed does not want the carousel pulling the other way the moment they let go.
+	 */
+	let direction = $state(1);
 
 	const finalTestId = $derived(testId.endsWith('-container') ? testId : `${testId}-container`);
 
@@ -43,7 +50,7 @@
 		const deltaTime = Math.min(timestamp - lastTime, 64) / 1000;
 		lastTime = timestamp;
 
-		const targetSpeed = autoScrollActive && !isInteracting ? speed : 0;
+		const targetSpeed = autoScrollActive && !isInteracting ? speed * direction : 0;
 
 		// Modern exponential smoothing (lerp) for speed transitions
 		// This provides a much more natural and "premium" feel than linear acceleration
@@ -64,8 +71,17 @@
 				}
 
 				viewport.scrollLeft = virtualScrollLeft;
-			} else if (isInteracting) {
-				// While interacting, keep the virtual position in sync with manual scrolling
+			} else {
+				/*
+				 * Anything that is not us moving it: a drag, the wheel, the native scroll
+				 * a trackpad produces, or simply standing still.
+				 *
+				 * This used to sync only `if (isInteracting)`, and interaction ends three
+				 * seconds after the last event. Scroll the carousel by hand, wait, then take
+				 * the pointer away, and the drift resumed from a position recorded before
+				 * the scroll — the carousel jumped back to where it had been. There is one
+				 * source of truth for where the track is, and it is the element.
+				 */
 				virtualScrollLeft = viewport.scrollLeft;
 			}
 		}
@@ -88,20 +104,37 @@
 	}
 
 	function handleScroll() {
-		if (isInteracting) {
+		// Not gated on isInteracting any more: a trackpad's two-finger swipe scrolls the
+		// element natively and fires nothing else, so the wrap never happened and the
+		// track ran off its own end.
+		if (!autoScrollActive || isInteracting) {
 			handleInfiniteJump();
 		}
 	}
 
 	function handleWheel(e: WheelEvent) {
 		if (!viewport) return;
-		// If vertical scroll is stronger, convert it to horizontal
-		if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-			e.preventDefault();
-			viewport.scrollLeft += e.deltaY;
-			startInteraction();
-			stopInteraction();
-		}
+
+		/*
+		 * Which axis the wheel meant.
+		 *
+		 * Shift+wheel is the standard way to scroll sideways, and browsers disagree on
+		 * how to report it: some swap the axes and send deltaX, some leave it in deltaY
+		 * and set shiftKey. Reading whichever is non-zero covers both without asking
+		 * which browser this is. Before, shift+wheel fell through to the native scroll,
+		 * which moved the track without telling this component — so the drift resumed
+		 * from its own stale idea of the position and undid it.
+		 */
+		const sideways = e.shiftKey ? e.deltaX || e.deltaY : e.deltaX;
+		const delta = sideways || e.deltaY;
+		if (!delta) return;
+
+		e.preventDefault();
+		viewport.scrollLeft += delta;
+		// The drift picks up where the visitor left off, in the direction they went.
+		direction = Math.sign(delta);
+		startInteraction();
+		stopInteraction();
 	}
 
 	function handleMouseDown(e: MouseEvent) {
@@ -120,6 +153,8 @@
 		const walk = (x - startX) * 1.5;
 		if (Math.abs(x - startX) > 5) {
 			isMoved = true;
+			// Dragging content leftwards means moving forwards through it.
+			direction = walk < 0 ? 1 : -1;
 		}
 		viewport.scrollLeft = startScrollLeft - walk;
 	}
@@ -144,10 +179,11 @@
 		}, 3000); // Resume auto-scroll after 3 seconds of inactivity
 	}
 
-	function scrollBy(direction: number) {
+	function scrollBy(towards: number) {
 		if (!viewport) return;
 		startInteraction();
-		const scrollAmount = viewport.clientWidth * 0.8 * direction;
+		direction = towards;
+		const scrollAmount = viewport.clientWidth * 0.8 * towards;
 		viewport.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 		stopInteraction();
 	}

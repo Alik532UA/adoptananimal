@@ -27,6 +27,52 @@
 	const route = $derived(data);
 
 	/**
+	 * The parallax background's own geometry.
+	 *
+	 * PARALLAX_DIVISOR is how much slower it goes than the page. The height follows from
+	 * it: over a page that scrolls `maxScroll`, the image travels a third of that, so it
+	 * has to be a viewport tall plus that third or it runs out at the bottom.
+	 */
+	const PARALLAX_DIVISOR = 3;
+	let bgHeight = $state(0);
+	let bgShift = $state(0);
+
+	$effect(() => {
+		if (!browser) return;
+
+		let queued = false;
+		const apply = () => {
+			const viewport = window.innerHeight;
+			const maxScroll = Math.max(document.documentElement.scrollHeight - viewport, 0);
+			bgHeight = viewport + maxScroll / PARALLAX_DIVISOR;
+			bgShift = window.scrollY / PARALLAX_DIVISOR;
+		};
+
+		// One read per frame. Without this the handler runs on every scroll event, and
+		// reading scrollHeight in it forces a layout each time.
+		const onScroll = () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => {
+				apply();
+				queued = false;
+			});
+		};
+
+		apply();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		// The page's height changes for more reasons than a resize: images arrive, a
+		// filter empties the list, the carousel appears once it has been shuffled.
+		const observer = new ResizeObserver(onScroll);
+		observer.observe(document.documentElement);
+
+		return () => {
+			window.removeEventListener('scroll', onScroll);
+			observer.disconnect();
+		};
+	});
+
+	/**
 	 * The class that hides the native scrollbar has exactly one owner: this effect
 	 * (SCROLLBAR-v8 § 2.3).
 	 *
@@ -150,7 +196,7 @@
 
 <Header />
 
-<div class="site-bg"></div>
+<div class="site-bg" style="--bg-height: {bgHeight}px; --bg-shift: {bgShift}px;"></div>
 
 <div class="app-shell">
 	<main class="main" id="main-content">
@@ -205,16 +251,41 @@
 		min-height: 100dvh;
 	}
 
+	/*
+	 * The page's image, moving at a third of the page's speed.
+	 *
+	 * Held still it read as a photograph behind glass; moving with the content it would
+	 * not be a background at all. A third is enough for the content to look like it
+	 * travels over something rather than on top of it.
+	 *
+	 * Height and offset both come from the script, because neither is expressible here:
+	 * how far it has to travel is a third of how far the page scrolls, and that is a
+	 * property of the page. Sized exactly rather than guessed at generously, so the
+	 * image never runs out from under the last screenful.
+	 */
 	.site-bg {
 		position: fixed;
-		inset: 0;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: var(--bg-height);
 		z-index: -1;
 		background-image: var(--bg-image);
 		background-size: cover;
 		background-position: center;
 		filter: blur(5px);
-		transform: scale(1.03);
+		transform: translate3d(0, calc(var(--bg-shift) * -1), 0) scale(1.03);
 		transition: background-image var(--transition-slow);
+		will-change: transform;
+	}
+
+	/* Parallax is one of the effects that makes motion sickness worse, and it is
+	   decoration — the image stays, it simply stops travelling. */
+	@media (prefers-reduced-motion: reduce) {
+		.site-bg {
+			height: 100vh;
+			transform: scale(1.03);
+		}
 	}
 
 	.back-to-top {
@@ -274,17 +345,26 @@
 	}
 
 	/*
-	 * Secondary buttons go solid inside that section.
+	 * Secondary buttons get their own surface inside that section.
 	 *
-	 * Their background is half-transparent card colour, which is near-white over the
-	 * page and a blend of the hero colour over this. The label measured 2.54:1 on the
-	 * home page the moment the section gained its colour. --color-primary-on-surface is
-	 * defined against --color-bg-card, so giving them that surface back is what makes it
-	 * true again — and scoped here, beside the rule that caused it, rather than by
+	 * Half-transparent card colour is near-white over the page background and a blend of
+	 * the hero colour over this one — the label measured 2.54:1 the moment the section
+	 * gained its colour, and the card colour that replaced it was a dark grey sitting on
+	 * dark green, legible but too dim to read as a button at all. --color-hero-btn is
+	 * the surface each theme declares for standing on its own hero.
+	 *
+	 * Scoped here, beside the rule that made the section coloured, rather than by
 	 * changing the variant everywhere it already works.
 	 */
 	.main > :global(:first-child .btn--secondary) {
-		background: var(--color-bg-card);
+		background: var(--color-hero-btn);
+		color: var(--color-text-on-hero-btn);
+	}
+
+	.main > :global(:first-child .btn--secondary:hover) {
+		background: var(--color-hero-btn);
+		color: var(--color-text-on-hero-btn);
+		filter: brightness(1.08);
 	}
 
 	.boundary__inner {

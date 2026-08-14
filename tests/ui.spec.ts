@@ -482,3 +482,188 @@ test('the favourites page offers cats and dogs as equal choices', async ({ page 
 
 	expect(await look('explore-dogs-link')).toBe(await look('explore-cats-link'));
 });
+
+test.describe('the carousel under the pointer', () => {
+	const position = (page: import('@playwright/test').Page) =>
+		page.locator('.carousel-viewport').evaluate((el) => el.scrollLeft);
+
+	/** Settles the drift so a reading is not taken mid-frame. */
+	const rest = (page: import('@playwright/test').Page) => page.waitForTimeout(400);
+
+	/**
+	 * Scroll it by hand, let the interaction lapse, then take the pointer away.
+	 *
+	 * `wheel` is how the scroll is delivered — sideways for a trackpad swipe, shifted for
+	 * a mouse. Both used to reach the element without this component hearing about it,
+	 * which is the whole defect: it kept its own idea of where the track was, and the
+	 * drift resumed from that idea rather than from the track.
+	 */
+	const scrollAndLeave = async (
+		page: import('@playwright/test').Page,
+		wheel: { deltaX: number; deltaY: number; shift?: boolean }
+	) => {
+		const carousel = page.getByTestId('featured-carousel-container');
+		await expect(carousel).toBeVisible();
+
+		const box = (await carousel.boundingBox())!;
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+		await rest(page);
+
+		const before = await position(page);
+		if (wheel.shift) await page.keyboard.down('Shift');
+		await page.mouse.wheel(wheel.deltaX, wheel.deltaY);
+		if (wheel.shift) await page.keyboard.up('Shift');
+		await rest(page);
+		const moved = await position(page);
+
+		// Three seconds is the interaction timer. The jump only appeared once it had
+		// expired, so waiting it out is part of reproducing it.
+		await page.waitForTimeout(3300);
+		await page.mouse.move(box.x + box.width / 2, box.y - 40);
+		await rest(page);
+
+		return { before, moved, after: await position(page) };
+	};
+
+	test('picks up where a sideways scroll left it, not where it was before', async ({ page }) => {
+		await page.goto('/');
+		const { before, moved, after } = await scrollAndLeave(page, { deltaX: 700, deltaY: 0 });
+
+		expect(Math.abs(moved - before), 'the sideways wheel moved nothing').toBeGreaterThan(100);
+		// Drifting on from where it was left is a small change; snapping back to `before`
+		// is the bug, and it is hundreds of pixels.
+		expect(Math.abs(after - moved), `jumped back toward ${before}`).toBeLessThan(120);
+	});
+
+	test('drifts the way the visitor last went', async ({ page }) => {
+		await page.goto('/');
+		const carousel = page.getByTestId('featured-carousel-container');
+		await expect(carousel).toBeVisible();
+
+		const box = (await carousel.boundingBox())!;
+		const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+
+		const driftAfter = async (deltaX: number) => {
+			await page.mouse.move(centre.x, centre.y);
+			await page.mouse.wheel(deltaX, 0);
+			await page.waitForTimeout(3300); // let the interaction lapse
+			await page.mouse.move(centre.x, box.y - 40); // and the drift take over
+			const from = await position(page);
+			await page.waitForTimeout(700);
+			return (await position(page)) - from;
+		};
+
+		expect(await driftAfter(400), 'scrolled forwards, drifted backwards').toBeGreaterThan(0);
+		expect(await driftAfter(-400), 'scrolled backwards, drifted forwards').toBeLessThan(0);
+	});
+
+	test('shift and the wheel scroll it sideways, and it stays scrolled', async ({ page }) => {
+		await page.goto('/');
+		const { before, moved, after } = await scrollAndLeave(page, {
+			deltaX: 0,
+			deltaY: 700,
+			shift: true
+		});
+
+		expect(Math.abs(moved - before), 'shift+wheel did nothing').toBeGreaterThan(100);
+		expect(Math.abs(after - moved), `jumped back toward ${before}`).toBeLessThan(120);
+
+		// Worth being clear about what this does and does not prove. Real hardware sends
+		// shift+wheel as deltaX, and that path — the one that was broken — is covered by
+		// the sideways test above, which does fail without the fix. A synthesized wheel
+		// arrives on the axis it was given, so here Chromium hands the component a plain
+		// deltaY, which even the old code handled. This is a guard on the outcome, not
+		// evidence that the deltaX branch works.
+	});
+});
+
+test.describe('the page background', () => {
+	test('travels at a third of the page speed and never runs out', async ({ page }) => {
+		await page.goto('/');
+		await page.waitForLoadState('networkidle');
+
+		const read = () =>
+			page.evaluate(() => {
+				const bg = document.querySelector('.site-bg') as HTMLElement;
+				return {
+					height: parseFloat(bg.style.getPropertyValue('--bg-height')),
+					shift: parseFloat(bg.style.getPropertyValue('--bg-shift')),
+					scrollY: window.scrollY,
+					maxScroll: document.documentElement.scrollHeight - window.innerHeight,
+					viewport: window.innerHeight
+				};
+			});
+
+		await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
+		await page.waitForFunction(
+			() =>
+				parseFloat(
+					(document.querySelector('.site-bg') as HTMLElement).style.getPropertyValue('--bg-shift')
+				) > 0
+		);
+
+		const state = await read();
+		// A third of the page's own movement: still enough to read as depth, not so much
+		// that the background becomes part of the content.
+		expect(state.shift).toBeCloseTo(state.scrollY / 3, 0);
+		// Tall enough that the last screenful still has image under it.
+		expect(state.height).toBeGreaterThanOrEqual(state.viewport + state.maxScroll / 3 - 1);
+	});
+
+	test('holds still for anyone who asked for less motion', async ({ browser }) => {
+		// Parallax is one of the effects that makes motion sickness worse. The image
+		// stays; it just stops travelling.
+		const context = await browser.newContext({ reducedMotion: 'reduce' });
+		const page = await context.newPage();
+		await page.goto('/');
+		await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
+		await page.waitForTimeout(300);
+
+		const transform = await page.evaluate(
+			() => getComputedStyle(document.querySelector('.site-bg')!).transform
+		);
+		// matrix(a, b, c, d, tx, ty) — the vertical translation is the last number.
+		const ty = parseFloat(transform.split(',').pop() ?? '0');
+		expect(Math.abs(ty), 'the background moved anyway').toBeLessThan(1);
+
+		await context.close();
+	});
+});
+
+test.describe('surfaces that should not hide the page', () => {
+	for (const path of ['/adopt/cat', '/adopt/dog']) {
+		test(`the list on ${path} lets the page image through`, async ({ page }) => {
+			await page.goto(path);
+			const bg = await page
+				.locator('.animal-list')
+				.evaluate((el) => getComputedStyle(el).backgroundColor);
+			// A flat panel the height of the list hid the whole background image.
+			expect(bg, 'the list paints over the page').toBe('rgba(0, 0, 0, 0)');
+		});
+	}
+
+	for (const theme of THEMES) {
+		test(`the hero buttons are solid and stand out in theme ${theme}`, async ({ page }) => {
+			await page.goto('/');
+			await page.evaluate((t) => localStorage.setItem('adoptananimal_theme', t), theme);
+			await page.reload();
+
+			const seen = await page.getByTestId('featured-see-all-cats-link').evaluate((el) => {
+				const cs = getComputedStyle(el);
+				const section = document.querySelector('.main > *')!;
+				return { button: cs.backgroundColor, section: getComputedStyle(section).backgroundColor };
+			});
+
+			// Solid, not glass: over a coloured section a half-transparent button takes on
+			// the colour behind it and the label goes with it.
+			expect(seen.button, `${theme}: the button is translucent`).toMatch(/^rgb\(/);
+			// And a different colour from what it stands on, or it is not a button at all.
+			// The dark theme's card grey on its dark green hero was legible and invisible.
+			const rgb = (s: string) => (s.match(/\d+/g) ?? []).map(Number);
+			const [br, bg2, bb] = rgb(seen.button);
+			const [sr, sg, sb] = rgb(seen.section);
+			const apart = Math.abs(br - sr) + Math.abs(bg2 - sg) + Math.abs(bb - sb);
+			expect(apart, `${theme}: the button barely differs from the section`).toBeGreaterThan(90);
+		});
+	}
+});

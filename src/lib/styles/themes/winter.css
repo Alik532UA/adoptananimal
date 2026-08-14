@@ -44,6 +44,13 @@
 	--cat-card-bg: #e6f2ff;
 	--dog-card-bg: #f0f7ff;
 	--cat-hero: #1f66cc; /* darkened: white hero text needs 4.5:1 */
+
+	/* A button standing on the section a page opens with.
+	   Its own surface, because neither of the obvious answers works in all four themes:
+	   the card colour is a dark grey that vanishes into a dark hero, and the primary is
+	   the hero colour itself in two of them. Paired with a foreground chosen for it. */
+	--color-hero-btn: #ffffff;
+	--color-text-on-hero-btn: #1f66cc; /* 5.48:1 */
 	--dog-hero: #1f66cc; /* darkened: white hero text needs 4.5:1 */
 
 	/* UI Alpha & Overlays */

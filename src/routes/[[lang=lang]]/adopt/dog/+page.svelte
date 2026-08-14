@@ -157,7 +157,8 @@
 	}
 
 	.animal-list {
-		background: var(--color-bg-warm);
+		/* No background of its own: the page's own image sits behind it, and a flat
+		   panel over the full height of the list hid the whole thing. */
 		padding-top: var(--space-lg);
 	}
 
