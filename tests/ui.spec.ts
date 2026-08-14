@@ -210,3 +210,75 @@ test.describe('the about heading', () => {
 		});
 	}
 });
+
+test.describe('the list filters', () => {
+	const shown = (page: import('@playwright/test').Page, list: string) =>
+		page.evaluate(
+			(id) =>
+				[...document.querySelectorAll(`[data-testid="${id}"] .animal-card`)].map((card) =>
+					card.id.replace('card-', '')
+				),
+			list
+		);
+
+	/** Clicks a filter and waits for the list to settle, rather than sampling once. */
+	const apply = async (page: import('@playwright/test').Page, testId: string, list: string) => {
+		await page.getByTestId(testId).click();
+		await expect(page.getByTestId(testId)).toHaveAttribute('aria-pressed', 'true');
+		return shown(page, list);
+	};
+
+	test('gender splits the dogs in two with nobody counted twice', async ({ page }) => {
+		// `'female'.includes('male')` meant the male filter matched every animal on the
+		// site — the list simply did not change when you pressed it.
+		await page.goto('/adopt/dog');
+		const all = await apply(page, 'filter-gender-all-btn', 'dogs-list');
+
+		const males = await apply(page, 'filter-gender-male-btn', 'dogs-list');
+		const females = await apply(page, 'filter-gender-female-btn', 'dogs-list');
+
+		expect(males.length).toBeGreaterThan(0);
+		expect(females.length).toBeGreaterThan(0);
+		expect(males.length).toBeLessThan(all.length);
+		expect([...males, ...females].sort()).toEqual([...all].sort());
+	});
+
+	test('the three size filters between them account for every dog', async ({ page }) => {
+		// Three dogs are listed as "tiny", which matched none of small/medium/large, so
+		// they were reachable only with the filter off.
+		await page.goto('/adopt/dog');
+		const all = await apply(page, 'filter-size-all-btn', 'dogs-list');
+
+		const small = await apply(page, 'filter-size-small-btn', 'dogs-list');
+		const medium = await apply(page, 'filter-size-medium-btn', 'dogs-list');
+		const large = await apply(page, 'filter-size-large-btn', 'dogs-list');
+
+		expect([...small, ...medium, ...large].sort()).toEqual([...all].sort());
+	});
+
+	test('status splits between available and adopted', async ({ page }) => {
+		await page.goto('/adopt/cat');
+		const all = await apply(page, 'filter-status-all-btn', 'cats-list');
+
+		const available = await apply(page, 'filter-status-available-btn', 'cats-list');
+		const adopted = await apply(page, 'filter-status-adopted-btn', 'cats-list');
+
+		expect([...available, ...adopted].sort()).toEqual([...all].sort());
+	});
+
+	test('a filter arrives applied when the page is opened by its URL', async ({ page }) => {
+		await page.goto('/adopt/dog?gender=male');
+
+		await expect(page.getByTestId('filter-gender-male-btn')).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+
+		const males = await shown(page, 'dogs-list');
+		await page.goto('/adopt/dog');
+		const all = await shown(page, 'dogs-list');
+
+		expect(males.length).toBeGreaterThan(0);
+		expect(males.length).toBeLessThan(all.length);
+	});
+});

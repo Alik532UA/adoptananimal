@@ -1,5 +1,6 @@
 import { cats, dogs, getAnimalBySlug as getRawAnimalBySlug } from '$lib/data/animals';
 import type { AnimalSummary, AnimalDetail, FilterState } from '$lib/data/types';
+import { breedTerms, normaliseGender, normaliseSize } from '$lib/data/filters';
 import { settings } from '$lib/services/settings.svelte';
 
 /**
@@ -39,19 +40,26 @@ class AnimalService {
 	 */
 	getFiltered(type: 'cat' | 'dog' | 'all', filters: FilterState): AnimalSummary[] {
 		const list = type === 'all' ? this.allSummaries : type === 'cat' ? cats : dogs;
+		const query = filters.search.trim().toLowerCase();
 
 		return list.filter((animal) => {
-			const matchesGender =
-				!filters.gender || animal.gender.en.toLowerCase().includes(filters.gender.toLowerCase());
-			const matchesSize =
-				!filters.size || animal.size.en.toLowerCase().includes(filters.size.toLowerCase());
+			// Compared as a value, not as a substring: 'female' contains 'male', so the
+			// male filter used to match every animal on the site.
+			const matchesGender = !filters.gender || normaliseGender(animal.gender.en) === filters.gender;
+
+			// Bucketed, because the data says 'tiny' and 'up to 4 kg' as well as the three
+			// words the buttons offer.
+			const matchesSize = !filters.size || normaliseSize(animal.size.en) === filters.size;
+
 			const matchesStatus =
 				!filters.status || (filters.status === 'available' ? !animal.isAdopted : animal.isAdopted);
+
+			// Breeds in every language, so searching works in the one being read.
 			const matchesSearch =
-				!filters.search ||
-				animal.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-				animal.breed.en.toLowerCase().includes(filters.search.toLowerCase()) ||
-				animal.breed.uk.toLowerCase().includes(filters.search.toLowerCase());
+				!query ||
+				animal.name.toLowerCase().includes(query) ||
+				breedTerms(animal).some((term) => term.includes(query));
+
 			const matchesFavs = !filters.onlyFavorites || settings.isFavorite(animal.slug);
 
 			return matchesGender && matchesSize && matchesStatus && matchesSearch && matchesFavs;
