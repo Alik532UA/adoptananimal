@@ -197,5 +197,12 @@ export const nl = {
 	'apply.form.openInNewTab': 'Formulier in een nieuw tabblad openen',
 	'apply.form.chosenAnimal': 'U vraagt {name} aan — vul deze naam in het formulier in.',
 	'apply.form.backupNotice':
-		'Dit is het vorige formulier op de site, bewaard als reserve. Aanvragen worden verzameld via het Google-formulier op de aanvraagpagina.'
+		'Dit is het vorige formulier op de site, bewaard als reserve. Aanvragen worden verzameld via het Google-formulier op de aanvraagpagina.',
+
+	// Scrollbar modes, offered on the bar's own right-click menu.
+	'scrollbar.title': 'Schuifbalk',
+	'scrollbar.standard': 'Standaard',
+	'scrollbar.custom': 'Eigen balk',
+	'scrollbar.minimap': 'Schematische minimap',
+	'scrollbar.minimapFull': 'Visuele minimap'
 } as const;

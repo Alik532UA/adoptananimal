@@ -197,7 +197,14 @@ export const en = {
 	'apply.form.openInNewTab': 'Open the form in a new tab',
 	'apply.form.chosenAnimal': 'You are applying for {name} — please enter this name in the form.',
 	'apply.form.backupNotice':
-		'This is the previous on-site form, kept as a fallback. Applications are collected through the Google form on the application page.'
+		'This is the previous on-site form, kept as a fallback. Applications are collected through the Google form on the application page.',
+
+	// Scrollbar modes, offered on the bar's own right-click menu.
+	'scrollbar.title': 'Scrollbar',
+	'scrollbar.standard': 'Standard',
+	'scrollbar.custom': 'Custom bar',
+	'scrollbar.minimap': 'Schematic minimap',
+	'scrollbar.minimapFull': 'Visual minimap'
 } as const;
 
 export type TranslationKey = keyof typeof en;

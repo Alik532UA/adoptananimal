@@ -7,6 +7,19 @@ export default defineConfig({
 	// and run Playwright specs as unit tests (PROJECT-STRUCTURE § anti-patterns).
 	testDir: 'tests',
 	fullyParallel: true,
+
+	/*
+	 * A memory budget, not a core count — which is why it is a number and not a share.
+	 *
+	 * The suite passed a hundred cases and the visual minimap holds a second copy of the
+	 * whole page, images included. At one browser per core the run started killing its
+	 * own workers ("Zone Allocation failed", then STATUS_STACK_BUFFER_OVERRUN), and
+	 * before that it did something worse than crashing: axe sampled colours on a machine
+	 * too busy to finish a fade and reported contrast failures for pairings that pass.
+	 * Both are the machine, not the site, and a suite that fails for reasons the code
+	 * cannot fix teaches everyone to rerun it until it is green.
+	 */
+	workers: process.env.CI ? 2 : 4,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',

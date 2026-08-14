@@ -199,5 +199,12 @@ export const uk = {
 	'apply.form.openInNewTab': 'Відкрити форму в новій вкладці',
 	'apply.form.chosenAnimal': 'Ви подаєте заявку на {name} — вкажіть це імʼя у формі.',
 	'apply.form.backupNotice':
-		'Це попередня форма на сайті, збережена як запасна. Заявки збираються через Google-форму на сторінці подання.'
+		'Це попередня форма на сайті, збережена як запасна. Заявки збираються через Google-форму на сторінці подання.',
+
+	// Scrollbar modes, offered on the bar's own right-click menu.
+	'scrollbar.title': 'Смуга прокрутки',
+	'scrollbar.standard': 'Стандартна',
+	'scrollbar.custom': 'Власна смуга',
+	'scrollbar.minimap': 'Схематична мінімапа',
+	'scrollbar.minimapFull': 'Візуальна мінімапа'
 } as const;

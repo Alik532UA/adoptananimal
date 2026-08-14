@@ -6,12 +6,17 @@
 	import { untrack } from 'svelte';
 	import { settings } from '$lib/services/settings.svelte';
 	import { onNavigate } from '$app/navigation';
+	import { browser } from '$app/environment';
 	import { logService } from '$lib/services/logService.svelte';
+	import { scrollbar } from '$lib/services/scrollbar.svelte';
 	import { webVitals } from '$lib/controllers/webVitals.svelte';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import LogCopyButton from '$lib/components/LogCopyButton.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
+	import PageScrollbar from '$lib/components/ui/PageScrollbar.svelte';
+	import Minimap from '$lib/components/ui/Minimap.svelte';
+	import ScrollbarContextMenu from '$lib/components/ui/ScrollbarContextMenu.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
 	let { data, children } = $props();
@@ -20,6 +25,19 @@
 	// The locale-free path of the current page, e.g. /adopt/cat for both /adopt/cat
 	// and /uk/adopt/cat. Resolved in the load so it is available before anything renders.
 	const route = $derived(data);
+
+	/**
+	 * The class that hides the native scrollbar has exactly one owner: this effect
+	 * (SCROLLBAR-v8 § 2.3).
+	 *
+	 * Left to the drawing components, switching modes races — the incoming one adds the
+	 * class, then the outgoing one's cleanup runs and takes it back off, and the page
+	 * shows both a custom bar and the system one.
+	 */
+	$effect(() => {
+		if (!browser) return;
+		document.documentElement.classList.toggle('has-custom-scrollbar', scrollbar.hidesNative);
+	});
 
 	// Read once, on purpose, before Header and the page render. Prerendering runs every
 	// page in one process, so a singleton still holding the previous page's language
@@ -167,6 +185,14 @@
 	<Icon name="arrow-up" size="1.5rem" />
 </button>
 
+<PageScrollbar />
+<Minimap />
+
+<!-- At the root, not inside the bars: the minimap has overflow: hidden and would clip
+	 it, and the menu is shared by all four modes — after a switch the component that
+	 opened it disappears and would take the menu with it. -->
+<ScrollbarContextMenu />
+
 <Toast />
 
 <LogCopyButton />
@@ -227,26 +253,38 @@
 	.main {
 		flex: 1;
 		padding-top: 72px;
+	}
 
-		/*
-		 * The strip of hero colour the header's active tab flows into. See --hero-band.
-		 *
-		 * Here rather than on each page: the header draws its tab on every route, so a
-		 * page that forgets the band is a page where the tab looks broken, and that is
-		 * not a thing a new page should have to know. Pages with their own hero paint
-		 * over this in the same colour, so it only ever shows where there is none.
-		 *
-		 * content-box for both origin and clip: padding-top is the space behind the
-		 * fixed header, and the header is translucent. A band painted there would tint
-		 * the bar itself on every page.
-		 */
-		background-image: linear-gradient(
-			var(--cat-hero) 0 var(--hero-band),
-			transparent var(--hero-band)
-		);
-		background-repeat: no-repeat;
-		background-origin: content-box;
-		background-clip: content-box;
+	/*
+	 * The hero colour the header's active tab flows into, on whatever section a page
+	 * opens with.
+	 *
+	 * Here rather than on each page: the header draws its tab on every route, so a page
+	 * that forgets this is a page where the tab looks broken, and that is not something
+	 * a new page should have to know. Every page that already opens with a hero declares
+	 * the same colour on it, so this changes nothing there — it fills in for the pages
+	 * that open with something else.
+	 *
+	 * The whole section, not a band of fixed height. A band ends in the middle of
+	 * whatever it lands on, and a colour that stops halfway down a row of cards reads as
+	 * a rendering fault. Ending at the section boundary reads as a decision.
+	 */
+	.main > :global(:first-child) {
+		background-color: var(--cat-hero);
+	}
+
+	/*
+	 * Secondary buttons go solid inside that section.
+	 *
+	 * Their background is half-transparent card colour, which is near-white over the
+	 * page and a blend of the hero colour over this. The label measured 2.54:1 on the
+	 * home page the moment the section gained its colour. --color-primary-on-surface is
+	 * defined against --color-bg-card, so giving them that surface back is what makes it
+	 * true again — and scoped here, beside the rule that caused it, rather than by
+	 * changing the variant everywhere it already works.
+	 */
+	.main > :global(:first-child .btn--secondary) {
+		background: var(--color-bg-card);
 	}
 
 	.boundary__inner {

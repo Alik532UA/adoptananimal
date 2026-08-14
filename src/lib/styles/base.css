@@ -22,15 +22,6 @@
 	--glass-border: transparent;
 	--glass-blur: 16px;
 	--active-tab-bg: var(--color-primary);
-
-	/* Height of the coloured strip every page opens with.
-	   The header's active tab is drawn in --cat-hero and its skirts stop dead at the
-	   header's lower edge. Where the page under it is another colour the tab reads as
-	   a shape someone cut off, which is what the list pages avoided by accident: they
-	   happen to start with a hero in that same colour. Now every page does.
-	   120px is SETTLE_DISTANCE from tabWave.ts — the scroll it takes for the tab to
-	   close into a self-contained rounded shape that needs nothing behind it. */
-	--hero-band: 120px;
 }
 
 *,

@@ -202,5 +202,12 @@ export const de = {
 	'apply.form.chosenAnimal':
 		'Sie bewerben sich für {name} — bitte tragen Sie diesen Namen im Formular ein.',
 	'apply.form.backupNotice':
-		'Dies ist das frühere Formular auf der Website, als Reserve aufbewahrt. Anträge werden über das Google-Formular auf der Antragsseite gesammelt.'
+		'Dies ist das frühere Formular auf der Website, als Reserve aufbewahrt. Anträge werden über das Google-Formular auf der Antragsseite gesammelt.',
+
+	// Scrollbar modes, offered on the bar's own right-click menu.
+	'scrollbar.title': 'Bildlaufleiste',
+	'scrollbar.standard': 'Standard',
+	'scrollbar.custom': 'Eigene Leiste',
+	'scrollbar.minimap': 'Schematische Minimap',
+	'scrollbar.minimapFull': 'Visuelle Minimap'
 } as const;

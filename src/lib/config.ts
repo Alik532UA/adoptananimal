@@ -1,4 +1,6 @@
 import { localeSegment, type Locale } from '$lib/i18n/locales';
+import type { TranslationKey } from '$lib/i18n/translations/en';
+import type { ScrollbarMode } from '$lib/services/scrollbar.svelte';
 
 /**
  * Absolute origin of the deployed site.
@@ -66,3 +68,17 @@ export const absoluteLocale = (path: string, locale: Locale): string => {
 	// Root of a language with no base configured would otherwise be a bare origin.
 	return url === SITE_ORIGIN ? `${SITE_ORIGIN}/` : url;
 };
+
+/**
+ * The scrollbar modes, in one place (SCROLLBAR-v8 § 2.2).
+ *
+ * Rendered by the bar's context menu, and by a settings panel too if this site grows
+ * one. Two copies drift the moment a fifth mode is added and one of the places forgets
+ * it. Order runs from the familiar to the most expensive.
+ */
+export const SCROLLBAR_MODES: { id: ScrollbarMode; key: TranslationKey }[] = [
+	{ id: 'standard', key: 'scrollbar.standard' },
+	{ id: 'custom', key: 'scrollbar.custom' },
+	{ id: 'minimap', key: 'scrollbar.minimap' },
+	{ id: 'minimap-full', key: 'scrollbar.minimapFull' }
+];

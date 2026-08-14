@@ -346,12 +346,9 @@ test.describe('the application page', () => {
 });
 
 test.describe('the header meets the page', () => {
-	/** First colour in the gradient the layout paints at the top of the content. */
+	/** The colour of the section a page opens with — what the tab has to land in. */
 	const bandColour = (page: import('@playwright/test').Page) =>
-		page.evaluate(() => {
-			const image = getComputedStyle(document.querySelector('.main')!).backgroundImage;
-			return image.match(/rgba?\([^)]*\)/)?.[0] ?? image;
-		});
+		page.evaluate(() => getComputedStyle(document.querySelector('.main > *')!).backgroundColor);
 
 	const waveColour = (page: import('@playwright/test').Page) =>
 		page.evaluate(() => getComputedStyle(document.querySelector('.header__wave path')!).fill);
@@ -364,20 +361,28 @@ test.describe('the header meets the page', () => {
 			await page.waitForLoadState('networkidle');
 
 			const [band, wave] = await Promise.all([bandColour(page), waveColour(page)]);
-			expect(band, 'the layout paints no band').toMatch(/^rgba?\(/);
+			expect(band, 'the opening section has no colour of its own').toMatch(/^rgba?\(/);
+			expect(band, 'the opening section is transparent').not.toBe('rgba(0, 0, 0, 0)');
 			expect(wave, `the tab is drawn in ${wave} over a band of ${band}`).toBe(band);
 		});
 	}
 
-	test('the band is deep enough to outlast the tab opening', async ({ page }) => {
+	test('the colour runs to the end of the section, not to a fixed depth', async ({ page }) => {
 		await page.goto('/');
 
-		// SETTLE_DISTANCE in tabWave.ts. Past it the tab is a closed rounded shape and
-		// has no skirts left to merge into anything.
-		const band = await page.evaluate(() =>
-			parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-band'))
-		);
-		expect(band).toBeGreaterThanOrEqual(120);
+		// It was a 120px band, which ended in the middle of the carousel and read as a
+		// rendering fault. Whatever height the opening section is, the colour goes with it.
+		const { section, painted } = await page.evaluate(() => {
+			const first = document.querySelector('.main > *')!;
+			const style = getComputedStyle(first);
+			return {
+				section: Math.round(first.getBoundingClientRect().height),
+				painted: style.backgroundImage === 'none' ? 'full' : style.backgroundImage
+			};
+		});
+
+		expect(section).toBeGreaterThan(300);
+		expect(painted, 'the colour stops short of the section').toBe('full');
 	});
 
 	test('the shadow stays away until there is something to cast it on', async ({ page }) => {

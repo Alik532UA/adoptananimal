@@ -11,6 +11,30 @@
 			rel="stylesheet"
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap"
 		/>
+		<!--
+			These rules hide the page's native scrollbar, and they live here rather than
+			in a stylesheet on purpose (SCROLLBAR-v8 § 8.3).
+
+			The class below is added before anything paints, but a class on its own does
+			nothing — the rule acting on it has to be in effect by the same moment. In a
+			production build the CSS is a render-blocking <link> and it is; the dev server
+			injects bundled CSS through JavaScript, so at first paint the class would be
+			set with no rule behind it and the native bar would appear and then vanish.
+			Static markup in the head cannot arrive late in either environment.
+
+			scrollbar-gutter goes back to auto here as well: reserving the width of a bar
+			that is not drawn is exactly the gap a custom overlay exists to avoid.
+		-->
+		<style>
+			html.has-custom-scrollbar {
+				scrollbar-width: none;
+				scrollbar-gutter: auto;
+			}
+
+			html.has-custom-scrollbar::-webkit-scrollbar {
+				display: none;
+			}
+		</style>
 		%sveltekit.head%
 		<script>
 			// First frame, before hydration. Both attributes matter, and both lists and
@@ -52,6 +76,25 @@
 				// on the first frame; and absent without JS, so nothing stays hidden
 				// waiting for a script that is never coming.
 				root.setAttribute('data-js', '');
+
+				// Hide the native bar before the first frame, or it shows and then
+				// disappears once the components mount — the same flicker the theme lines
+				// above exist to prevent.
+				//
+				// DUPLICATED CONDITIONS: these must agree with
+				// src/lib/services/scrollbar.svelte.ts, which a script in the document head
+				// cannot import. src/lib/services/scrollbar-canon.test.ts fails if they drift.
+				try {
+					const sb = localStorage.getItem('adoptananimal_scrollbarMode') || 'standard';
+					const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+					const wide = window.matchMedia('(min-width: 1100px)').matches;
+					if (fine && (sb === 'custom' || ((sb === 'minimap' || sb === 'minimap-full') && wide))) {
+						root.classList.add('has-custom-scrollbar');
+					}
+				} catch {
+					// Same reasoning as above: without storage the native bar stays, which
+					// is a working page rather than a broken one.
+				}
 
 				const meta = document.querySelector('meta[name="color-scheme"]');
 				if (meta) meta.setAttribute('content', theme === DARK ? 'dark' : 'light dark');
