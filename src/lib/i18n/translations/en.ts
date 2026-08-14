@@ -187,7 +187,9 @@ export const en = {
 	'list.dog.count.many': '{count} dogs waiting for a home',
 	'list.dog.count.other': '{count} dogs waiting for a home',
 	'list.cat.description': 'Browse {count} cats available for adoption, rescued from Ukraine.',
-	'list.dog.description': 'Browse {count} dogs available for adoption, rescued from Ukraine.'
+	'list.dog.description': 'Browse {count} dogs available for adoption, rescued from Ukraine.',
+	'debug.copyReport': 'Copy a diagnostic report',
+	'debug.reportCopied': 'Diagnostic report copied — paste it into your message to us'
 } as const;
 
 export type TranslationKey = keyof typeof en;

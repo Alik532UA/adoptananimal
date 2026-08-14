@@ -191,5 +191,7 @@ export const de = {
 	'list.dog.count.many': '{count} Hunde suchen ihr endgültiges Zuhause',
 	'list.dog.count.other': '{count} Hunde suchen ihr endgültiges Zuhause',
 	'list.cat.description': 'Entdecken Sie {count} Katzen aus der Ukraine, die ein Zuhause suchen.',
-	'list.dog.description': 'Entdecken Sie {count} Hunde aus der Ukraine, die ein Zuhause suchen.'
+	'list.dog.description': 'Entdecken Sie {count} Hunde aus der Ukraine, die ein Zuhause suchen.',
+	'debug.copyReport': 'Diagnosebericht kopieren',
+	'debug.reportCopied': 'Diagnosebericht kopiert — fügen Sie ihn in Ihre Nachricht an uns ein'
 } as const;

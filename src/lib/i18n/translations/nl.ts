@@ -187,5 +187,7 @@ export const nl = {
 	'list.dog.count.many': '{count} honden op zoek naar hun forever home',
 	'list.dog.count.other': '{count} honden op zoek naar hun forever home',
 	'list.cat.description': 'Bekijk {count} katten uit Oekraïne die een thuis zoeken.',
-	'list.dog.description': 'Bekijk {count} honden uit Oekraïne die een thuis zoeken.'
+	'list.dog.description': 'Bekijk {count} honden uit Oekraïne die een thuis zoeken.',
+	'debug.copyReport': 'Diagnoserapport kopiëren',
+	'debug.reportCopied': 'Diagnoserapport gekopieerd — plak het in uw bericht aan ons'
 } as const;

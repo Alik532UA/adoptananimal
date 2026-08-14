@@ -17,7 +17,11 @@ test('switching language keeps the page and carries into later links', async ({ 
 	await german.click();
 
 	await expect(page).toHaveURL(/\/de\/adopt\/cat\/basti$/);
-	expect(await page.getAttribute('html', 'lang')).toBe('de');
+
+	// Auto-retrying, not a one-shot read: on a client-side navigation the URL changes
+	// first and the attribute follows in an effect a frame later. Sampling immediately
+	// catches the old value roughly one run in five.
+	await expect(page.locator('html')).toHaveAttribute('lang', 'de');
 
 	await page.getByTestId('back-to-cats-link').click();
 	await expect(page).toHaveURL(/\/de\/adopt\/cat$/);

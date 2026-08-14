@@ -96,6 +96,8 @@ class LogService {
 		this.persist();
 	}
 
+	// Persisted only in dev: in production the buffer lives for the session, which is
+	// what a report describes anyway, and sessionStorage would carry noise across reloads.
 	private persist() {
 		if (browser && dev) {
 			storage.session.set(LOG_KEY, JSON.stringify(this.logs));

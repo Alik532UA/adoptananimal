@@ -2,6 +2,9 @@
 	import { withBase } from '$lib/utils/withBase';
 	import { handleEmailClick } from '$lib/utils/emailAction';
 	import { CONTACT_EMAIL } from '$lib/config';
+	import { t } from '$lib/i18n';
+	import { logService } from '$lib/services/logService.svelte';
+	import { toast } from '$lib/controllers/toast.svelte';
 
 	let activeOrg = $state<string | null>(null);
 
@@ -100,6 +103,22 @@
 		}
 	}
 
+	async function copyDiagnostics(event: MouseEvent) {
+		const anchor = event.currentTarget as HTMLElement;
+		const report = logService.getReport();
+
+		// Same guard as the email button: outside a secure context there is no
+		// clipboard, and a control that does nothing is worse than one that is absent.
+		if (!navigator.clipboard?.writeText) return;
+
+		try {
+			await navigator.clipboard.writeText(report);
+			toast.success(t('debug.reportCopied'), 6000, undefined, anchor);
+		} catch {
+			logService.warn('ui', 'Clipboard refused the diagnostic report');
+		}
+	}
+
 	// Collapse the mobile flyout on an outside click. Previously this was an onclick
 	// on <footer> itself, which made a landmark element interactive.
 	$effect(() => {
@@ -160,8 +179,16 @@
 			</div>
 
 			<!-- Build-time constant, never a hardcoded string: a version that drifts from
-				 the real release is worse than none when reading a bug report. -->
-			<p class="footer__version" data-testid="footer-version-text">v{__APP_VERSION__}</p>
+				 the real release is worse than none when reading a bug report. Clicking it
+				 copies the log report, so a visitor can actually send one. -->
+			<button
+				class="footer__version"
+				onclick={copyDiagnostics}
+				title={t('debug.copyReport')}
+				data-testid="footer-diagnostics-btn"
+			>
+				v{__APP_VERSION__}
+			</button>
 		</div>
 	</div>
 </footer>
@@ -181,7 +208,15 @@
 	}
 
 	.footer__version {
-		margin-top: var(--space-lg);
+		display: block;
+		margin: var(--space-lg) auto 0;
+		background: none;
+		border: none;
+		cursor: pointer;
+		font: inherit;
+		/* WCAG 2.5.8: the label is small, so the target is padded out to 44px */
+		min-height: 44px;
+		padding: 0 var(--space-md);
 		text-align: center;
 		font-size: 0.75rem;
 		/* No opacity: --color-text-muted is already the muted step, and multiplying it
