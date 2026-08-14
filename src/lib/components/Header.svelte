@@ -72,19 +72,96 @@
 		return localePath(splitLocale(pathname).path, locale);
 	}
 
+	function isLinkActive(href: string): boolean {
+		const target = localePath(href);
+		if (href === '/') {
+			return page.url.pathname === target;
+		}
+		return page.url.pathname.startsWith(target);
+	}
+
+	let headerInnerElement: HTMLElement | undefined = $state();
+	let indicatorX = $state(0);
+	let indicatorVisible = $state(false);
+	let isMounted = $state(false);
+
+	function updateIndicator() {
+		if (!headerInnerElement) return;
+		const activeEl = headerInnerElement.querySelector<HTMLElement>(
+			'.header__link--active, .header__logo--active'
+		);
+		if (activeEl) {
+			const containerRect = headerInnerElement.getBoundingClientRect();
+			const activeRect = activeEl.getBoundingClientRect();
+			indicatorX = activeRect.left - containerRect.left + activeRect.width / 2;
+			indicatorVisible = true;
+		} else {
+			indicatorVisible = false;
+		}
+	}
+
+	$effect(() => {
+		const _ = page.url.pathname;
+		updateIndicator();
+		if (!isMounted && indicatorVisible) {
+			requestAnimationFrame(() => {
+				isMounted = true;
+			});
+		}
+	});
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		window.addEventListener('resize', updateIndicator);
+		return () => window.removeEventListener('resize', updateIndicator);
+	});
+
+	const activeColor = $derived.by(() => {
+		const path = page.url.pathname;
+		if (path.includes('/adopt/cat')) return 'var(--cat-hero)';
+		if (path.includes('/adopt/dog')) return 'var(--dog-hero)';
+		if (path.includes('/favorites')) return 'var(--cat-hero)';
+		if (path.includes('/apply')) return 'var(--cat-hero)';
+		return 'var(--cat-hero)';
+	});
+
 	const navItems: { href: string; label: TranslationKey }[] = [
-		{ href: '/', label: 'nav.home' },
+		// { href: '/', label: 'nav.home' }, // Тимчасово закоментовано: логотип виконує роль переходу на головну
 		{ href: '/adopt/cat', label: 'nav.cats' },
 		{ href: '/adopt/dog', label: 'nav.dogs' },
 		{ href: '/favorites', label: 'nav.favorites' }
 	];
+
+	const isHomeActive = $derived(isLinkActive('/'));
+	const isApplyActive = $derived(isLinkActive('/apply'));
 </script>
 
 <header class="header">
-	<div class="header__inner container">
+	<div
+		bind:this={headerInnerElement}
+		class="header__inner container"
+		style="--active-tab-bg: {activeColor};"
+	>
+		{#if indicatorVisible}
+			<div
+				class="header__indicator"
+				class:header__indicator--animated={isMounted}
+				style="transform: translate3d({indicatorX}px, 0, 0);"
+				aria-hidden="true"
+			>
+				<svg class="header__wave" viewBox="0 0 288 48">
+					<path
+						d="M 0 48 C 72 48 80 0 128 0 L 160 0 C 208 0 216 48 288 48 L 0 48 Z"
+						fill="var(--active-tab-bg)"
+					/>
+				</svg>
+			</div>
+		{/if}
+
 		<a
 			href={localePath('/')}
 			class="header__logo"
+			class:header__logo--active={isHomeActive}
 			onclick={closeMenu}
 			data-testid="header-logo-link"
 		>
@@ -94,26 +171,31 @@
 
 		<nav class="header__nav" class:header__nav--open={mobileMenuOpen}>
 			{#each navItems as item (item.href)}
+				{@const active = isLinkActive(item.href)}
 				<a
 					href={localePath(item.href)}
 					class="header__link"
-					class:header__link--active={page.url.pathname === localePath(item.href)}
+					class:header__link--active={active}
 					onclick={closeMenu}
 					data-testid="nav-{item.href.replaceAll('/', '-').replace(/^-|-$/g, '') || 'home'}-link"
 				>
-					{t(item.label)}
+					<span class="header__link-label">{t(item.label)}</span>
+
 					{#if item.href === '/favorites' && settings.favorites.length > 0}
 						<span class="header__fav-count">{settings.favorites.length}</span>
 					{/if}
 				</a>
 			{/each}
+
 			<a
 				href={localePath('/apply')}
-				class="btn btn--primary btn--sm header__cta"
+				class="header__link header__cta"
+				class:header__link--active={isApplyActive}
+				class:header__cta--active={isApplyActive}
 				onclick={closeMenu}
 				data-testid="nav-apply-now-link"
 			>
-				{t('nav.applyNow')}
+				<span class="header__link-label">{t('nav.applyNow')}</span>
 			</a>
 
 			<div class="header__controls">
@@ -188,11 +270,13 @@
 				>
 					{#snippet trigger()}
 						<span class="header__lang">
-							<span class="header__flags">
-								{#each locales.find((l) => l.id === settings.locale)?.flags ?? [] as flag (flag)}
-									<img src={withBase(flag)} alt="" class="header__flag" />
-								{/each}
-							</span>
+							{#if locales.find((l) => l.id === settings.locale)?.flags[0]}
+								<img
+									src={withBase(locales.find((l) => l.id === settings.locale)!.flags[0])}
+									alt=""
+									class="header__flag"
+								/>
+							{/if}
 							<span class="header__lang-code">{settings.locale.toUpperCase()}</span>
 						</span>
 					{/snippet}
@@ -241,13 +325,14 @@
 
 	.header__inner {
 		display: flex;
-		align-items: center;
+		align-items: flex-end;
 		justify-content: space-between;
 		height: 72px;
+		position: relative;
 	}
 
 	.header__logo {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		gap: var(--space-sm);
 		font-family: var(--font-accent);
@@ -255,6 +340,23 @@
 		font-size: 1.25rem;
 		color: var(--color-primary);
 		text-decoration: none;
+		height: 48px;
+		padding: 0 16px 8px 16px;
+		position: relative;
+		z-index: 2;
+		transition: color 0.3s ease;
+	}
+
+	.header__logo:hover {
+		color: var(--color-primary-light);
+	}
+
+	.header__logo--active {
+		color: #ffffff;
+	}
+
+	.header__logo--active:hover {
+		color: #ffffff;
 	}
 
 	:global(.header__logo-icon) {
@@ -268,20 +370,74 @@
 
 	.header__nav {
 		display: flex;
-		align-items: center;
-		gap: var(--space-lg);
-	}
-
-	.header__link {
-		font-weight: 600;
-		font-size: 0.95rem;
-		color: var(--color-text-muted);
-		transition: color var(--transition-fast);
+		align-items: flex-end;
+		gap: 36px;
+		height: 72px;
 		position: relative;
 	}
 
-	.header__link--active {
+	.header__link {
+		font-weight: 700;
+		font-size: 0.95rem;
+		color: var(--color-text-muted);
+		transition: color 0.3s ease;
+		position: relative;
+		height: 48px;
+		padding: 0 16px 8px 16px;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
+		z-index: 2;
+	}
+
+	.header__link-label {
+		position: relative;
+		z-index: 2;
+	}
+
+	.header__link:hover {
 		color: var(--color-primary);
+	}
+
+	.header__link--active {
+		color: #ffffff;
+		background: transparent;
+	}
+
+	.header__link--active:hover {
+		color: #ffffff;
+	}
+
+	.header__indicator {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 48px;
+		width: 0;
+		pointer-events: none;
+		z-index: 1;
+		will-change: transform;
+	}
+
+	.header__indicator--animated {
+		transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.header__indicator--animated {
+			transition: none;
+		}
+	}
+
+	.header__wave {
+		position: absolute;
+		bottom: 0;
+		left: -144px;
+		width: 288px;
+		height: 48px;
+		pointer-events: none;
 	}
 
 	.header__fav-count {
@@ -291,19 +447,99 @@
 		padding: 2px 6px;
 		border-radius: var(--radius-full);
 		position: absolute;
-		top: -4px;
-		right: -12px;
+		top: 6px;
+		right: 4px;
 		font-weight: 800;
 		line-height: 1;
 		box-shadow: var(--shadow-sm);
+	}
+
+	.header__cta {
+		position: relative;
+		padding: 0 20px 8px;
+		color: var(--color-text-on-accent);
+		background: transparent;
+		transition: color var(--transition-fast);
+	}
+
+	.header__cta::before {
+		content: '';
+		position: absolute;
+		top: 5px;
+		bottom: 13px;
+		left: 0;
+		right: 0;
+		background: var(--color-primary);
+		border-radius: var(--radius-full);
+		box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 25%, transparent);
+		z-index: 1;
+		pointer-events: none;
+		transition:
+			background var(--transition-fast),
+			box-shadow var(--transition-fast);
+	}
+
+	.header__cta:hover {
+		color: var(--color-text-on-accent);
+	}
+
+	.header__cta:hover::before {
+		background: var(--color-primary-light);
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 35%, transparent);
+	}
+
+	.header__cta--active {
+		background: transparent;
+		color: #ffffff;
+	}
+
+	.header__cta--active::before {
+		display: none;
+	}
+
+	.header__cta--active:hover {
+		background: transparent;
+		color: #ffffff;
 	}
 
 	.header__controls {
 		display: flex;
 		align-items: center;
 		gap: var(--space-xs);
-		margin-left: var(--space-md);
-		padding-left: var(--space-md);
+		margin-left: var(--space-sm);
+		padding-left: var(--space-sm);
+		align-self: center;
+		margin-bottom: 4px;
+	}
+
+	.header__lang {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.header__flags {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		flex-shrink: 0;
+	}
+
+	.header__flag {
+		width: 20px;
+		height: 14px;
+		object-fit: cover;
+		border-radius: 2px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+		display: block;
+	}
+
+	.header__lang-code {
+		font-size: 0.85rem;
+		font-weight: 800;
+		font-family: var(--font-accent);
+		letter-spacing: 0.04em;
+		line-height: 1;
 	}
 
 	.header__burger {
@@ -322,6 +558,17 @@
 	}
 
 	@media (max-width: 768px) {
+		.header__inner {
+			align-items: center;
+		}
+		.header__logo {
+			height: auto;
+			padding: 0;
+			color: var(--color-primary);
+		}
+		.header__logo--active {
+			color: var(--color-primary);
+		}
 		.header__burger {
 			display: flex;
 		}
@@ -337,7 +584,36 @@
 			bottom: 0;
 			background: var(--color-bg-card);
 			flex-direction: column;
+			height: auto;
 			padding: var(--space-xl);
+			align-items: stretch;
+			gap: var(--space-sm);
+		}
+		.header__indicator,
+		.header__wave {
+			display: none;
+		}
+		.header__link {
+			height: auto;
+			padding: 12px 20px;
+		}
+		.header__link--active {
+			height: auto;
+			align-self: auto;
+			border-radius: var(--radius-md);
+			background: var(--active-tab-bg);
+			padding: 12px 20px;
+		}
+		.header__cta {
+			border-radius: var(--radius-md);
+			padding: 12px 20px;
+			background: var(--color-primary);
+		}
+		.header__cta::before {
+			display: none;
+		}
+		.header__cta--active {
+			background: var(--active-tab-bg);
 		}
 	}
 </style>

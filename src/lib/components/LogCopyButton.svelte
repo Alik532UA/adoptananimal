@@ -22,7 +22,11 @@
 		class="log-fab"
 		class:log-fab--copied={copied}
 		onclick={copyReport}
-		title="Copy debug report ({logService.errorCount} errors)"
+		oncontextmenu={(e) => {
+			e.preventDefault();
+			logService.clear();
+		}}
+		title="Click to copy, right-click to clear ({logService.errorCount} errors)"
 		aria-label={t('a11y.copyDebugReport')}
 		data-testid="debug-log-copy-btn"
 	>

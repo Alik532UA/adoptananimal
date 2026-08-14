@@ -249,7 +249,6 @@
 
 	.filter-toggle:hover {
 		background: var(--color-bg-surface);
-		transform: translateY(-1px);
 	}
 
 	.filter-toggle--active {

@@ -164,7 +164,6 @@
 	}
 
 	.about .section__title:hover {
-		transform: translateY(-3px);
 		color: var(--color-primary);
 	}
 

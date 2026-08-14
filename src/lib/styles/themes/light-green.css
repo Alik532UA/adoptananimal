@@ -38,7 +38,7 @@
 	--cat-card-bg: #e4ebd8;
 	--dog-card-bg: #f2f5ec;
 	--cat-hero: #3f6b28; /* darkened: white hero text needs 4.5:1 */
-	--dog-hero: #4a7a30; /* darkened: white hero text needs 4.5:1 */
+	--dog-hero: #3f6b28; /* darkened: white hero text needs 4.5:1 */
 
 	/* UI Alpha & Overlays */
 	--color-overlay: rgba(89, 143, 58, 0.2);

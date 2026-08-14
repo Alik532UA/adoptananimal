@@ -318,7 +318,7 @@
 	}
 
 	.footer__social-icon-link:hover {
-		transform: scale(1.2) translateY(-4px) !important;
+		transform: scale(1.15) !important;
 	}
 
 	.footer__social-icon {

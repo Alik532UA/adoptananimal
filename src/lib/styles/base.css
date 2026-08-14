@@ -21,6 +21,7 @@
 	--glass-bg: color-mix(in srgb, var(--color-bg-card) 50%, transparent);
 	--glass-border: transparent;
 	--glass-blur: 16px;
+	--active-tab-bg: var(--color-primary);
 }
 
 *,

@@ -220,7 +220,6 @@
 	}
 
 	.back-to-top:hover {
-		transform: translateY(-5px) scale(1.1);
 		background: color-mix(in srgb, var(--color-primary-light) 70%, transparent);
 		box-shadow: var(--shadow-xl);
 	}

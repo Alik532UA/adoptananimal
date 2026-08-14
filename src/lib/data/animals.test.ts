@@ -25,12 +25,26 @@ describe('animal data files', () => {
 	});
 });
 
+const animalModules = import.meta.glob<{
+	summary: {
+		slug: string;
+		type: string;
+		image: string;
+		gender: Record<string, string>;
+		breed: Record<string, string>;
+		age: Record<string, string>;
+		size: Record<string, string>;
+		color: Record<string, string>;
+	};
+	description: Record<string, string[]>;
+}>('./animals/*.ts', { eager: true });
+
 describe('animal images', () => {
-	it('exist for every animal, matching case exactly', async () => {
+	it('exist for every animal, matching case exactly', () => {
 		const missing: string[] = [];
 
-		for (const file of dataFiles) {
-			const mod = await import(`./animals/${file}`);
+		for (const [path, mod] of Object.entries(animalModules)) {
+			const file = path.split('/').pop() as string;
 			const image: string = mod.summary.image;
 			const name = image.split('/').pop() as string;
 
@@ -46,21 +60,16 @@ describe('animal images', () => {
 });
 
 describe('animal summaries', () => {
-	it('have a unique slug', async () => {
-		const slugs: string[] = [];
-		for (const file of dataFiles) {
-			const mod = await import(`./animals/${file}`);
-			slugs.push(mod.summary.slug);
-		}
-
+	it('have a unique slug', () => {
+		const slugs = Object.values(animalModules).map((mod) => mod.summary.slug);
 		const duplicates = slugs.filter((s, i) => slugs.indexOf(s) !== i);
 		expect(duplicates).toEqual([]);
 	});
 
-	it('have a slug that matches the filename', async () => {
+	it('have a slug that matches the filename', () => {
 		const mismatched: string[] = [];
-		for (const file of dataFiles) {
-			const mod = await import(`./animals/${file}`);
+		for (const [path, mod] of Object.entries(animalModules)) {
+			const file = path.split('/').pop() as string;
 			const expected = `${mod.summary.type}_${mod.summary.slug}.ts`;
 			if (expected !== file) mismatched.push(`${file} declares ${expected}`);
 		}
@@ -68,13 +77,13 @@ describe('animal summaries', () => {
 		expect(mismatched).toEqual([]);
 	});
 
-	it('carry every language in every multilingual field', async () => {
+	it('carry every language in every multilingual field', () => {
 		const incomplete: string[] = [];
 		const fields = ['gender', 'breed', 'age', 'size', 'color'] as const;
 		const locales = ['en', 'uk', 'de', 'nl'] as const;
 
-		for (const file of dataFiles) {
-			const mod = await import(`./animals/${file}`);
+		for (const [path, mod] of Object.entries(animalModules)) {
+			const file = path.split('/').pop() as string;
 			for (const field of fields) {
 				for (const locale of locales) {
 					const value = mod.summary[field]?.[locale];

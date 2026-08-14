@@ -130,17 +130,19 @@
 	}
 
 	.dropdown__trigger {
-		width: 44px;
+		min-width: 44px;
 		height: 44px;
-		border-radius: var(--radius-md);
+		padding: 0 10px;
+		border-radius: var(--radius-full);
 		background: var(--glass-bg);
 		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
-		border: none;
+		border: 1px solid var(--glass-border);
 		color: var(--color-text);
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		gap: 6px;
 		font-size: 1.1rem;
 		cursor: pointer;
 		transition: all var(--transition-fast);
@@ -149,6 +151,7 @@
 	.dropdown__trigger:hover {
 		background: var(--color-bg-warm);
 		color: var(--color-primary);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.dropdown__menu {

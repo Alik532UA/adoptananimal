@@ -37,28 +37,18 @@
 	}
 
 	.apply-hero {
-		background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+		background: var(--cat-hero);
 		color: white;
-		padding: var(--space-4xl) 0;
+		padding: var(--space-xl) 0;
 		text-align: center;
 		position: relative;
-		overflow: hidden;
-	}
-
-	.apply-hero::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: url('https://www.transparenttextures.com/patterns/cubes.png');
-		opacity: 0.1;
 	}
 
 	.apply-hero__title {
-		font-size: clamp(3rem, 10vw, 4.5rem);
+		font-size: clamp(2.5rem, 8vw, 3.5rem);
 		font-weight: 900;
-		margin-bottom: var(--space-md);
+		margin: var(--space-xs) 0 var(--space-sm);
 		font-family: var(--font-accent);
-		text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	}
 
 	.apply-hero__subtitle {

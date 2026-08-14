@@ -314,7 +314,6 @@ ${formData.message}
 		/* No outline: none — the global :focus-visible rule in app.css is the
 		   only focus indicator these fields have. */
 		background: var(--color-bg-card);
-		transform: translateY(-2px);
 		box-shadow: 0 0 0 3px var(--color-primary-light);
 	}
 	textarea:focus + .input-focus-bg {
@@ -346,7 +345,6 @@ ${formData.message}
 		box-shadow: 0 10px 20px color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
 	}
 	:global(.apply__submit-btn:hover) {
-		transform: translateY(-3px);
 		box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
 	}
 	.apply__success {

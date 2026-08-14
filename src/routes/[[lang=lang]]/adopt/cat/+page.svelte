@@ -6,9 +6,8 @@
 	import { animalService } from '$lib/services/animals';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import FilterBar from '$lib/components/FilterBar.svelte';
-	import { t, tFormat, tPlural } from '$lib/i18n';
+	import { t, tFormat } from '$lib/i18n';
 	import type { FilterState } from '$lib/data/types';
-	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
@@ -19,6 +18,9 @@
 	const gender = $derived(params.get('gender') || '');
 	const status = $derived(params.get('status') || '');
 	const search = $derived(params.get('search') || '');
+
+	const totalWaiting = $derived(animalService.cats.filter((c) => !c.isAdopted).length);
+	const totalAdopted = $derived(animalService.cats.filter((c) => c.isAdopted).length);
 
 	const filteredCats = $derived(
 		animalService.getFiltered('cat', { gender, status, search, size: '' })
@@ -54,9 +56,18 @@
 
 <section class="list-hero list-hero--cat">
 	<div class="container">
-		<Breadcrumbs items={[{ label: t('breadcrumb.cats') }]} />
 		<h1 class="list-hero__title">{t('list.cat.title')}</h1>
-		<p class="list-hero__subtitle">{tPlural('list.cat.count', animalService.cats.length)}</p>
+		<p class="list-hero__subtitle">{t('list.cat.subtitle')}</p>
+		<div class="list-hero__stats">
+			<span class="stat-pill stat-pill--waiting" data-testid="list-stats-waiting-badge">
+				<span class="stat-pill__num">{totalWaiting}</span>
+				<span class="stat-pill__label">{t('list.stats.waiting')}</span>
+			</span>
+			<span class="stat-pill stat-pill--adopted" data-testid="list-stats-adopted-badge">
+				<span class="stat-pill__num">{totalAdopted}</span>
+				<span class="stat-pill__label">{t('list.stats.adopted')}</span>
+			</span>
+		</div>
 	</div>
 </section>
 
@@ -82,7 +93,7 @@
 	.list-hero {
 		background: var(--cat-hero);
 		color: white;
-		padding: var(--space-2xl) 0 var(--space-3xl);
+		padding: var(--space-xl) 0;
 		text-align: center;
 	}
 
@@ -93,7 +104,7 @@
 	.list-hero__title {
 		font-size: 2.5rem;
 		font-weight: 900;
-		margin: var(--space-lg) 0 var(--space-sm);
+		margin: var(--space-xs) 0 var(--space-sm);
 	}
 
 	.list-hero__subtitle {
@@ -102,8 +113,48 @@
 		   transparency pushes it under. */
 	}
 
+	.list-hero__stats {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-md);
+		margin-top: var(--space-md);
+		flex-wrap: wrap;
+	}
+
+	.stat-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-xs);
+		padding: 6px 16px;
+		border-radius: var(--radius-full);
+		font-size: 0.95rem;
+		font-weight: 700;
+		background: rgba(255, 255, 255, 0.18);
+		backdrop-filter: blur(8px);
+		border: 1px solid rgba(255, 255, 255, 0.35);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.stat-pill__num {
+		font-size: 1.15rem;
+		font-weight: 900;
+		font-family: var(--font-accent);
+	}
+
+	.stat-pill--waiting {
+		background: rgba(255, 255, 255, 0.24);
+		color: #ffffff;
+	}
+
+	.stat-pill--adopted {
+		background: rgba(255, 255, 255, 0.14);
+		color: rgba(255, 255, 255, 0.92);
+	}
+
 	.animal-list {
 		background: var(--color-bg-warm);
+		padding-top: var(--space-lg);
 	}
 
 	.no-results {

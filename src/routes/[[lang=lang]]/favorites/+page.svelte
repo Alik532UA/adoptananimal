@@ -63,9 +63,9 @@
 
 <style>
 	.favs-hero {
-		background: var(--color-primary);
+		background: var(--cat-hero);
 		color: white;
-		padding: var(--space-3xl) 0;
+		padding: var(--space-xl) 0;
 		text-align: center;
 	}
 
@@ -82,6 +82,7 @@
 	.animal-list {
 		background: var(--color-bg-warm);
 		min-height: 40vh;
+		padding-top: var(--space-lg);
 	}
 
 	.no-favorites {
