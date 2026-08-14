@@ -39,7 +39,17 @@ export function handleEmailClick(event: MouseEvent, email: string) {
 	navigator.clipboard.writeText(email).then(
 		() =>
 			toast.success(
-				`${t('contact.emailCopied')}: ${email}`,
+				/*
+				 * A deliberate line break, not a colon and a space.
+				 *
+				 * On one line the toast came out two lines for info@notpfote.de and three for
+				 * vet.crew.cooperation@gmail.com — the same notification with a different shape
+				 * depending on whose address it was. An address cannot be broken, so where it
+				 * lands is decided by how long it happens to be. Given its own line it is
+				 * always exactly two, and looks like a decision rather than an accident.
+				 */
+				`${t('contact.emailCopied')}:
+${email}`,
 				6000,
 				{ label: t('contact.openMailClient'), onAction: openMail },
 				anchor

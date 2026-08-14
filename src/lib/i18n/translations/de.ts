@@ -209,5 +209,9 @@ export const de = {
 	'scrollbar.standard': 'Standard',
 	'scrollbar.custom': 'Eigene Leiste',
 	'scrollbar.minimap': 'Schematische Minimap',
-	'scrollbar.minimapFull': 'Visuelle Minimap'
+	'scrollbar.minimapFull': 'Visuelle Minimap',
+
+	// The two quiet links in the footer's corner.
+	'footer.play': 'Spielen',
+	'footer.orderSite': 'Website bestellen'
 } as const;

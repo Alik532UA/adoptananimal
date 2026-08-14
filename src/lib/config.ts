@@ -82,3 +82,30 @@ export const SCROLLBAR_MODES: { id: ScrollbarMode; key: TranslationKey }[] = [
 	{ id: 'minimap', key: 'scrollbar.minimap' },
 	{ id: 'minimap-full', key: 'scrollbar.minimapFull' }
 ];
+
+/**
+ * The shelter's other sites, offered quietly from the footer.
+ *
+ * Deliberately understated: they are not what someone came here for, and a visitor
+ * looking for an animal should not be advertised at. See the opacity rules on
+ * `.footer__aside` in Footer.svelte.
+ */
+export const SIDE_PROJECTS = [
+	{
+		id: 'games',
+		url: 'https://alik532ua.github.io/VetCrewGames/',
+		icon: 'gamepad',
+		key: 'footer.play'
+	},
+	{
+		id: 'order-site',
+		url: 'https://alik532ua.github.io/DigitalWorkshop/',
+		icon: 'plus',
+		key: 'footer.orderSite'
+	}
+] as const satisfies readonly {
+	id: string;
+	url: string;
+	icon: 'gamepad' | 'plus';
+	key: TranslationKey;
+}[];

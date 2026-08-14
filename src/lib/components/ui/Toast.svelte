@@ -124,16 +124,29 @@
 		width: min(420px, calc(100vw - 2 * var(--space-md)));
 	}
 
+	/*
+	 * Sized to what it holds, not to a fixed 360px.
+	 *
+	 * At a fixed width the same toast came out two lines for info@notpfote.de and three
+	 * for vet.crew.cooperation@gmail.com, and the action lost whatever the address took
+	 * — "Open mail client" clipped mid-word. An address is one unbreakable token, so the
+	 * width the toast needs is a property of the address, and the only thing worth
+	 * fixing is the point past which it stops growing.
+	 */
 	.toast-anchored {
 		position: fixed;
 		z-index: 200;
-		width: min(360px, calc(100vw - 2 * var(--space-md)));
+		width: max-content;
+		max-width: min(520px, calc(100vw - 2 * var(--space-md)));
 	}
 
 	.toast {
 		position: relative;
 		display: flex;
 		align-items: center;
+		/* Wraps rather than squeezing: on a narrow screen the action drops to its own row
+		   whole, instead of being compressed into the message and cut off. */
+		flex-wrap: wrap;
 		gap: var(--space-sm);
 		padding: var(--space-md) var(--space-lg);
 		border-radius: var(--radius-md);
@@ -162,12 +175,23 @@
 
 	.toast__message {
 		flex: 1;
+		min-width: 0;
 		font-size: 0.95rem;
 		line-height: 1.4;
+		/* The message carries its own line break — see emailAction.ts. */
+		white-space: pre-line;
+		/* An email address has nowhere to break, so at a narrow width it would otherwise
+		   push out of the toast rather than wrap inside it. */
+		overflow-wrap: anywhere;
 	}
 
 	.toast__action {
 		flex-shrink: 0;
+		/* Right-aligned when it wraps onto its own row. */
+		margin-left: auto;
+		/* The label is a single instruction and reads as one. Left to wrap it broke after
+		   the first word and the second was cut off by the toast's edge. */
+		white-space: nowrap;
 		background: none;
 		border: none;
 		padding: 6px 10px;
@@ -196,7 +220,14 @@
 		border: none;
 		color: var(--color-text-muted);
 		cursor: pointer;
-		transition: color var(--transition-fast);
+		/*
+		 * No transition here on purpose (UI-ELEMENTS-v8 § 1.4).
+		 *
+		 * The quarter turn lives in one global rule keyed on the close-button locator, and
+		 * a scoped `transition: color` outranks it — which left the button jumping to its
+		 * rotated position with no movement to see. A cross looks the same after 90°, so
+		 * with the movement gone the rule appeared not to work at all.
+		 */
 	}
 
 	.toast__close:hover {

@@ -16,6 +16,10 @@
 	/* Backgrounds */
 	--color-bg: #1a1a1a;
 	--bg-image: url('../../assets/backgrounds/bg-dark-v01.webp');
+	/* Laid over --bg-image so the photograph reads as a background rather than as
+	   something to look at. Half-transparent, in this theme's own colour: the image is
+	   shared furniture, the tint is what makes it belong to the palette. */
+	--bg-tint: rgb(18 24 15 / 0.5);
 	--color-bg-surface: #242424;
 	--color-bg-warm: #132510;
 	--color-bg-card: #2a2a2a;

@@ -736,3 +736,249 @@ test.describe('animals and their photographs', () => {
 		expect(detail).toBe(position);
 	});
 });
+
+test.describe('the page background tint', () => {
+	test('lays a half-transparent colour of its own over the photograph', async ({ page }) => {
+		const seen: Record<string, string> = {};
+
+		for (const theme of THEMES) {
+			await page.goto('/');
+			await page.evaluate((t) => localStorage.setItem('adoptananimal_theme', t), theme);
+			await page.reload();
+
+			const layers = await page.evaluate(
+				() => getComputedStyle(document.querySelector('.site-bg')!).backgroundImage
+			);
+
+			// Two layers in one element: the tint first, then the photograph.
+			expect(layers, `${theme}: no tint over the image`).toMatch(/^linear-gradient\(/);
+			expect(layers, `${theme}: the photograph is gone`).toContain('url(');
+
+			const tint = layers.match(/rgba?\([^)]*\)/)?.[0] ?? '';
+			const alpha = Number(tint.split(',').pop()?.replace(')', '').trim() ?? '1');
+			expect(alpha, `${theme}: the tint is opaque or absent`).toBeGreaterThan(0.2);
+			expect(alpha, `${theme}: the tint hides the image completely`).toBeLessThan(0.8);
+
+			seen[theme] = tint;
+		}
+
+		// Each theme's own colour, not one grey for all of them.
+		expect(new Set(Object.values(seen)).size, `themes share a tint: ${JSON.stringify(seen)}`).toBe(
+			THEMES.length
+		);
+	});
+});
+
+test.describe('the filter bar', () => {
+	test('separates its controls from its panel by the same step in every theme', async ({
+		page
+	}) => {
+		const distances: Record<string, number> = {};
+
+		for (const theme of THEMES) {
+			await page.goto('/adopt/cat');
+			await page.evaluate((t) => localStorage.setItem('adoptananimal_theme', t), theme);
+			await page.reload();
+
+			const { panel, control } = await page.evaluate(() => {
+				const read = (sel: string) => {
+					const cs = getComputedStyle(document.querySelector(sel)!).backgroundColor;
+					// Chromium reports color-mix results as color(srgb …) rather than rgb().
+					const nums = (cs.match(/[\d.]+/g) ?? []).map(Number);
+					return cs.startsWith('color(') ? nums.slice(0, 3).map((n) => n * 255) : nums.slice(0, 3);
+				};
+				return { panel: read('.filter-bar'), control: read('.filter-input') };
+			});
+
+			const distance = panel.reduce((sum, v, i) => sum + Math.abs(v - control[i]), 0);
+			distances[theme] = Math.round(distance);
+
+			// Winter had white on white and light-green near-white on white: a search field
+			// with no edge of its own reads as part of the panel.
+			expect(distance, `${theme}: the control is invisible against its panel`).toBeGreaterThan(20);
+			// And dark had a dark green field inside a grey panel, which read as a
+			// different component that had wandered in.
+			expect(
+				distance,
+				`${theme}: the control looks like it belongs to another design`
+			).toBeLessThan(120);
+		}
+
+		// The same step everywhere, which is the point of deriving it from the panel.
+		const values = Object.values(distances);
+		expect(
+			Math.max(...values) / Math.min(...values),
+			`the step differs by theme: ${JSON.stringify(distances)}`
+		).toBeLessThan(2.5);
+	});
+});
+
+test.describe('the footer aside links', () => {
+	const opacity = (page: import('@playwright/test').Page, testId: string) =>
+		page.getByTestId(testId).evaluate((el) => parseFloat(getComputedStyle(el).opacity));
+
+	test('brightens in three steps, from barely there to pointed at', async ({ page }) => {
+		await page.goto('/');
+		await page.getByTestId('footer-games-link').scrollIntoViewIfNeeded();
+
+		// The pointer is on the page but nowhere near: they are a mark, not an advert.
+		await page.mouse.move(10, 10);
+		expect(await opacity(page, 'footer-games-link')).toBeCloseTo(0.1, 2);
+
+		// Somewhere in the footer, away from the links themselves.
+		const footer = (await page.locator('.footer__content').boundingBox())!;
+		await page.mouse.move(footer.x + footer.width / 2, footer.y + footer.height / 2);
+		await expect.poll(() => opacity(page, 'footer-games-link')).toBeCloseTo(0.5, 2);
+
+		// On one of them: that one comes fully up, its neighbour part of the way, so the
+		// pair reads as a pair.
+		await page.getByTestId('footer-games-link').hover();
+		await expect.poll(() => opacity(page, 'footer-games-link')).toBeCloseTo(1, 2);
+		expect(await opacity(page, 'footer-order-site-link')).toBeCloseTo(0.8, 2);
+	});
+
+	test('names itself on hover, and to the left of the glyph', async ({ page }) => {
+		await page.goto('/');
+		const link = page.getByTestId('footer-games-link');
+		await link.scrollIntoViewIfNeeded();
+
+		const label = link.locator('.footer__aside-label');
+		expect(await label.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(0);
+
+		await link.hover();
+		await expect
+			.poll(() => label.evaluate((el) => parseFloat(getComputedStyle(el).opacity)))
+			.toBe(1);
+
+		const { labelRight, glyphLeft } = await link.evaluate((el) => ({
+			labelRight: el.querySelector('.footer__aside-label')!.getBoundingClientRect().right,
+			glyphLeft: el.querySelector('svg')!.getBoundingClientRect().left
+		}));
+		expect(labelRight, 'the label covers the glyph it names').toBeLessThanOrEqual(glyphLeft + 1);
+	});
+
+	test('comes fully up for a keyboard, which never hovers', async ({ page }) => {
+		await page.goto('/');
+		await page.getByTestId('footer-games-link').focus();
+		await expect.poll(() => opacity(page, 'footer-games-link')).toBeCloseTo(1, 2);
+	});
+
+	test('points at the right places, in a new tab', async ({ page }) => {
+		await page.goto('/');
+		for (const [testId, host] of [
+			['footer-games-link', 'VetCrewGames'],
+			['footer-order-site-link', 'DigitalWorkshop']
+		] as const) {
+			const link = page.getByTestId(testId);
+			await expect(link).toHaveAttribute('href', new RegExp(host));
+			await expect(link).toHaveAttribute('target', '_blank');
+			// noopener, or the opened page gets a handle on this one through window.opener.
+			await expect(link).toHaveAttribute('rel', /noopener/);
+		}
+	});
+});
+
+test.describe('close buttons', () => {
+	test('turn a quarter under the pointer', async ({ page, context }) => {
+		await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+		await page.goto('/');
+		await page.getByTestId('footer-org-notpfote-link').scrollIntoViewIfNeeded();
+		await page.getByTestId('footer-org-notpfote-link').click();
+		await page.getByTestId('footer-org-notpfote-mail-link').click();
+
+		const close = page.getByTestId('toast-close-btn');
+		await expect(close).toBeVisible();
+
+		// A cross has four-fold symmetry, so after 90 degrees it looks exactly as it did.
+		// The movement is the whole effect, and a component transition of its own would
+		// hide it while the rule applied perfectly (UI-ELEMENTS-v8 section 1.4).
+		const transition = await close.evaluate((el) => getComputedStyle(el).transitionProperty);
+		expect(transition, 'nothing animates, so the turn is invisible').toContain('transform');
+
+		await close.hover();
+		// Polled to the settled value: the turn takes a quarter of a second, and read
+		// immediately the matrix is still the identity it started from. rotate(90deg) is
+		// matrix(0, 1, -1, 0, ...), so the first term goes to zero as it lands.
+		await expect
+			.poll(async () => {
+				const matrix = await close.evaluate((el) => getComputedStyle(el).transform);
+				return Math.abs((matrix.match(/-?[\d.]+/g) ?? []).map(Number)[0] ?? 1);
+			})
+			.toBeLessThan(0.3);
+	});
+});
+
+test.describe('the email toast', () => {
+	/** Opens one organisation's address and measures the toast it produces. */
+	async function copyEmail(page: import('@playwright/test').Page, org: string) {
+		await page.getByTestId(`footer-org-${org}-link`).scrollIntoViewIfNeeded();
+		await page.getByTestId(`footer-org-${org}-link`).click();
+		await page.getByTestId(`footer-org-${org}-mail-link`).click();
+		await expect(page.getByTestId('toast-action-btn')).toBeVisible();
+
+		return measureToast(page);
+	}
+
+	/** The shape of whatever toast is on screen. */
+	function measureToast(page: import('@playwright/test').Page) {
+		return page.locator('.toast-anchored').evaluate((el) => {
+			const message = el.querySelector('.toast__message') as HTMLElement;
+			const action = el.querySelector('[data-testid="toast-action-btn"]') as HTMLElement;
+			const card = el.querySelector('.toast')!.getBoundingClientRect();
+			const lineOf = (node: HTMLElement) => parseFloat(getComputedStyle(node).lineHeight) || 16;
+			return {
+				messageLines: Math.round(message.getBoundingClientRect().height / lineOf(message)),
+				actionLines: Math.round(action.clientHeight / lineOf(action)),
+				actionInside: action.getBoundingClientRect().right <= card.right + 1,
+				insideWindow: card.right <= window.innerWidth + 1 && card.left >= -1
+			};
+		});
+	}
+
+	test('looks the same whichever address it carries', async ({ page, context }) => {
+		await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+		await page.goto('/');
+
+		const short = await copyEmail(page, 'notpfote'); // info@notpfote.de
+		await page.getByTestId('toast-close-btn').click();
+		const long = await copyEmail(page, 'vetcrew'); // vet.crew.cooperation@gmail.com
+
+		/*
+		 * The complaint was that the same toast came out two lines for one address and
+		 * three for the other. At a fixed 360px it was worse than that — five lines and
+		 * six — because an address has nowhere to break, so the width the toast needs is
+		 * a property of the address it is showing.
+		 */
+		expect(
+			long.messageLines,
+			`${short.messageLines} lines for one address and ${long.messageLines} for the other`
+		).toBe(short.messageLines);
+		expect(short.messageLines, 'the address is wrapping over several lines').toBeLessThanOrEqual(2);
+
+		for (const [name, seen] of [
+			['short', short],
+			['long', long]
+		] as const) {
+			// One instruction, one line, whole.
+			expect(seen.actionLines, `${name}: the action label wrapped`).toBe(1);
+			expect(seen.actionInside, `${name}: the action is cut off by the toast`).toBe(true);
+			expect(seen.insideWindow, `${name}: the toast hangs off the edge of the window`).toBe(true);
+		}
+	});
+
+	test('keeps the whole action readable on a narrow window', async ({ page, context }) => {
+		await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+		await page.setViewportSize({ width: 380, height: 800 });
+
+		// An address in the body of a page rather than the footer's fly-out, which needs a
+		// hover the mobile layout has no room for. Same handler, same toast.
+		await page.goto('/apply/form');
+		await page.getByTestId('apply-contact-email-link').click();
+		await expect(page.getByTestId('toast-action-btn')).toBeVisible();
+
+		const seen = await measureToast(page);
+		expect(seen.actionLines, 'the action label wrapped').toBe(1);
+		expect(seen.actionInside, 'the action is cut off by the toast').toBe(true);
+		expect(seen.insideWindow, 'the toast hangs off the edge of the window').toBe(true);
+	});
+});

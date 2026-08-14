@@ -185,7 +185,7 @@
 		padding: 12px 16px;
 		border-radius: var(--radius-md);
 		border: none;
-		background: var(--color-bg-warm);
+		background: var(--control-surface);
 		color: var(--color-text);
 		font-family: inherit;
 		font-size: 1rem;
@@ -237,7 +237,7 @@
 		padding: 8px 14px;
 		border-radius: var(--radius-sm);
 		border: none;
-		background: var(--color-bg-warm);
+		background: var(--control-surface);
 		color: var(--color-text);
 		font-family: inherit;
 		font-size: 0.9rem;

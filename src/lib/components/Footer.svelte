@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { withBase } from '$lib/utils/withBase';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import { t } from '$lib/i18n';
 	import { handleEmailClick } from '$lib/utils/emailAction';
-	import { CONTACT_EMAIL } from '$lib/config';
+	import { CONTACT_EMAIL, SIDE_PROJECTS } from '$lib/config';
 
 	let activeOrg = $state<string | null>(null);
 
@@ -111,6 +113,25 @@
 
 <footer class="footer">
 	<div class="footer__content">
+		<!-- Two links to the shelter's other sites. Icons only, and barely there until
+			 someone comes down here — see .footer__aside in the styles. -->
+		<div class="footer__aside">
+			{#each SIDE_PROJECTS as project (project.id)}
+				<a
+					class="footer__aside-link"
+					href={project.url}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-testid="footer-{project.id}-link"
+				>
+					<!-- The name is the accessible name and the visible label at once, so a
+						 screen reader is not told one thing while the screen shows another. -->
+					<span class="footer__aside-label">{t(project.key)}</span>
+					<Icon name={project.icon} size="1.4rem" />
+				</a>
+			{/each}
+		</div>
+
 		<div class="container">
 			<div class="footer__logos">
 				{#each organizations as org (org.id)}
@@ -169,11 +190,120 @@
 	}
 
 	.footer__content {
+		position: relative;
 		background: var(--glass-bg);
 		-webkit-backdrop-filter: blur(var(--glass-blur));
 		backdrop-filter: blur(var(--glass-blur));
 		color: var(--color-text);
 		padding: var(--space-xl) 0;
+	}
+
+	/*
+	 * The opacity ladder, from "not in the way" to "you are pointing at me".
+	 *
+	 * These are the shelter's other projects, not what anyone came here for, so at rest
+	 * they are barely a mark. Coming down to the footer brings them to half; pointing at
+	 * one brings it fully up and lifts its neighbour part of the way, so the pair reads
+	 * as a pair rather than one link appearing out of nowhere.
+	 *
+	 * :focus-within is on the same rung as :hover throughout. A keyboard user never
+	 * hovers, and a control at 10% that never brightens is a control they cannot see
+	 * they have reached.
+	 */
+	.footer__aside {
+		position: absolute;
+		left: var(--space-lg);
+		top: 50%;
+		transform: translateY(-50%);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		z-index: 1;
+	}
+
+	.footer__aside-link {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		/* WCAG 2.5.8: faint is not the same as small. */
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		color: var(--color-text);
+		opacity: 0.1;
+		transition:
+			opacity var(--transition-normal),
+			background var(--transition-fast);
+	}
+
+	.footer__content:hover .footer__aside-link,
+	.footer__content:focus-within .footer__aside-link {
+		opacity: 0.5;
+	}
+
+	.footer__aside:hover .footer__aside-link,
+	.footer__aside:focus-within .footer__aside-link {
+		opacity: 0.8;
+	}
+
+	/*
+	 * Written through .footer__aside so it outweighs the 0.8 rule above.
+	 *
+	 * `.footer__aside-link:hover` alone loses to `.footer__aside:hover .footer__aside-link`
+	 * on specificity, so pointing at one lifted the pair to 0.8 and stopped there — the
+	 * neighbour brightened and the one under the cursor did not.
+	 *
+	 * :focus, not :focus-visible. The point is not a focus ring, it is a control at 10%
+	 * that a keyboard user has to be able to see they have reached; and on a mouse click
+	 * the pointer is already on it, so there is nothing extra to show.
+	 */
+	.footer__aside .footer__aside-link:hover,
+	.footer__aside .footer__aside-link:focus {
+		opacity: 1;
+		background: var(--control-surface);
+	}
+
+	.footer__aside-label {
+		position: absolute;
+		/* To the left of the glyph, as a tooltip that does not cover the thing it names. */
+		right: calc(100% + var(--space-sm));
+		padding: 4px 10px;
+		border-radius: var(--radius-sm);
+		background: var(--color-bg-card);
+		color: var(--color-text);
+		box-shadow: var(--shadow-md);
+		font-size: 0.8rem;
+		font-weight: 600;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--transition-fast);
+	}
+
+	.footer__aside-link:hover .footer__aside-label,
+	.footer__aside-link:focus .footer__aside-label {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.footer__aside-link,
+		.footer__aside-label {
+			transition: none;
+		}
+	}
+
+	/* Narrow screens have no room to the left of the icons, so the label goes to the
+	   right rather than off the edge of the window. */
+	@media (max-width: 700px) {
+		.footer__aside {
+			left: var(--space-sm);
+		}
+
+		.footer__aside-label {
+			right: auto;
+			left: calc(100% + var(--space-sm));
+		}
 	}
 
 	.footer__logos {

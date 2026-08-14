@@ -270,7 +270,17 @@
 		right: 0;
 		height: var(--bg-height);
 		z-index: -1;
-		background-image: var(--bg-image);
+		/*
+		 * Two layers in one element: the tint first, the photograph under it.
+		 *
+		 * Not a second element and not a filter. A separate overlay would need its own
+		 * stacking, its own parallax transform and its own reduced-motion rule, all
+		 * duplicated to stay in step with this one; a filter would tint the whole thing
+		 * rather than lay a colour over it, and there is no filter that means "50% of
+		 * this exact colour". A gradient between two identical stops is a solid fill,
+		 * and background-image takes as many layers as it is given.
+		 */
+		background-image: linear-gradient(var(--bg-tint), var(--bg-tint)), var(--bg-image);
 		background-size: cover;
 		background-position: center;
 		filter: blur(5px);

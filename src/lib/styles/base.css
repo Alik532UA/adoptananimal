@@ -18,6 +18,19 @@
 	/* Modern Glassmorphism System.
 	   No var() fallbacks here on purpose: --color-bg-card is declared by every theme,
 	   and a fallback would hide a typo in exactly the theme being developed in. */
+	/*
+	 * A control at rest inside a panel — a search field, an unselected filter chip.
+	 *
+	 * Derived from the panel it sits in rather than declared per theme, because that is
+	 * what went wrong: the themes each named a colour by hand and the gap between panel
+	 * and control came out different in all four. White on white in winter, near-white
+	 * on white in light-green, and a dark green field inside a grey panel in dark, which
+	 * read as a different component altogether. Mixing 8% of the text colour into the
+	 * panel steps the same distance in every theme and can only ever be the same hue.
+	 */
+	--control-surface: color-mix(in srgb, var(--color-bg-card) 92%, var(--color-text) 8%);
+	--control-surface-hover: color-mix(in srgb, var(--color-bg-card) 84%, var(--color-text) 16%);
+
 	--glass-bg: color-mix(in srgb, var(--color-bg-card) 50%, transparent);
 	--glass-border: transparent;
 	--glass-blur: 16px;

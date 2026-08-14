@@ -176,7 +176,7 @@ export const uk = {
 	'country.nl': 'Нідерланди',
 	'a11y.dismissNotification': 'Закрити сповіщення',
 	'contact.emailCopied': 'Адресу скопійовано',
-	'contact.openMailClient': 'Відкрити пошту',
+	'contact.openMailClient': 'Відкрити поштовий клієнт',
 	'contact.copyFailed': 'Не вдалося скопіювати — відкриваємо пошту',
 	'list.cat.count.one': '{count} кіт шукає свій вічний дім',
 	'list.cat.count.few': '{count} коти шукають свій вічний дім',
@@ -206,5 +206,9 @@ export const uk = {
 	'scrollbar.standard': 'Стандартна',
 	'scrollbar.custom': 'Власна смуга',
 	'scrollbar.minimap': 'Схематична мінімапа',
-	'scrollbar.minimapFull': 'Візуальна мінімапа'
+	'scrollbar.minimapFull': 'Візуальна мінімапа',
+
+	// The two quiet links in the footer's corner.
+	'footer.play': 'Грати',
+	'footer.orderSite': 'Замовити сайт'
 } as const;

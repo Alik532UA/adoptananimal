@@ -204,5 +204,9 @@ export const nl = {
 	'scrollbar.standard': 'Standaard',
 	'scrollbar.custom': 'Eigen balk',
 	'scrollbar.minimap': 'Schematische minimap',
-	'scrollbar.minimapFull': 'Visuele minimap'
+	'scrollbar.minimapFull': 'Visuele minimap',
+
+	// The two quiet links in the footer's corner.
+	'footer.play': 'Spelen',
+	'footer.orderSite': 'Website bestellen'
 } as const;

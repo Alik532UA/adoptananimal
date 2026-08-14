@@ -176,7 +176,7 @@ export const en = {
 	'country.nl': 'Netherlands',
 	'a11y.dismissNotification': 'Dismiss notification',
 	'contact.emailCopied': 'Email address copied',
-	'contact.openMailClient': 'Open mail app',
+	'contact.openMailClient': 'Open mail client',
 	'contact.copyFailed': 'Could not copy — opening your mail app',
 	'list.cat.count.one': '{count} cat waiting for a home',
 	'list.cat.count.few': '{count} cats waiting for a home',
@@ -204,7 +204,11 @@ export const en = {
 	'scrollbar.standard': 'Standard',
 	'scrollbar.custom': 'Custom bar',
 	'scrollbar.minimap': 'Schematic minimap',
-	'scrollbar.minimapFull': 'Visual minimap'
+	'scrollbar.minimapFull': 'Visual minimap',
+
+	// The two quiet links in the footer's corner.
+	'footer.play': 'Play',
+	'footer.orderSite': 'Order a website'
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -25,6 +25,8 @@
 		ArrowLeft,
 		ArrowUp,
 		ExternalLink,
+		Gamepad2,
+		Plus,
 		X
 	} from 'lucide-svelte';
 
@@ -58,7 +60,9 @@
 			| 'arrow-left'
 			| 'arrow-up'
 			| 'close'
-			| 'external-link';
+			| 'external-link'
+			| 'gamepad'
+			| 'plus';
 		size?: string | number;
 		class?: string;
 		strokeWidth?: number;
@@ -137,6 +141,10 @@
 			<X {size} class={className} {strokeWidth} />
 		{:else if name === 'external-link'}
 			<ExternalLink {size} class={className} {strokeWidth} />
+		{:else if name === 'gamepad'}
+			<Gamepad2 {size} class={className} {strokeWidth} />
+		{:else if name === 'plus'}
+			<Plus {size} class={className} {strokeWidth} />
 		{/if}
 	{/key}
 </span>

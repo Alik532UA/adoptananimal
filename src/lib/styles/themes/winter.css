@@ -15,6 +15,10 @@
 	/* Backgrounds */
 	--color-bg: #f0f7ff;
 	--bg-image: url('../../assets/backgrounds/bg-winter-v01.webp');
+	/* Laid over --bg-image so the photograph reads as a background rather than as
+	   something to look at. Half-transparent, in this theme's own colour: the image is
+	   shared furniture, the tint is what makes it belong to the palette. */
+	--bg-tint: rgb(238 246 255 / 0.5);
 	--color-bg-surface: #e6f2ff;
 	--color-bg-warm: #ffffff;
 	--color-bg-card: #ffffff;
