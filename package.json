@@ -1,7 +1,7 @@
 {
 	"name": "adoptananimal",
 	"private": true,
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -14,14 +14,17 @@
 		"format": "prettier --write .",
 		"test": "vitest run",
 		"test:watch": "vitest",
+		"test:e2e": "playwright test",
 		"check:i18n": "tsx src/lib/i18n/validator.ts",
 		"check:build": "node scripts/check-build.js",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"version:minor": "npm version minor --no-git-tag-version"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.13.0",
 		"@eslint/compat": "^2.0.4",
 		"@eslint/js": "^10.0.1",
+		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",

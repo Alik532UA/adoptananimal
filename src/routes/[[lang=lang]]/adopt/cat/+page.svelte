@@ -98,7 +98,8 @@
 
 	.list-hero__subtitle {
 		font-size: 1.1rem;
-		opacity: 0.85;
+		/* No opacity: white on the hero is already at the edge of 4.5:1 and any
+		   transparency pushes it under. */
 	}
 
 	.animal-list {

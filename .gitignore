@@ -30,6 +30,12 @@ desktop.ini
 !.env.example
 !.env.test
 
+# Артефакти Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Тимчасові файли Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

@@ -184,8 +184,9 @@
 		margin-top: var(--space-lg);
 		text-align: center;
 		font-size: 0.75rem;
+		/* No opacity: --color-text-muted is already the muted step, and multiplying it
+		   dropped this below 4.5:1 in every theme. */
 		color: var(--color-text-muted);
-		opacity: 0.7;
 	}
 
 	.footer__logos {

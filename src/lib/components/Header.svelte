@@ -144,7 +144,7 @@
 					class="header__link"
 					class:header__link--active={page.url.pathname === localePath(item.href)}
 					onclick={closeMenu}
-					data-testid="nav-{item.href.replace('/', '') || 'home'}-link"
+					data-testid="nav-{item.href.replaceAll('/', '-').replace(/^-|-$/g, '') || 'home'}-link"
 				>
 					{t(item.label)}
 					{#if item.href === '/favorites' && settings.favorites.length > 0}

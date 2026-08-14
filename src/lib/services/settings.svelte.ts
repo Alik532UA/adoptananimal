@@ -42,6 +42,15 @@ class Settings {
 					: 'light-green';
 			}
 
+			// Seeded from the attribute the server already wrote, before any effect can
+			// run. Starting at the default instead meant hydration briefly stamped
+			// lang="en" onto a German page before the route locale arrived — long enough
+			// for a screen reader, and for a test, to read the wrong language.
+			const fromDocument = document.documentElement.lang;
+			if (isLocale(fromDocument)) {
+				this.locale = fromDocument;
+			}
+
 			// Only the preference is restored. The current language comes from the
 			// route, so that a shared link always opens in the language it names.
 			const savedLocale = storage.get('locale');

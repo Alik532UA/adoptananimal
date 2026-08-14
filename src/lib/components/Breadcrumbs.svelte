@@ -48,7 +48,9 @@
 	.breadcrumbs__item {
 		display: flex;
 		align-items: center;
-		color: var(--color-text-muted);
+		/* inherit, not a page-background colour: this renders on the hero, which
+		   sets its own foreground. Forcing --color-text-muted gave 1.18:1. */
+		color: inherit;
 	}
 
 	.breadcrumbs a {
@@ -64,12 +66,14 @@
 
 	.breadcrumbs__separator {
 		margin: 0 var(--space-sm);
-		opacity: 0.7;
+		opacity: 0.85;
 	}
 
 	.breadcrumbs__current {
 		font-weight: 700;
-		color: var(--color-text);
+		/* inherit, not --color-text: this component renders on the coloured hero,
+		   which sets its own foreground. */
+		color: inherit;
 	}
 
 	/* Style overrides */

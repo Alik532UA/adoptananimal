@@ -19,6 +19,7 @@
 	--color-text-muted: #4a5a7a;
 	--color-text-light: #667799;
 	--color-text-on-accent: #002b66;
+	--color-text-on-secondary: #002b66;
 
 	/* Border & UI */
 	--color-border: transparent;
@@ -36,8 +37,8 @@
 	--apply-email-bg: #e6f2ff;
 	--cat-card-bg: #e6f2ff;
 	--dog-card-bg: #f0f7ff;
-	--cat-hero: #4d94ff;
-	--dog-hero: #3385ff;
+	--cat-hero: #1f66cc; /* darkened: white hero text needs 4.5:1 */
+	--dog-hero: #1259b8; /* darkened: white hero text needs 4.5:1 */
 
 	/* UI Alpha & Overlays */
 	--color-overlay: rgba(77, 148, 255, 0.2);
