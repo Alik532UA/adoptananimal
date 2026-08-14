@@ -191,7 +191,5 @@ export const nl = {
 	'list.dog.subtitle': 'In Oekraïne geredde honden, klaar voor adoptie',
 	'list.cat.subtitle': 'In Oekraïne geredde katten, klaar voor adoptie',
 	'list.stats.waiting': 'zoeken een thuis',
-	'list.stats.adopted': 'al geadopteerd',
-	'debug.copyReport': 'Diagnoserapport kopiëren',
-	'debug.reportCopied': 'Diagnoserapport gekopieerd — plak het in uw bericht aan ons'
+	'list.stats.adopted': 'al geadopteerd'
 } as const;

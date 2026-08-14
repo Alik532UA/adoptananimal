@@ -191,9 +191,7 @@ export const en = {
 	'list.dog.subtitle': 'Rescued dogs from Ukraine, ready for adoption',
 	'list.cat.subtitle': 'Rescued cats from Ukraine, ready for adoption',
 	'list.stats.waiting': 'looking for a home',
-	'list.stats.adopted': 'already adopted',
-	'debug.copyReport': 'Copy a diagnostic report',
-	'debug.reportCopied': 'Diagnostic report copied — paste it into your message to us'
+	'list.stats.adopted': 'already adopted'
 } as const;
 
 export type TranslationKey = keyof typeof en;

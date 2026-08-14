@@ -193,7 +193,5 @@ export const uk = {
 	'list.dog.subtitle': 'Врятовані в Україні собаки, готові до прихистку',
 	'list.cat.subtitle': 'Врятовані в Україні коти, готові до прихистку',
 	'list.stats.waiting': 'шукають дім',
-	'list.stats.adopted': 'вже в родині',
-	'debug.copyReport': 'Скопіювати звіт для діагностики',
-	'debug.reportCopied': 'Звіт скопійовано — вставте його в лист до нас'
+	'list.stats.adopted': 'вже в родині'
 } as const;
