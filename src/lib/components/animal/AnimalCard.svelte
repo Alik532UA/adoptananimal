@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
+	import { localePath, withBase } from '$lib/utils/withBase';
 	import type { Animal } from '$lib/data/animals';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
@@ -18,7 +18,7 @@
 </script>
 
 <a
-	href={withBase(`/adopt/${typeUrl}/${animal.slug}`)}
+	href={localePath(`/adopt/${typeUrl}/${animal.slug}`)}
 	class="animal-card"
 	class:animal-card--adopted={animal.isAdopted}
 	id="card-{animal.slug}"

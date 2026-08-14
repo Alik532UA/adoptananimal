@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
+	import { localePath, withBase } from '$lib/utils/withBase';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -26,14 +26,14 @@
 	<div class="container">
 		<div class="featured__footer">
 			<Button
-				href={withBase('/adopt/cat')}
+				href={localePath('/adopt/cat')}
 				variant="secondary"
 				size="lg"
 				data-testid="featured-see-all-cats-link"
 				>{t('featured.browseCats')} <Icon name="cat" size="1.2rem" /></Button
 			>
 			<Button
-				href={withBase('/adopt/dog')}
+				href={localePath('/adopt/dog')}
 				variant="secondary"
 				size="lg"
 				data-testid="featured-see-all-dogs-link"

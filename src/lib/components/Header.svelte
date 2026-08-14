@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
+	import { localePath, withBase } from '$lib/utils/withBase';
 	import { page } from '$app/state';
 	import { t, type TranslationKey } from '$lib/i18n';
 	import { settings, type Locale, type SiteStyle, type Theme } from '$lib/services/settings.svelte';
+	import { base } from '$app/paths';
+	import { splitLocale } from '$lib/i18n/locales';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
 	let mobileMenuOpen = $state(false);
@@ -102,6 +104,19 @@
 		node.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
 	}
 
+	/**
+	 * The same page in another language. Built from the current pathname so the
+	 * reader keeps their place instead of being dropped on the home page.
+	 */
+	function localeHref(locale: Locale): string {
+		const pathname =
+			base && page.url.pathname.startsWith(base)
+				? page.url.pathname.slice(base.length)
+				: page.url.pathname;
+
+		return localePath(splitLocale(pathname).path, locale);
+	}
+
 	const navItems: { href: string; label: TranslationKey }[] = [
 		{ href: '/', label: 'nav.home' },
 		{ href: '/adopt/cat', label: 'nav.cats' },
@@ -112,7 +127,12 @@
 
 <header class="header">
 	<div class="header__inner container">
-		<a href={withBase('/')} class="header__logo" onclick={closeMenu} data-testid="header-logo-link">
+		<a
+			href={localePath('/')}
+			class="header__logo"
+			onclick={closeMenu}
+			data-testid="header-logo-link"
+		>
 			<Icon name="paw" size="1.75rem" class="header__logo-icon" />
 			<span class="header__logo-text">{t('nav.adopt')}</span>
 		</a>
@@ -120,9 +140,9 @@
 		<nav class="header__nav" class:header__nav--open={mobileMenuOpen}>
 			{#each navItems as item (item.href)}
 				<a
-					href={withBase(item.href)}
+					href={localePath(item.href)}
 					class="header__link"
-					class:header__link--active={page.url.pathname === withBase(item.href)}
+					class:header__link--active={page.url.pathname === localePath(item.href)}
 					onclick={closeMenu}
 					data-testid="nav-{item.href.replace('/', '') || 'home'}-link"
 				>
@@ -133,7 +153,7 @@
 				</a>
 			{/each}
 			<a
-				href={withBase('/apply')}
+				href={localePath('/apply')}
 				class="btn btn--primary btn--sm header__cta"
 				onclick={closeMenu}
 				data-testid="nav-apply-now-link"
@@ -268,15 +288,19 @@
 							{@attach focusFirstItem}
 						>
 							{#each locales as locale (locale.id)}
-								<button
+								<!-- An <a>, not a button: switching language changes the address, so it
+									 must be openable in a new tab and visible to a crawler. -->
+								<a
 									class="dropdown-item"
 									class:dropdown-item--active={settings.locale === locale.id}
+									href={localeHref(locale.id)}
+									hreflang={locale.id}
 									onclick={() => {
 										settings.setLocale(locale.id);
 										langMenuOpen = false;
 									}}
 									role="menuitem"
-									data-testid="lang-option-{locale.id}-btn"
+									data-testid="lang-option-{locale.id}-link"
 								>
 									<div class="dropdown-item__flags">
 										{#each locale.flags as flag (flag)}
@@ -284,7 +308,7 @@
 										{/each}
 									</div>
 									<span class="dropdown-label">{locale.label}</span>
-								</button>
+								</a>
 							{/each}
 						</div>
 					{/if}

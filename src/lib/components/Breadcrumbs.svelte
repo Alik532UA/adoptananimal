@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
+	import { localePath } from '$lib/utils/withBase';
 	import { t } from '$lib/i18n';
 
 	interface Props {
@@ -12,14 +12,15 @@
 <nav class="breadcrumbs" aria-label={t('a11y.breadcrumb')} data-testid="breadcrumb-nav">
 	<ol class="breadcrumbs__list">
 		<li class="breadcrumbs__item">
-			<a href={withBase('/')} data-testid="breadcrumb-home-link">{t('breadcrumb.home')}</a>
+			<a href={localePath('/')} data-testid="breadcrumb-home-link">{t('breadcrumb.home')}</a>
 		</li>
 		{#each items as item, i (item.label)}
 			<li class="breadcrumbs__item">
 				<span class="breadcrumbs__separator">/</span>
 				{#if item.href && i < items.length - 1}
-					<a href={withBase(item.href)} data-testid={`breadcrumb-${item.label.toLowerCase()}-link`}
-						>{item.label}</a
+					<a
+						href={localePath(item.href)}
+						data-testid={`breadcrumb-${item.label.toLowerCase()}-link`}>{item.label}</a
 					>
 				{:else}
 					<span

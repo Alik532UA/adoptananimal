@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
+	import { localePath, withBase } from '$lib/utils/withBase';
 	import type { PageData } from './$types';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
@@ -25,7 +25,7 @@
 			name: animal.name,
 			image: photo,
 			description: animal.description[settings.locale]?.[0] || animal.description.en[0],
-			category: 'Dog',
+			category: 'Cat',
 			additionalProperty: [
 				{ '@type': 'PropertyValue', name: 'Breed', value: animal.breed.en },
 				{ '@type': 'PropertyValue', name: 'Age', value: animal.age.en },
@@ -47,19 +47,19 @@
 	const jsonLdTag = $derived('<script type="application/ld+json">' + jsonLd + '<' + '/script>');
 
 	const breadcrumbItems = $derived([
-		{ label: t('breadcrumb.dogs'), href: '/adopt/dog' },
+		{ label: t('breadcrumb.cats'), href: '/adopt/cat' },
 		{ label: animal.name }
 	]);
 </script>
 
 <svelte:head>
-	<title>{animal.name} | {t('breadcrumb.dogs')}</title>
+	<title>{animal.name} | {t('breadcrumb.cats')}</title>
 	<meta
 		name="description"
-		content="Meet {animal.name}, a {animal.breed.en} dog rescued from Ukraine. {animal.description
+		content="Meet {animal.name}, a {animal.breed.en} cat rescued from Ukraine. {animal.description
 			.en[0]}"
 	/>
-	<meta property="og:title" content="{animal.name} - {t('breadcrumb.dogs')}" />
+	<meta property="og:title" content="{animal.name} - {t('breadcrumb.cats')}" />
 	<meta
 		property="og:description"
 		content={animal.description[settings.locale][0] || animal.description.en[0]}
@@ -71,7 +71,7 @@
 	{@html jsonLdTag}
 </svelte:head>
 
-<section class="detail-hero detail-hero--dog">
+<section class="detail-hero detail-hero--cat">
 	<div class="container">
 		<Breadcrumbs items={breadcrumbItems} />
 	</div>
@@ -97,12 +97,12 @@
 						/>
 					{/if}
 					<div class="detail__emoji" style={imageFailed ? '' : 'display: none;'}>
-						<Icon name="dog" size="10rem" />
+						<Icon name="cat" size="10rem" />
 					</div>
 				</div>
 				{#if !animal.isAdopted}
 					<a
-						href={withBase(`/apply?animal=${animal.name}`)}
+						href={localePath(`/apply?animal=${animal.name}`)}
 						class="btn btn--accent btn--lg detail__apply-btn"
 						data-testid="apply-top-link"
 					>
@@ -113,7 +113,7 @@
 
 			<div class="detail__info">
 				<h1 class="detail__name">{animal.name}</h1>
-				<!-- <span class="badge badge--dog">{t('detail.dog')}</span> -->
+				<!-- <span class="badge badge--cat">{t('detail.cat')}</span> -->
 
 				<div class="detail__specs">
 					<div class="detail__spec">
@@ -154,16 +154,16 @@
 				<div class="detail__actions">
 					{#if !animal.isAdopted}
 						<a
-							href={withBase(`/apply?animal=${animal.name}`)}
+							href={localePath(`/apply?animal=${animal.name}`)}
 							class="btn btn--primary btn--lg"
 							data-testid="apply-bottom-link">{t('detail.applyBtn')}</a
 						>
 					{/if}
 					<a
-						href={withBase('/adopt/dog')}
+						href={localePath('/adopt/cat')}
 						class="btn btn--secondary"
-						data-testid="back-to-dogs-link"
-						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backDogs')}</a
+						data-testid="back-to-cats-link"
+						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backCats')}</a
 					>
 				</div>
 			</div>
@@ -191,7 +191,7 @@
 		color: white;
 	}
 
-	.detail-hero--dog {
+	.detail-hero--cat {
 		background: var(--color-primary);
 	}
 

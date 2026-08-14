@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
+	import { localePath } from '$lib/utils/withBase';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import { allAnimals } from '$lib/data/animals';
@@ -40,11 +40,15 @@
 					<Icon name="heart" size="4rem" class="mb-lg" />
 					<h2>{t('favs.empty')}</h2>
 					<div class="mt-lg">
-						<Button href={withBase('/adopt/dog')} variant="primary" data-testid="explore-dogs-link">
+						<Button
+							href={localePath('/adopt/dog')}
+							variant="primary"
+							data-testid="explore-dogs-link"
+						>
 							{t('featured.browseDogs')}
 						</Button>
 						<Button
-							href={withBase('/adopt/cat')}
+							href={localePath('/adopt/cat')}
 							variant="secondary"
 							data-testid="explore-cats-link"
 						>

@@ -1,8 +1,10 @@
 <script lang="ts">
 	import '../app.css';
 	import { t } from '$lib/i18n';
-	import { page } from '$app/state';
-	import { absoluteFromPathname, absoluteFromRoot, DEFAULT_OG_IMAGE } from '$lib/config';
+	import { absoluteFromRoot, absoluteLocale, DEFAULT_OG_IMAGE } from '$lib/config';
+	import { HTML_LANG, LOCALES, DEFAULT_LOCALE } from '$lib/i18n/locales';
+	import { untrack } from 'svelte';
+	import { settings } from '$lib/services/settings.svelte';
 	import { onNavigate } from '$app/navigation';
 	import { logService } from '$lib/services/logService.svelte';
 	import { webVitals } from '$lib/controllers/webVitals.svelte';
@@ -12,11 +14,37 @@
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
-	let { children } = $props();
+	let { data, children } = $props();
 	let showBackToTop = $state(false);
 
-	// pathname already carries the base path; only the origin has to come from config.
-	const canonical = $derived(absoluteFromPathname(page.url.pathname));
+	// The locale-free path of the current page, e.g. /adopt/cat for both /adopt/cat
+	// and /uk/adopt/cat. Resolved in the load so it is available before anything renders.
+	const route = $derived(data);
+
+	// Read once, on purpose, before Header and the page render. Prerendering runs every
+	// page in one process, so a singleton still holding the previous page's language
+	// renders this one in it — the module-state trap from SVELTE-CORE § 5.1.
+	untrack(() => settings.applyRouteLocale(data.locale));
+
+	// Client-side navigation reuses this component, so the line above runs only once.
+	$effect(() => {
+		settings.applyRouteLocale(data.locale);
+	});
+
+	// One canonical per language (SEO § 2.1), built from SITE_ORIGIN — page.url.origin
+	// is the placeholder host during prerender.
+	const canonical = $derived(absoluteLocale(route.path, route.locale));
+
+	// Every language of this page declares every other, itself included, plus an
+	// x-default pointing at the unprefixed version. A crawler that finds one language
+	// then knows the rest exist rather than treating them as duplicate content.
+	const alternates = $derived(
+		LOCALES.map((locale) => ({
+			locale,
+			hreflang: HTML_LANG[locale],
+			href: absoluteLocale(route.path, locale)
+		}))
+	);
 
 	// Throttled to one read per frame and removed on unmount: an unbounded scroll
 	// handler runs on every wheel tick and this one outlived the component before.
@@ -87,7 +115,12 @@
 	<!-- Built from SITE_ORIGIN, never from page.url.origin: during prerender the
 		 latter is the placeholder host `sveltekit-prerender`. -->
 	<link rel="canonical" href={canonical} />
+	{#each alternates as alternate (alternate.locale)}
+		<link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+	{/each}
+	<link rel="alternate" hreflang="x-default" href={absoluteLocale(route.path, DEFAULT_LOCALE)} />
 	<meta property="og:url" content={canonical} />
+	<meta property="og:locale" content={HTML_LANG[route.locale]} />
 	<meta property="og:site_name" content={t('app.title')} />
 	<meta property="og:image" content={absoluteFromRoot(DEFAULT_OG_IMAGE)} />
 	<meta name="twitter:card" content="summary_large_image" />

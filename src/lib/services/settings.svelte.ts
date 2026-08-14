@@ -2,9 +2,11 @@ import { browser } from '$app/environment';
 import { storage } from '$lib/services/storage';
 import { logService } from '$lib/services/logService.svelte';
 
+import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from '$lib/i18n/locales';
+
 export type Theme = 'dark' | 'light-green' | 'orange-purple' | 'winter';
-export type Locale = 'uk' | 'en' | 'de' | 'nl';
 export type SiteStyle = 'modern' | 'minimal' | 'playful';
+export type { Locale };
 
 /**
  * Service for managing application settings like theme, locale, and favorites.
@@ -12,12 +14,17 @@ export type SiteStyle = 'modern' | 'minimal' | 'playful';
  */
 class Settings {
 	theme = $state<Theme>('dark');
-	locale = $state<Locale>('en');
+
+	/** Language of the page being rendered. Owned by the URL, not by this class. */
+	locale = $state<Locale>(DEFAULT_LOCALE);
+
+	/** The language the visitor last chose, used to offer their language on arrival. */
+	preferredLocale = $state<Locale | null>(null);
+
 	style = $state<SiteStyle>('modern');
 	favorites = $state<string[]>([]);
 
 	private themes: Theme[] = ['dark', 'light-green', 'orange-purple', 'winter'];
-	private locales: Locale[] = ['en', 'uk', 'de', 'nl'];
 	private styles: SiteStyle[] = ['modern', 'minimal', 'playful'];
 
 	constructor() {
@@ -35,10 +42,11 @@ class Settings {
 					: 'light-green';
 			}
 
-			// Locale
-			const savedLocale = storage.get('locale') as Locale | null;
-			if (savedLocale && this.locales.includes(savedLocale)) {
-				this.locale = savedLocale;
+			// Only the preference is restored. The current language comes from the
+			// route, so that a shared link always opens in the language it names.
+			const savedLocale = storage.get('locale');
+			if (savedLocale && isLocale(savedLocale)) {
+				this.preferredLocale = savedLocale;
 			}
 
 			// Style
@@ -65,9 +73,10 @@ class Settings {
 				}
 			});
 
+			// The attribute is written by hooks.server.ts during prerender; this keeps
+			// it correct after a client-side navigation between languages.
 			$effect(() => {
 				if (browser) {
-					storage.set('locale', this.locale);
 					document.documentElement.setAttribute('lang', this.locale);
 				}
 			});
@@ -98,14 +107,21 @@ class Settings {
 		this.theme = theme;
 	}
 
+	/** Records an explicit choice by the visitor. Navigation is the caller's job. */
 	setLocale(locale: Locale) {
 		this.locale = locale;
+		this.preferredLocale = locale;
+		storage.set('locale', locale);
+	}
+
+	/** Applies the language of the current route without touching the stored preference. */
+	applyRouteLocale(locale: Locale) {
+		if (this.locale !== locale) this.locale = locale;
 	}
 
 	toggleLocale() {
-		const currentIndex = this.locales.indexOf(this.locale);
-		const nextIndex = (currentIndex + 1) % this.locales.length;
-		this.locale = this.locales[nextIndex];
+		const currentIndex = LOCALES.indexOf(this.locale);
+		this.setLocale(LOCALES[(currentIndex + 1) % LOCALES.length]);
 	}
 
 	setStyle(style: SiteStyle) {
@@ -133,7 +149,8 @@ class Settings {
 	 */
 	reset() {
 		this.theme = 'dark';
-		this.locale = 'en';
+		this.locale = DEFAULT_LOCALE;
+		this.preferredLocale = null;
 		this.style = 'modern';
 		this.favorites = [];
 	}

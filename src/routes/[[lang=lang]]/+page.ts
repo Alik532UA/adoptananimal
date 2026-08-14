@@ -1,5 +1,8 @@
 import { animalService } from '$lib/services/animals';
-import type { PageLoad } from './$types';
+import { langEntries } from '$lib/i18n/entries';
+import type { EntryGenerator, PageLoad } from './$types';
+
+export const entries: EntryGenerator = langEntries;
 
 export const load: PageLoad = () => {
 	// Deliberately not shuffled: this load runs once at build time, so a random order
@@ -9,7 +12,5 @@ export const load: PageLoad = () => {
 		(a, b) => Number(a.isAdopted) - Number(b.isAdopted)
 	);
 
-	return {
-		animals
-	};
+	return { animals };
 };

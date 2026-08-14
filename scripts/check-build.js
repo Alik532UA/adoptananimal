@@ -136,7 +136,53 @@ if (!existsSync(join(BUILD_DIR, '404.html'))) {
 	fail('404.html is missing — GitHub Pages serves it for unknown paths');
 }
 
-// --- 7. internal links and assets point at something that exists -------------
+// --- 7. every page is rendered in the language its URL claims ----------------
+// Prerendering runs all pages in one process, so a module singleton holding the
+// language leaks it into the next page. That produced a Ukrainian page with Dutch
+// chrome, and nothing in the source looked wrong.
+const LOCALES = ['en', 'uk', 'de', 'nl'];
+const PREFIXED = LOCALES.filter((l) => l !== 'en');
+
+const localeOfPath = (rel) => {
+	const first = rel.split('/')[0];
+	return PREFIXED.includes(first) || PREFIXED.includes(first.replace(/\.html$/, ''))
+		? first.replace(/\.html$/, '')
+		: 'en';
+};
+
+for (const file of htmlFiles) {
+	const rel = relative(BUILD_DIR, file).split(sep).join('/');
+	if (SHELL_PAGES.has(rel)) continue;
+
+	const html = readFileSync(file, 'utf-8');
+	const expected = localeOfPath(rel);
+
+	const lang = html.match(/<html[^>]+lang="([^"]*)"/)?.[1];
+	if (lang !== expected) {
+		fail(`${rel}: <html lang="${lang}"> but the URL says "${expected}"`);
+	}
+
+	// The canonical must name this page's own language, not a neighbour's.
+	const canonical = html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/)?.[1] ?? '';
+	const canonicalLocale = localeOfPath(
+		new URL(canonical, 'https://example.com').pathname.replace(/^\/+/, '')
+	);
+	if (canonicalLocale !== expected) {
+		fail(`${rel}: canonical points at the "${canonicalLocale}" version, expected "${expected}"`);
+	}
+
+	// One alternate per language plus x-default, so a crawler that finds one
+	// translation knows the others exist instead of calling them duplicates.
+	const alternates = [...html.matchAll(/<link[^>]+rel="alternate"[^>]+hreflang="([^"]*)"/g)].map(
+		(m) => m[1]
+	);
+	const missing = [...LOCALES, 'x-default'].filter((l) => !alternates.includes(l));
+	if (missing.length > 0) {
+		fail(`${rel}: missing hreflang alternates: ${missing.join(', ')}`);
+	}
+}
+
+// --- 8. internal links and assets point at something that exists -------------
 // This replaces svelte/no-navigation-without-resolve, which the project turns off
 // because it routes through withBase() rather than SvelteKit's typed resolve().
 const EXTERNAL = /^(https?:|mailto:|tel:|data:|#|\/\/)/;

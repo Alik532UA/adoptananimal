@@ -1,3 +1,5 @@
+import { localeSegment, type Locale } from '$lib/i18n/locales';
+
 /**
  * Absolute origin of the deployed site.
  *
@@ -40,3 +42,15 @@ export const absoluteFromRoot = (path: string): string =>
 
 /** Absolute URL from a pathname that already includes the base, e.g. `page.url.pathname`. */
 export const absoluteFromPathname = (pathname: string): string => `${SITE_ORIGIN}${pathname}`;
+
+/**
+ * Absolute URL of a page in a given language, from a locale-free path such as
+ * `/adopt/cat`. Used for canonical and for the hreflang alternates, which have to
+ * be absolute to mean anything to a crawler.
+ */
+export const absoluteLocale = (path: string, locale: Locale): string => {
+	const tail = path === '/' ? '' : path;
+	const url = `${SITE_ORIGIN}${SITE_BASE}${localeSegment(locale)}${tail}`;
+	// Root of a language with no base configured would otherwise be a bare origin.
+	return url === SITE_ORIGIN ? `${SITE_ORIGIN}/` : url;
+};
