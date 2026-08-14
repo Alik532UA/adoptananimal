@@ -92,6 +92,29 @@
 	color: var(--color-text-on-accent);
 }
 
+/*
+ * A button standing on the coloured section a page opens with.
+ *
+ * .btn--secondary is half-transparent card colour and takes on whatever is behind it —
+ * on that section the label measured 2.54:1. This is a choice made where the button is
+ * written rather than inferred from where it sits, so the same button somewhere else
+ * does not silently change meaning.
+ *
+ * Only for that section. Its surface is measured against --cat-hero, and on a panel
+ * that is the card colour the same value is white on white; those take .btn--primary,
+ * whose pairing every theme already declares against the card.
+ */
+.btn--hero {
+	background: var(--color-hero-btn);
+	color: var(--color-text-on-hero-btn);
+}
+
+.btn--hero:hover {
+	background: var(--color-hero-btn);
+	color: var(--color-text-on-hero-btn);
+	filter: brightness(1.08);
+}
+
 .btn--white {
 	background: white;
 	color: var(--color-primary-on-surface);

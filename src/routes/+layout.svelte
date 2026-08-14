@@ -354,29 +354,6 @@
 		background-color: var(--cat-hero);
 	}
 
-	/*
-	 * Secondary buttons get their own surface inside that section.
-	 *
-	 * Half-transparent card colour is near-white over the page background and a blend of
-	 * the hero colour over this one — the label measured 2.54:1 the moment the section
-	 * gained its colour, and the card colour that replaced it was a dark grey sitting on
-	 * dark green, legible but too dim to read as a button at all. --color-hero-btn is
-	 * the surface each theme declares for standing on its own hero.
-	 *
-	 * Scoped here, beside the rule that made the section coloured, rather than by
-	 * changing the variant everywhere it already works.
-	 */
-	.main > :global(:first-child .btn--secondary) {
-		background: var(--color-hero-btn);
-		color: var(--color-text-on-hero-btn);
-	}
-
-	.main > :global(:first-child .btn--secondary:hover) {
-		background: var(--color-hero-btn);
-		color: var(--color-text-on-hero-btn);
-		filter: brightness(1.08);
-	}
-
 	.boundary__inner {
 		display: flex;
 		flex-direction: column;

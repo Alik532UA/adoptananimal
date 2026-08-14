@@ -286,6 +286,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-md);
+		/* A surface of its own. This is the longest stretch of reading on the site and it
+		   sat directly on the page's photograph — legible in the sense that the contrast
+		   maths passed, and hard work in the sense that every line had a different thing
+		   behind it. */
+		padding: var(--space-xl);
+		border-radius: var(--radius-lg);
+		background: var(--color-bg-card);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.detail__story-title {

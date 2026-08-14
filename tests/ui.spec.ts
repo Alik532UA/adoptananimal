@@ -644,31 +644,6 @@ test.describe('surfaces that should not hide the page', () => {
 			expect(bg, 'the list paints over the page').toBe('rgba(0, 0, 0, 0)');
 		});
 	}
-
-	for (const theme of THEMES) {
-		test(`the hero buttons are solid and stand out in theme ${theme}`, async ({ page }) => {
-			await page.goto('/');
-			await page.evaluate((t) => localStorage.setItem('adoptananimal_theme', t), theme);
-			await page.reload();
-
-			const seen = await page.getByTestId('featured-see-all-cats-link').evaluate((el) => {
-				const cs = getComputedStyle(el);
-				const section = document.querySelector('.main > *')!;
-				return { button: cs.backgroundColor, section: getComputedStyle(section).backgroundColor };
-			});
-
-			// Solid, not glass: over a coloured section a half-transparent button takes on
-			// the colour behind it and the label goes with it.
-			expect(seen.button, `${theme}: the button is translucent`).toMatch(/^rgb\(/);
-			// And a different colour from what it stands on, or it is not a button at all.
-			// The dark theme's card grey on its dark green hero was legible and invisible.
-			const rgb = (s: string) => (s.match(/\d+/g) ?? []).map(Number);
-			const [br, bg2, bb] = rgb(seen.button);
-			const [sr, sg, sb] = rgb(seen.section);
-			const apart = Math.abs(br - sr) + Math.abs(bg2 - sg) + Math.abs(bb - sb);
-			expect(apart, `${theme}: the button barely differs from the section`).toBeGreaterThan(90);
-		});
-	}
 });
 
 test.describe('animals and their photographs', () => {
@@ -1072,5 +1047,104 @@ test.describe('the header navigation', () => {
 		}));
 
 		expect(tab, 'the tab is narrower than the item it sits behind').toBeGreaterThanOrEqual(label);
+	});
+});
+
+test.describe('buttons standing on a panel', () => {
+	/*
+	 * Two places, one problem: a half-transparent button takes on whatever surface it is
+	 * dropped onto. On the home page's coloured opening section it went 2.54:1; on the
+	 * empty-favourites card it simply became the card, and only the label was left.
+	 */
+	const PLACES = [
+		{ path: '/', panel: '.main > *', button: 'featured-see-all-cats-link' },
+		{ path: '/favorites', panel: '.no-favorites', button: 'explore-cats-link' }
+	] as const;
+
+	for (const theme of THEMES) {
+		for (const place of PLACES) {
+			test(`stand out on ${place.path} in theme ${theme}`, async ({ page }) => {
+				await page.goto(place.path);
+				await page.evaluate((t) => localStorage.setItem('adoptananimal_theme', t), theme);
+				await page.reload();
+
+				const seen = await page.getByTestId(place.button).evaluate((el, panelSel) => {
+					const cs = getComputedStyle(el);
+					const panel = el.closest(panelSel) ?? document.querySelector(panelSel)!;
+					return { button: cs.backgroundColor, panel: getComputedStyle(panel).backgroundColor };
+				}, place.panel);
+
+				// Solid, not glass.
+				expect(seen.button, `${theme}: the button is translucent`).toMatch(/^rgb\(/);
+
+				// And a different colour from what it stands on, or it is not a button at all.
+				const rgb = (s: string) => (s.match(/\d+/g) ?? []).map(Number);
+				const [br, bg, bb] = rgb(seen.button);
+				const [pr, pg, pb] = rgb(seen.panel);
+				const apart = Math.abs(br - pr) + Math.abs(bg - pg) + Math.abs(bb - pb);
+				expect(apart, `${theme}: the button barely differs from its panel`).toBeGreaterThan(90);
+			});
+		}
+	}
+});
+
+test.describe('the animal detail page', () => {
+	test('gives the story a surface to sit on', async ({ page }) => {
+		await page.goto('/adopt/cat/basti');
+
+		const story = await page.locator('.detail__story').evaluate((el) => {
+			const cs = getComputedStyle(el);
+			return { background: cs.backgroundColor, padding: parseFloat(cs.paddingTop) };
+		});
+
+		// The longest stretch of reading on the site, and it sat straight on the page's
+		// photograph: contrast that passed and every line with something different behind it.
+		expect(story.background, 'the story has no surface of its own').not.toBe('rgba(0, 0, 0, 0)');
+		expect(story.padding, 'the text runs to the edge of its surface').toBeGreaterThanOrEqual(16);
+	});
+});
+
+test.describe('an adopted card under the pointer', () => {
+	test('lifts its badge clear of the label that arrives', async ({ page }) => {
+		await page.setViewportSize({ width: 1400, height: 900 });
+		await page.goto('/adopt/cat');
+		await page.waitForLoadState('networkidle');
+
+		const card = page.locator('.animal-card--adopted').first();
+		await card.scrollIntoViewIfNeeded();
+
+		const geometry = () =>
+			card.evaluate((el) => {
+				const box = (sel: string) => {
+					const r = el.querySelector(sel)!.getBoundingClientRect();
+					return { top: r.top, bottom: r.bottom };
+				};
+				return { badge: box('.animal-card__adopted-badge'), view: box('.animal-card__view') };
+			});
+
+		const rest = await geometry();
+		await card.hover();
+
+		// Both move on a spring, so the reading is polled to where they settle rather than
+		// taken while they are still travelling.
+		await expect
+			.poll(async () => Math.round((await geometry()).badge.top))
+			.toBeLessThan(Math.round(rest.badge.top) - 10);
+
+		const hovered = await geometry();
+
+		// The label rises from the bottom of the card and used to land on the corner of
+		// ADOPTED. The badge steps up out of its way rather than the label stopping short,
+		// which would move it on every other card too.
+		expect(
+			Math.round(hovered.view.top),
+			`"View profile" overlaps the badge by ${Math.round(hovered.badge.bottom - hovered.view.top)}px`
+		).toBeGreaterThanOrEqual(Math.round(hovered.badge.bottom));
+
+		// And it is a reaction to the pointer, not a second layout: it goes back.
+		await page.mouse.move(0, 0);
+		await expect
+			.poll(async () => Math.round((await geometry()).badge.top))
+			.toBe(Math.round(rest.badge.top));
 	});
 });

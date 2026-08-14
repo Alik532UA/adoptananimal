@@ -3,7 +3,15 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'ghost' | 'white' | 'outline-white';
+		variant?:
+			| 'primary'
+			| 'secondary'
+			| 'hero'
+			| 'accent'
+			| 'danger'
+			| 'ghost'
+			| 'white'
+			| 'outline-white';
 		size?: 'sm' | 'md' | 'lg';
 		href?: string;
 		children: Snippet;

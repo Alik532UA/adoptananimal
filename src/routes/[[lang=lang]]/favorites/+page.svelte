@@ -40,19 +40,21 @@
 					<Icon name="heart" size="4rem" class="mb-lg" />
 					<h2>{t('favs.empty')}</h2>
 					<div class="mt-lg">
-						<!-- Both secondary, not one of each: cats and dogs are the same offer,
-							 and a solid button beside a hollow one reads as a recommendation
-							 nobody meant to make. -->
+						<!-- Both the same, not one of each: cats and dogs are the same offer, and
+							 a solid button beside a hollow one reads as a recommendation nobody
+							 meant to make. Primary rather than the hero variant, because this
+							 panel is the card colour and the hero surface is white on two of the
+							 four themes — which is a white button on a white card. -->
 						<Button
 							href={localePath('/adopt/dog')}
-							variant="secondary"
+							variant="primary"
 							data-testid="explore-dogs-link"
 						>
 							{t('featured.browseDogs')}
 						</Button>
 						<Button
 							href={localePath('/adopt/cat')}
-							variant="secondary"
+							variant="primary"
 							data-testid="explore-cats-link"
 						>
 							{t('featured.browseCats')}

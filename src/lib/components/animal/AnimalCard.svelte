@@ -196,6 +196,7 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%) rotate(-7deg);
+		transition: transform var(--transition-spring);
 		background: var(--color-success);
 		/* Its own token: --color-text-on-accent is measured against --color-primary and
 		   does not carry over to the success green. */
@@ -262,6 +263,24 @@
 
 	.animal-card:hover .animal-card__view {
 		transform: translateY(0);
+	}
+
+	/*
+	 * The badge lifts out of the way of the label that arrives under it.
+	 *
+	 * "View profile" rises from the bottom of the card on hover and, on a card this
+	 * short, lands on the corner of "ADOPTED". Moving the badge up rather than the label
+	 * down keeps the label where it is on every other card, and the badge goes back the
+	 * moment the pointer leaves — it is a reaction to the hover, not a second layout.
+	 */
+	.animal-card:hover .animal-card__adopted-badge {
+		transform: translate(-50%, calc(-50% - 26px)) rotate(-7deg);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.animal-card__adopted-badge {
+			transition: none;
+		}
 	}
 
 	.animal-card__fav {

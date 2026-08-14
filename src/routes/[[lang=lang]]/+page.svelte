@@ -60,14 +60,14 @@
 		<div class="featured__footer">
 			<Button
 				href={localePath('/adopt/cat')}
-				variant="secondary"
+				variant="hero"
 				size="lg"
 				data-testid="featured-see-all-cats-link"
 				>{t('featured.browseCats')} <Icon name="cat" size="1.2rem" /></Button
 			>
 			<Button
 				href={localePath('/adopt/dog')}
-				variant="secondary"
+				variant="hero"
 				size="lg"
 				data-testid="featured-see-all-dogs-link"
 				>{t('featured.browseDogs')} <Icon name="dog" size="1.2rem" /></Button

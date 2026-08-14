@@ -49,9 +49,12 @@
 	--dog-card-bg: #f2f5ec;
 	--cat-hero: #3f6b28; /* darkened: white hero text needs 4.5:1 */
 
-	/* A button standing on the section a page opens with.
+	/* A button standing on the coloured section a page opens with.
+	   Measured against --cat-hero and nothing else: the same value on a white card is a
+	   white button, which is how the empty-favourites buttons disappeared. Panels that
+	   are the card colour take .btn--primary instead.
 	   Its own surface, because neither of the obvious answers works in all four themes:
-	   the card colour is a dark grey that vanishes into a dark hero, and the primary is
+	   the card colour is a dark grey that vanishes into a dark panel, and the primary is
 	   the hero colour itself in two of them. Paired with a foreground chosen for it. */
 	--color-hero-btn: #ffffff;
 	--color-text-on-hero-btn: #3f6b28; /* 6.28:1 */
