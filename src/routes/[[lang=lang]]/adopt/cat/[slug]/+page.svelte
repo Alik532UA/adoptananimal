@@ -187,7 +187,10 @@
 	}
 
 	.detail-hero--cat {
-		background: var(--color-primary);
+		/* --cat-hero, not --color-primary: the primary is picked to work as a surface
+		   under its own foreground, and white on it is 2.14:1 in dark and 3.0:1 in
+		   winter. The hero colour is the darkened one, and white is safe on it. */
+		background: var(--cat-hero);
 	}
 
 	.detail__layout {

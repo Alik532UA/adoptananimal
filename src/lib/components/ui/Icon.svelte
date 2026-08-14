@@ -24,6 +24,7 @@
 		ArrowRight,
 		ArrowLeft,
 		ArrowUp,
+		ExternalLink,
 		X
 	} from 'lucide-svelte';
 
@@ -56,7 +57,8 @@
 			| 'arrow-right'
 			| 'arrow-left'
 			| 'arrow-up'
-			| 'close';
+			| 'close'
+			| 'external-link';
 		size?: string | number;
 		class?: string;
 		strokeWidth?: number;
@@ -133,6 +135,8 @@
 			<ArrowUp {size} class={className} {strokeWidth} />
 		{:else if name === 'close'}
 			<X {size} class={className} {strokeWidth} />
+		{:else if name === 'external-link'}
+			<ExternalLink {size} class={className} {strokeWidth} />
 		{/if}
 	{/key}
 </span>

@@ -295,10 +295,15 @@ test.describe('the application page', () => {
 
 		// Extensions and corporate proxies block third-party frames; a form nobody can
 		// reach is the same as no form.
-		await expect(page.getByTestId('apply-google-form-link')).toHaveAttribute(
-			'href',
-			/docs\.google\.com/
-		);
+		const fallback = page.getByTestId('apply-google-form-link');
+		await expect(fallback).toHaveAttribute('href', /docs\.google\.com/);
+
+		// It has to look like a button. The visitor who needs it is the one staring at an
+		// empty box, and a line of underlined text does not read as the way out.
+		await expect(fallback).toHaveClass(/\bbtn\b/);
+		const box = await fallback.boundingBox();
+		expect(box, 'fallback link has no box').not.toBeNull();
+		expect(box!.height, 'below the 44px minimum target size').toBeGreaterThanOrEqual(44);
 	});
 
 	for (const [width, minHeight] of [

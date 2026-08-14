@@ -17,9 +17,42 @@ const PAGES = ['/', '/adopt/cat', '/adopt/cat/basti', '/apply', '/apply/form', '
  * blend of itself and what is behind it: white over green read as #d3ddcd and scored
  * 4.48 against a pair that actually passes at 6.28. Emulating reduced motion did not
  * settle it reliably; waiting on the animations themselves does.
+ *
+ * subtree: true, because what axe measures is the items inside the menu, not the menu
+ * box. Without it this waited for the container to stop moving and then sampled
+ * children that were still fading — which passed alone and failed under load, the
+ * worst way for a check to be wrong.
  */
 const settle = (locator: import('@playwright/test').Locator) =>
-	locator.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)).then(() => {}));
+	locator.evaluate((el) =>
+		Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)).then(() => {})
+	);
+
+/**
+ * The same wait, for everything on the page.
+ *
+ * networkidle says the requests finished, not that the page stopped moving, so the
+ * whole-page audits were sampling colours mid-animation and had been getting away
+ * with it. A link fading in over the page measured #4782d6 instead of the #1f66cc it
+ * settles to and scored 3.68 against a pair that actually passes at 5.08.
+ *
+ * Endless animations are skipped: they never finish, and awaiting one would hang the
+ * run rather than fail it. The timeout is the same reasoning applied to an animation
+ * that is finite in theory and stuck in practice.
+ */
+const settlePage = (page: import('@playwright/test').Page) =>
+	page.evaluate(
+		() =>
+			new Promise<void>((resolve) => {
+				const finite = document
+					.getAnimations()
+					.filter((a) => (a.effect?.getComputedTiming().iterations ?? 1) !== Infinity);
+				void Promise.all(finite.map((a) => a.finished.catch(() => undefined))).then(() =>
+					resolve()
+				);
+				setTimeout(resolve, 3000);
+			})
+	);
 
 /**
  * Cards for animals that already found a home are excluded from the contrast audit.
@@ -46,33 +79,49 @@ for (const path of PAGES) {
 	test(`${path} has no accessibility violations`, async ({ page }) => {
 		await page.goto(path);
 		await page.waitForLoadState('networkidle');
+		await settlePage(page);
 
 		const results = await audit(page);
 		expect(results.violations.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
 	});
 }
 
+/*
+ * Every theme on every page, not one theme on one page.
+ *
+ * This used to audit /adopt/cat alone, which is the same blind spot the note at the
+ * top of this file describes, only one level up: the pairing that fails is the one on
+ * the page nobody thought to check in the theme nobody develops in. It missed a
+ * secondary button that measures 2.89:1 in winter and 5.98:1 in the default, and it
+ * missed it because the page it sits on was only ever audited in the default.
+ */
 for (const theme of THEMES) {
-	test(`theme ${theme} keeps contrast within WCAG AA`, async ({ page }) => {
-		await page.goto('/adopt/cat');
-		await page.evaluate((t) => {
-			localStorage.setItem('adoptananimal_theme', t);
-		}, theme);
-		await page.reload();
-		await page.waitForLoadState('networkidle');
+	for (const path of PAGES) {
+		test(`theme ${theme} keeps contrast within WCAG AA on ${path}`, async ({ page }) => {
+			await page.goto(path);
+			await page.evaluate((t) => {
+				localStorage.setItem('adoptananimal_theme', t);
+			}, theme);
+			await page.reload();
+			await page.waitForLoadState('networkidle');
+			await settlePage(page);
 
-		expect(await page.getAttribute('html', 'data-theme')).toBe(theme);
+			expect(await page.getAttribute('html', 'data-theme')).toBe(theme);
 
-		const results = await new AxeBuilder({ page })
-			.exclude('.animal-card--adopted')
-			.withTags(['wcag2aa'])
-			.analyze();
-		const contrast = results.violations.filter((v) => v.id === 'color-contrast');
+			const results = await new AxeBuilder({ page })
+				.exclude('.animal-card--adopted')
+				.exclude('iframe')
+				.withTags(['wcag2aa'])
+				.analyze();
+			const contrast = results.violations.filter((v) => v.id === 'color-contrast');
 
-		expect(
-			contrast.flatMap((v) => v.nodes.map((n) => `${theme}: ${n.target} — ${n.failureSummary}`))
-		).toEqual([]);
-	});
+			expect(
+				contrast.flatMap((v) =>
+					v.nodes.map((n) => `${theme} ${path}: ${n.target} — ${n.failureSummary}`)
+				)
+			).toEqual([]);
+		});
+	}
 }
 
 test('the skip link reaches this page, not the home page', async ({ page }) => {

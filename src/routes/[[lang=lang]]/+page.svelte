@@ -294,7 +294,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-xs);
-		color: var(--color-primary-dark);
+		color: var(--color-primary-on-surface);
 		font-size: 1.1rem;
 		margin: 0;
 	}
@@ -320,7 +320,7 @@
 	}
 
 	.about__thanks {
-		color: var(--color-primary);
+		color: var(--color-primary-on-surface);
 		margin: 0;
 	}
 

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { t, tFormat } from '$lib/i18n';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { GOOGLE_FORM_EMBED_URL, GOOGLE_FORM_URL } from '$lib/config';
 
 	// A $derived here would read url.searchParams during prerender, where accessing it
@@ -49,17 +51,22 @@
 		</div>
 
 		<!-- A frame can be blocked by an extension or a strict corporate proxy, and a
-			 form nobody can reach is the same as no form at all. -->
-		<p class="apply__fallback">
-			<a
+			 form nobody can reach is the same as no form at all. For the visitor whose
+			 frame is empty this is the only way through, so it is a button rather than a
+			 line of text: it has to be findable by someone who is already lost. -->
+		<div class="apply__fallback">
+			<Button
 				href={GOOGLE_FORM_URL}
+				variant="secondary"
+				size="lg"
 				target="_blank"
 				rel="noopener noreferrer"
 				data-testid="apply-google-form-link"
 			>
 				{t('apply.form.openInNewTab')}
-			</a>
-		</p>
+				<Icon name="external-link" size="1.1rem" />
+			</Button>
+		</div>
 	</div>
 </section>
 
@@ -147,7 +154,8 @@
 
 	.apply__fallback {
 		margin-top: var(--space-lg);
-		text-align: center;
+		display: flex;
+		justify-content: center;
 	}
 
 	@media (max-width: 600px) {

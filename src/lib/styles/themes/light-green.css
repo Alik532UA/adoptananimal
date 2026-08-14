@@ -3,6 +3,12 @@
 	--color-primary: #3f6b28; /* 6.28:1 with white */
 	--color-primary-light: #4a7a30; /* 5.10:1 with white */
 	--color-primary-dark: #4a7a2e;
+
+	/* The brand colour in its *text* role.
+	   --color-primary is chosen to work as a surface, and in several themes that makes
+	   it too light to read as text on this theme's own cards. Same hue, dark enough to
+	   clear 4.5:1; where the primary already clears it, this is the primary. */
+	--color-primary-on-surface: #3f6b28; /* 6.28:1 on white */
 	--color-secondary: #ffb327;
 	--color-secondary-light: #ffc04a;
 

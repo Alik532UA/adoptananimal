@@ -187,7 +187,10 @@
 	}
 
 	.detail-hero--dog {
-		background: var(--color-primary);
+		/* --dog-hero, not --color-primary: the primary is picked to work as a surface
+		   under its own foreground, and white on it is 2.14:1 in dark and 3.0:1 in
+		   winter. The hero colour is the darkened one, and white is safe on it. */
+		background: var(--dog-hero);
 	}
 
 	.detail__layout {

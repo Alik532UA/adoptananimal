@@ -3,6 +3,12 @@
 	--color-primary: #ff8c00;
 	--color-primary-light: #ffa500;
 	--color-primary-dark: #e67e00;
+
+	/* The brand colour in its *text* role.
+	   --color-primary is chosen to work as a surface, and in several themes that makes
+	   it too light to read as text on this theme's own cards. Same hue, dark enough to
+	   clear 4.5:1; where the primary already clears it, this is the primary. */
+	--color-primary-on-surface: #ff8c00; /* 7.01:1 on --color-bg-card */
 	--color-secondary: #4a2e7a;
 	--color-secondary-light: #5a189a;
 
@@ -19,7 +25,9 @@
 	--color-text-muted: #b3a0cc;
 	--color-text-light: #d1c1eb;
 	--color-text-on-accent: #1a0f2e;
-	--color-text-on-secondary: #1a0f2e;
+	/* The other themes pair the amber secondary with a dark foreground. Here the
+	   secondary is a dark purple, so the same dark foreground measured 1.7:1. */
+	--color-text-on-secondary: #f0e6ff; /* 10.70:1 on --color-secondary */
 
 	/* Border & UI */
 	--color-border: transparent;

@@ -79,18 +79,22 @@
 
 .btn--secondary {
 	background: var(--glass-bg);
-	color: var(--color-primary);
+	/* Not --color-primary: half-transparent card colour is near-white, and the winter
+	   primary on it measured 2.89:1. */
+	color: var(--color-primary-on-surface);
 	border: none;
 }
 
 .btn--secondary:hover {
 	background: var(--color-primary);
-	color: white;
+	/* Not white: this is the foreground each theme already declares for its primary,
+	   and three of the four themes need a dark one. */
+	color: var(--color-text-on-accent);
 }
 
 .btn--white {
 	background: white;
-	color: var(--color-primary);
+	color: var(--color-primary-on-surface);
 	box-shadow: var(--shadow-md);
 }
 
@@ -107,7 +111,7 @@
 
 .btn--outline-white:hover {
 	background: white;
-	color: var(--color-primary);
+	color: var(--color-primary-on-surface);
 }
 
 .btn--accent {
