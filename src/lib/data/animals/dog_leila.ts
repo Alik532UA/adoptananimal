@@ -4,7 +4,7 @@ export const summary: AnimalSummary = {
 	slug: 'leila',
 	name: 'LEILA',
 	type: 'dog',
-	isAdopted: false,
+	isAdopted: true,
 	gender: {
 		en: 'female',
 		uk: 'самка',

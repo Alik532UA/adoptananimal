@@ -92,7 +92,6 @@
 							src={withBase(animal.image)}
 							alt={animal.name}
 							class="detail__photo"
-							class:animal-card__photo--adopted={animal.isAdopted}
 							onerror={() => (imageFailed = true)}
 						/>
 					{/if}
@@ -182,10 +181,6 @@
 		font-weight: 700;
 	}
 
-	.animal-card__photo--adopted {
-		filter: grayscale(1);
-	}
-
 	.detail-hero {
 		padding: var(--space-xl) 0;
 		color: white;
@@ -211,6 +206,7 @@
 	}
 
 	.detail__image {
+		position: relative;
 		background: var(--color-bg-card);
 		border-radius: var(--radius-lg);
 		aspect-ratio: 1;

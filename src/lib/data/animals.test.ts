@@ -93,4 +93,10 @@ describe('animal summaries', () => {
 
 		expect(incomplete).toEqual([]);
 	});
+
+	it('are exported in exact canonical order matching the legacy site', async () => {
+		const { dogs, cats, CANONICAL_DOG_ORDER, CANONICAL_CAT_ORDER } = await import('./animals');
+		expect(dogs.map((d) => d.slug)).toEqual([...CANONICAL_DOG_ORDER]);
+		expect(cats.map((c) => c.slug)).toEqual([...CANONICAL_CAT_ORDER]);
+	});
 });

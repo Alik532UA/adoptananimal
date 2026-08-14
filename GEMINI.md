@@ -32,6 +32,13 @@ All projects are deployed on the same domain `alik532ua.github.io`.
 - Support `prefers-reduced-motion`.
 - Use the Skip-link provided in `+layout.svelte`.
 
+### 🐾 Content Source of Truth & Asset Standards
+
+- **Source of Truth:** Канонічним першоджерелом даних є старий сайт `https://www.adoptananimal.in.ua/` (порядок тварин, імена, стать, вік, порода, розмір, колір, опис, статус адопції).
+- **Clean Images Only:** Заборонено використовувати фотографії із запеченими написами ("I'm adopted!"). Усі зображення мають бути чистими оригіналами.
+- **Code-driven Badges:** Статус `isAdopted: true` накладає локалізований стікер ("I'm adopted!" / "Вже в родині!" / "Vermittelt!" / "Geadopteerd!") засобами CSS/Svelte.
+- Деталі у `.private/docs/specs/0001-content-source-of-truth-and-assets.md`.
+
 ### 🧪 Quality Control
 
 Before committing or pushing, always run:
@@ -62,4 +69,5 @@ Before committing or pushing, always run:
 
 - Do NOT use Svelte 4 APIs (e.g., `writable`, `on:click`, `{#slot}`).
 - Do NOT use `localStorage.clear()` as it affects all projects on the domain.
+- Do NOT bake status text or badges into animal photos (use clean photos + code overlays).
 - Do NOT commit without running quality checks.

@@ -4,7 +4,7 @@ export const summary: AnimalSummary = {
 	slug: 't-800',
 	name: 'T-800',
 	type: 'dog',
-	isAdopted: false,
+	isAdopted: true,
 	gender: {
 		en: 'male',
 		uk: 'самець',

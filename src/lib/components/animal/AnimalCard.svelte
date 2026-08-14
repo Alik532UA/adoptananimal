@@ -39,7 +39,6 @@
 				src={withBase(animal.image)}
 				alt="{t('a11y.animalPhoto')} {animal.name}"
 				class="animal-card__photo"
-				class:animal-card__photo--adopted={animal.isAdopted}
 				onerror={() => (imageFailed = true)}
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}
@@ -132,7 +131,8 @@
 	.animal-card {
 		display: flex;
 		flex-direction: column;
-		background: var(--glass-bg);
+		background: var(--color-bg-card);
+		opacity: 1;
 		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
 		border-radius: var(--radius-lg);
@@ -141,18 +141,29 @@
 		transition: all var(--transition-spring);
 		text-decoration: none;
 		color: inherit;
-		border: none;
+		border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
 		position: relative;
 		height: 100%;
 	}
 
-	.animal-card--adopted {
-		opacity: 0.8;
+	.animal-card:hover {
+		transform: translateY(-8px) scale(1.02);
+		box-shadow: var(--shadow-xl);
+		border-color: var(--color-primary);
 	}
 
-	.animal-card:hover {
-		transform: translateY(-10px) scale(1.02);
-		box-shadow: var(--shadow-xl);
+	.animal-card--adopted {
+		opacity: 0.5;
+		background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+		box-shadow: var(--shadow-sm);
+		border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
+	}
+
+	.animal-card--adopted:hover {
+		opacity: 0.85;
+		transform: translateY(-8px) scale(1.02);
+		box-shadow: var(--shadow-md);
+		border-color: var(--color-success);
 	}
 
 	.animal-card__image {
@@ -173,24 +184,25 @@
 		background: linear-gradient(45deg, var(--dog-card-bg), var(--color-bg-surface));
 	}
 
-	.animal-card__photo--adopted {
-		filter: grayscale(1) contrast(0.8);
-	}
-
 	.animal-card__adopted-badge {
 		position: absolute;
-		top: 12px;
-		left: 12px;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%) rotate(-7deg);
 		background: var(--color-success);
 		color: white;
-		padding: 6px 14px;
-		border-radius: var(--radius-full);
-		font-size: 0.8rem;
+		padding: 8px 20px;
+		border-radius: var(--radius-md);
+		font-size: 1.1rem;
 		font-weight: 900;
+		font-family: var(--font-accent);
 		text-transform: uppercase;
 		z-index: 10;
-		box-shadow: var(--shadow-md);
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 		letter-spacing: 0.05em;
+		pointer-events: none;
+		white-space: nowrap;
+		border: 2px solid rgba(255, 255, 255, 0.6);
 	}
 
 	.animal-card__emoji {
@@ -281,7 +293,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-md);
-		background: linear-gradient(to bottom, transparent, var(--color-bg-card));
+		background: transparent;
 		flex-grow: 1;
 	}
 

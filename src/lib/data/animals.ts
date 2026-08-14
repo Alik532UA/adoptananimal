@@ -6,9 +6,93 @@ const summaryModules = import.meta.glob('./animals/*.ts', { import: 'summary', e
 // Lazy load for detail pages to prevent large bundle sizes (100+ animals)
 const detailModules = import.meta.glob('./animals/*.ts');
 
-export const allAnimals: AnimalSummary[] = Object.values(summaryModules) as AnimalSummary[];
-export const cats: AnimalSummary[] = allAnimals.filter((a) => a.type === 'cat');
-export const dogs: AnimalSummary[] = allAnimals.filter((a) => a.type === 'dog');
+/**
+ * Canonical ordering of dogs matching the legacy source of truth (adoptananimal.in.ua).
+ */
+export const CANONICAL_DOG_ORDER = [
+	'gracie',
+	'leila',
+	'jessie',
+	'lola',
+	'shaggy',
+	'chikita',
+	'black-dog',
+	'comet',
+	'carly',
+	'benny',
+	'partos',
+	'tobey',
+	'button',
+	'tilika',
+	'multik',
+	'vira',
+	'flora',
+	't-800',
+	'lucky',
+	'joe',
+	'thea',
+	'angel'
+] as const;
+
+/**
+ * Canonical ordering of cats matching the legacy source of truth (adoptananimal.in.ua).
+ */
+export const CANONICAL_CAT_ORDER = [
+	'cucumber',
+	'lynx',
+	'tigress',
+	'fluffy',
+	'kira',
+	'grey',
+	'sirius',
+	'trixi',
+	'richard',
+	'saimon',
+	'molly',
+	'mirabel',
+	'basti',
+	'patrik',
+	'martin',
+	'sofi',
+	'starlet',
+	'bill',
+	'black',
+	'nicole',
+	'berry',
+	'mia',
+	'santa',
+	'tyler',
+	'fina',
+	'demi',
+	'grais',
+	'cherry'
+] as const;
+
+function sortByCanonicalOrder(
+	items: AnimalSummary[],
+	canonicalOrder: readonly string[]
+): AnimalSummary[] {
+	const orderMap = new Map<string, number>(canonicalOrder.map((slug, idx) => [slug, idx]));
+	return [...items].sort((a, b) => {
+		const orderA = orderMap.has(a.slug) ? orderMap.get(a.slug)! : 999;
+		const orderB = orderMap.has(b.slug) ? orderMap.get(b.slug)! : 999;
+		return orderA - orderB;
+	});
+}
+
+const rawAnimals: AnimalSummary[] = Object.values(summaryModules) as AnimalSummary[];
+
+export const dogs: AnimalSummary[] = sortByCanonicalOrder(
+	rawAnimals.filter((a) => a.type === 'dog'),
+	CANONICAL_DOG_ORDER
+);
+
+export const cats: AnimalSummary[] = sortByCanonicalOrder(
+	rawAnimals.filter((a) => a.type === 'cat'),
+	CANONICAL_CAT_ORDER
+);
+
+export const allAnimals: AnimalSummary[] = [...dogs, ...cats];
 
 export async function getAnimalBySlug(
 	type: 'cat' | 'dog',
