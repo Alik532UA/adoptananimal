@@ -135,6 +135,8 @@
 	.about__card {
 		position: relative;
 		z-index: 1;
+		/* The title below sizes itself against this card, not against the viewport. */
+		container-type: inline-size;
 		padding: var(--space-3xl);
 		animation: fade-in-up 0.8s ease-out;
 		margin-bottom: var(--space-xl);
@@ -169,14 +171,26 @@
 		border-width: 0;
 	}
 
+	/*
+	 * ONE LINE. Do not add wrapping here, and do not remove `white-space: nowrap`.
+	 *
+	 * It has been changed back more than once, so here is why it keeps looking broken
+	 * and what actually fixes it. The four translations are four different lengths —
+	 * German is the longest at 34 characters — and the title used to be sized in `vw`.
+	 * At some viewport widths the longest one came out fractionally wider than the
+	 * card: once a `width: fit-content` box overflows its container, `margin: auto`
+	 * resolves to zero and the whole thing slams against the right edge. That is what
+	 * "not centred" was. Wrapping fixed the centring and broke the one-line rule.
+	 *
+	 * The size is in `cqi` now — a share of *this card's* width, not the viewport's —
+	 * so the longest translation always fits on one line whatever the layout does
+	 * around it, and `margin: auto` keeps working. `tests/ui.spec.ts` fails if the
+	 * title ever wraps or drifts off centre, in any of the four languages.
+	 */
 	.about .section__title {
 		margin-top: 0;
-		/* No nowrap. The title is four different lengths in four languages, and the
-		   Ukrainian one is 689px inside a 688px card: one pixel over, auto margins
-		   collapse to zero, and the whole thing sits against the right edge looking
-		   like it was never centred. Wrapping keeps it centred at any width. */
+		white-space: nowrap;
 		max-width: 100%;
-		text-wrap: balance;
 		display: block;
 		width: fit-content;
 		margin-left: auto;
@@ -184,7 +198,7 @@
 		transition: all var(--transition-normal);
 		cursor: default;
 		position: relative;
-		font-size: clamp(1.5rem, 5vw, 2.5rem);
+		font-size: clamp(0.8rem, 5.2cqi, 2.5rem);
 	}
 
 	.about .section__title:hover {
@@ -338,6 +352,14 @@
 		}
 		.carousel-item {
 			width: 260px;
+		}
+	}
+
+	@media (max-width: 400px) {
+		.about__card {
+			/* 64px of padding on a 272px card is a third of it, and the one-line title
+			   above has to fit in what is left. */
+			padding: var(--space-lg);
 		}
 	}
 </style>

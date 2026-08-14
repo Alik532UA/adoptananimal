@@ -150,3 +150,63 @@ test.describe('the featured carousel', () => {
 		expect(stillLooking(second)).toEqual(stillLooking(first));
 	});
 });
+
+test.describe('the about heading', () => {
+	// It has been "fixed" more than once in both directions: made to wrap so it would
+	// centre, then made nowrap again so it would be one line. It has to be both, and
+	// the only way that holds is if the type shrinks to the card it sits in. This test
+	// fails on either symptom, in every language and at every width that matters.
+	const LANGUAGES = ['/', '/uk', '/de', '/nl'] as const;
+	const WIDTHS = [1440, 1024, 768, 500, 400, 320];
+
+	for (const path of LANGUAGES) {
+		test(`stays on one line and centred at every width (${path})`, async ({ page }) => {
+			for (const width of WIDTHS) {
+				await page.setViewportSize({ width, height: 900 });
+				await page.goto(path);
+
+				const measured = await page.evaluate(() => {
+					const card = document.querySelector('.about__card') as HTMLElement;
+					const title = document.querySelector('.about .section__title') as HTMLElement;
+					const range = document.createRange();
+					range.selectNodeContents(title);
+					const rects = [...range.getClientRects()];
+					const c = card.getBoundingClientRect();
+
+					return {
+						text: title.textContent?.trim() ?? '',
+						lines: rects.length,
+						leftGap: rects[0].left - c.left,
+						rightGap: c.right - rects[0].right,
+						fontSize: parseFloat(getComputedStyle(title).fontSize),
+						whiteSpace: getComputedStyle(title).whiteSpace
+					};
+				});
+
+				const where = `${path} at ${width}px ("${measured.text}")`;
+
+				expect(measured.lines, `${where} wrapped onto ${measured.lines} lines`).toBe(1);
+				// Asserted directly, not only through the outcome: the type currently shrinks
+				// enough that the text would fit anyway, so dropping the declaration would
+				// pass unnoticed until a longer translation arrived.
+				expect(measured.whiteSpace, `${where} lost white-space: nowrap`).toBe('nowrap');
+				expect(measured.leftGap, `${where} overflows the card on the left`).toBeGreaterThanOrEqual(
+					0
+				);
+				expect(
+					measured.rightGap,
+					`${where} overflows the card on the right`
+				).toBeGreaterThanOrEqual(0);
+				expect(
+					Math.abs(measured.leftGap - measured.rightGap),
+					`${where} is off centre by ${Math.round(Math.abs(measured.leftGap - measured.rightGap))}px`
+				).toBeLessThanOrEqual(2);
+				// Small is acceptable on a 320px screen; invisible is not.
+				expect(
+					measured.fontSize,
+					`${where} shrank to ${measured.fontSize}px`
+				).toBeGreaterThanOrEqual(12);
+			}
+		});
+	}
+});
