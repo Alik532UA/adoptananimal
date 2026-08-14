@@ -411,8 +411,9 @@
 
 	@media (max-width: 768px) {
 		.footer__logos {
-			flex-direction: column;
-			gap: 60px;
+			/* Side by side, as on every other width. Stacked, the two organisations read as
+			   a list of one thing after another rather than as the pair they are. */
+			gap: var(--space-xl);
 			padding: var(--space-xl) 0;
 		}
 

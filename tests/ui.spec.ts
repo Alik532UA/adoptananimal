@@ -1148,3 +1148,114 @@ test.describe('an adopted card under the pointer', () => {
 			.toBe(Math.round(rest.badge.top));
 	});
 });
+
+test.describe('the mobile menu', () => {
+	const MOBILE = { width: 375, height: 812 };
+
+	test('is a panel with something behind it, not items over the page', async ({ page }) => {
+		await page.setViewportSize(MOBILE);
+		await page.goto('/');
+		await page.locator('.header__burger').click();
+
+		const nav = page.locator('.header__nav');
+		await expect(nav).toHaveClass(/header__nav--open/);
+
+		const panel = await nav.evaluate((el) => {
+			const cs = getComputedStyle(el);
+			const box = el.getBoundingClientRect();
+			return {
+				background: cs.backgroundColor,
+				height: box.height,
+				bottom: box.bottom,
+				content: el.scrollHeight,
+				viewport: window.innerHeight
+			};
+		});
+
+		/*
+		 * The rule painting it was always right; the box was 64px — its own padding and
+		 * nothing else — because .header carries a backdrop-filter and so becomes the
+		 * containing block for anything fixed inside it. `top: 72px; bottom: 0` was
+		 * resolved against a 72px-tall header, and the five items spilled onto the page
+		 * with the background left behind them.
+		 */
+		expect(panel.background, 'the menu is transparent').not.toBe('rgba(0, 0, 0, 0)');
+		expect(
+			Math.round(panel.height),
+			`the panel is ${Math.round(panel.height)}px around ${panel.content}px of menu`
+		).toBeGreaterThanOrEqual(panel.content);
+		// And it reaches the bottom of the screen rather than stopping under the items.
+		expect(Math.round(panel.bottom)).toBeGreaterThanOrEqual(panel.viewport - 1);
+	});
+
+	test('keeps the two organisations side by side in the footer', async ({ page }) => {
+		await page.setViewportSize(MOBILE);
+		await page.goto('/');
+
+		const logos = await page.$$eval('.footer__logos .footer__logo-img', (imgs) =>
+			imgs.map((el) => {
+				const r = el.getBoundingClientRect();
+				return { x: Math.round(r.x), y: Math.round(r.y) };
+			})
+		);
+
+		expect(logos.length, 'both organisations are there').toBe(2);
+		// Stacked, the pair reads as a list of one thing after another.
+		expect(logos[0].y, `stacked: ${JSON.stringify(logos)}`).toBe(logos[1].y);
+		expect(logos[0].x).not.toBe(logos[1].x);
+	});
+});
+
+test.describe('the browse buttons', () => {
+	/** Which side of its button the glyph sits on. */
+	const glyphSide = (page: import('@playwright/test').Page, testId: string) =>
+		page.getByTestId(testId).evaluate((el) => {
+			const box = el.getBoundingClientRect();
+			const glyph = el.querySelector('svg')!.getBoundingClientRect();
+			return glyph.x < (box.x + box.right) / 2 ? 'left' : 'right';
+		});
+
+	test('turn their glyphs inwards while they sit side by side', async ({ page }) => {
+		await page.setViewportSize({ width: 1200, height: 800 });
+		await page.goto('/');
+
+		// Cats then dogs, so the two glyphs meet in the middle of the pair rather than
+		// sitting at its far ends.
+		expect(await glyphSide(page, 'featured-see-all-cats-link')).toBe('right');
+		expect(await glyphSide(page, 'featured-see-all-dogs-link')).toBe('left');
+	});
+
+	test('both lead with the glyph once they are stacked', async ({ page }) => {
+		await page.setViewportSize({ width: 375, height: 812 });
+		await page.goto('/');
+
+		// One above the other, facing inwards would put the icons on opposite sides of a
+		// column, which reads as a mistake rather than a pairing.
+		expect(await glyphSide(page, 'featured-see-all-cats-link')).toBe('left');
+		expect(await glyphSide(page, 'featured-see-all-dogs-link')).toBe('left');
+	});
+
+	for (const size of [
+		{ name: 'a wide window', width: 1200, height: 800 },
+		{ name: 'a phone', width: 375, height: 812 }
+	]) {
+		test(`stand apart on the favourites page on ${size.name}`, async ({ page }) => {
+			await page.setViewportSize({ width: size.width, height: size.height });
+			await page.goto('/favorites');
+
+			const gap = await page.evaluate(() => {
+				const a = document
+					.querySelector('[data-testid="explore-dogs-link"]')!
+					.getBoundingClientRect();
+				const b = document
+					.querySelector('[data-testid="explore-cats-link"]')!
+					.getBoundingClientRect();
+				// Side by side or stacked, the gap is whichever axis separates them.
+				return Math.round(Math.max(b.left - a.right, b.top - a.bottom));
+			});
+
+			// They had none at all and sat against each other.
+			expect(gap, 'the two buttons are touching').toBeGreaterThanOrEqual(12);
+		});
+	}
+});

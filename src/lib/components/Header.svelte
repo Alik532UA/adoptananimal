@@ -701,16 +701,28 @@
 		.header__nav {
 			display: none;
 		}
+		/*
+		 * The height is stated rather than left to `bottom: 0`.
+		 *
+		 * .header carries a backdrop-filter, and that makes it the containing block for
+		 * everything fixed inside it. So `top: 72px; bottom: 0` was resolved against a box
+		 * 72px tall: the panel came out 64px — its own padding and nothing else — while the
+		 * five items overflowed onto the page with no background behind them. The menu
+		 * looked transparent, and the rule that paints it was right all along.
+		 */
 		.header__nav--open {
 			display: flex;
 			position: fixed;
 			top: 72px;
 			left: 0;
 			right: 0;
-			bottom: 0;
+			height: calc(100dvh - 72px);
+			overflow-y: auto;
 			background: var(--color-bg-card);
 			flex-direction: column;
-			height: auto;
+			/* The row layout spreads its items across the bar; a column of five with the
+			   same rule spreads them down a whole screen. They start at the top. */
+			justify-content: flex-start;
 			padding: var(--space-xl);
 			align-items: stretch;
 			gap: var(--space-sm);

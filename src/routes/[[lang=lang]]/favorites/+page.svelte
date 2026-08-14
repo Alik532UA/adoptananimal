@@ -39,7 +39,7 @@
 				<div class="no-results">
 					<Icon name="heart" size="4rem" class="mb-lg" />
 					<h2>{t('favs.empty')}</h2>
-					<div class="mt-lg">
+					<div class="no-favorites__actions">
 						<!-- Both the same, not one of each: cats and dogs are the same offer, and
 							 a solid button beside a hollow one reads as a recommendation nobody
 							 meant to make. Primary rather than the hero variant, because this
@@ -93,6 +93,17 @@
 		padding-top: var(--space-lg);
 	}
 
+	/* The two buttons had no gap and sat against each other; stacked on a narrow screen
+	   they touched. Their own row rather than a utility margin, so the spacing is stated
+	   once and survives them wrapping. */
+	.no-favorites__actions {
+		margin-top: var(--space-lg);
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-md);
+	}
+
 	.no-favorites {
 		text-align: center;
 		padding: var(--space-4xl) var(--space-xl);
@@ -110,9 +121,5 @@
 
 	:global(.mb-lg) {
 		margin-bottom: var(--space-lg);
-	}
-
-	:global(.mt-lg) {
-		margin-top: var(--space-lg);
 	}
 </style>

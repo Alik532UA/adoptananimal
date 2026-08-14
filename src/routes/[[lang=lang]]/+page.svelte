@@ -58,10 +58,15 @@
 
 	<div class="container">
 		<div class="featured__footer">
+			<!-- The glyphs face inwards: the cat's follows its label, the dog's leads its
+				 own, so side by side the two sit together in the middle rather than at the
+				 far ends of the pair. Stacked on a narrow screen they both lead instead —
+				 see .featured__footer below. -->
 			<Button
 				href={localePath('/adopt/cat')}
 				variant="hero"
 				size="lg"
+				class="featured__browse"
 				data-testid="featured-see-all-cats-link"
 				>{t('featured.browseCats')} <Icon name="cat" size="1.2rem" /></Button
 			>
@@ -69,8 +74,9 @@
 				href={localePath('/adopt/dog')}
 				variant="hero"
 				size="lg"
+				class="featured__browse featured__browse--icon-first"
 				data-testid="featured-see-all-dogs-link"
-				>{t('featured.browseDogs')} <Icon name="dog" size="1.2rem" /></Button
+				><Icon name="dog" size="1.2rem" /> {t('featured.browseDogs')}</Button
 			>
 		</div>
 	</div>
@@ -382,6 +388,19 @@
 		.featured__footer {
 			flex-direction: column;
 			align-items: stretch;
+		}
+
+		/*
+		 * Stacked, both glyphs lead their label. Facing inwards only means anything while
+		 * the buttons are side by side; one above the other it leaves the two icons on
+		 * opposite sides of a column, which reads as a mistake rather than a pairing.
+		 */
+		.featured__footer :global(.featured__browse) {
+			flex-direction: row-reverse;
+		}
+
+		.featured__footer :global(.featured__browse--icon-first) {
+			flex-direction: row;
 		}
 		.about__note {
 			flex-direction: column;
