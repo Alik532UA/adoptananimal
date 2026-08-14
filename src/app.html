@@ -47,6 +47,12 @@
 				root.setAttribute('data-theme', theme);
 				root.setAttribute('data-style', style);
 
+				// Anything that is only correct once scripting has run hides behind this.
+				// Set here rather than during hydration, because the point is to be true
+				// on the first frame; and absent without JS, so nothing stays hidden
+				// waiting for a script that is never coming.
+				root.setAttribute('data-js', '');
+
 				const meta = document.querySelector('meta[name="color-scheme"]');
 				if (meta) meta.setAttribute('content', theme === DARK ? 'dark' : 'light dark');
 			})();

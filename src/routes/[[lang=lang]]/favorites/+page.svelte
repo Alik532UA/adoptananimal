@@ -40,9 +40,12 @@
 					<Icon name="heart" size="4rem" class="mb-lg" />
 					<h2>{t('favs.empty')}</h2>
 					<div class="mt-lg">
+						<!-- Both secondary, not one of each: cats and dogs are the same offer,
+							 and a solid button beside a hollow one reads as a recommendation
+							 nobody meant to make. -->
 						<Button
 							href={localePath('/adopt/dog')}
-							variant="primary"
+							variant="secondary"
 							data-testid="explore-dogs-link"
 						>
 							{t('featured.browseDogs')}

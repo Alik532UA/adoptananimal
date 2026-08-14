@@ -64,8 +64,14 @@
 	.apply-hero__subtitle {
 		font-size: 1.25rem;
 		opacity: 0.9;
-		max-width: 600px;
+		/* Wide enough for the longest of the four translations to sit on one line on a
+		   desktop, and a measure rather than a pixel count so it follows the font size.
+		   600px broke a sentence in two on a screen with room for six of it. */
+		max-width: min(100%, 68ch);
 		margin: 0 auto;
+		/* When it does have to wrap, wrap it into even lines rather than a long one and
+		   an orphan. */
+		text-wrap: balance;
 	}
 
 	.apply__backup-notice {

@@ -23,8 +23,20 @@
 	// depends on data.animals, not on this, so the assignment does not re-trigger it.
 	let animals = $derived(data.animals);
 
+	/**
+	 * Whether the order on screen is the shuffled one.
+	 *
+	 * The build order is real markup and it is painted as soon as the HTML arrives —
+	 * long before the bundle has downloaded and hydrated. So the same few animals led
+	 * the carousel for as long as that took, and then everything moved at once. The
+	 * cards stay in the HTML for crawlers and for the no-script case; what waits is
+	 * showing them, and only when a script is there to do the shuffling.
+	 */
+	let shuffled = $state(false);
+
 	$effect(() => {
 		animals = interleaveByType(limitAdopted(data.animals));
+		shuffled = true;
 	});
 </script>
 
@@ -34,13 +46,15 @@
 
 <!-- Featured Carousel (Moved to the very beginning) -->
 <section class="featured section">
-	<Carousel speed={30} testId="featured-carousel">
-		{#each animals as animal, i (animal.slug)}
-			<div class="carousel-item">
-				<AnimalCard {animal} priority={i === 0} />
-			</div>
-		{/each}
-	</Carousel>
+	<div class="featured__carousel" class:featured__carousel--shuffled={shuffled}>
+		<Carousel speed={30} testId="featured-carousel">
+			{#each animals as animal, i (animal.slug)}
+				<div class="carousel-item">
+					<AnimalCard {animal} priority={i === 0} />
+				</div>
+			{/each}
+		</Carousel>
+	</div>
 
 	<div class="container">
 		<div class="featured__footer">
@@ -327,6 +341,32 @@
 	.carousel-item {
 		width: 300px;
 		flex-shrink: 0;
+	}
+
+	/*
+	 * Hidden until shuffled, and only where a script exists to shuffle it.
+	 * :global([data-js]) is set by the inline script in app.html before the first
+	 * paint; without JS the attribute never appears, the rule never applies, and the
+	 * carousel shows the build order rather than nothing at all.
+	 *
+	 * visibility, not display: the cards keep their space, so nothing below them moves
+	 * when they appear.
+	 */
+	:global([data-js]) .featured__carousel {
+		visibility: hidden;
+		opacity: 0;
+	}
+
+	:global([data-js]) .featured__carousel--shuffled {
+		visibility: visible;
+		opacity: 1;
+		transition: opacity var(--transition-normal);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global([data-js]) .featured__carousel--shuffled {
+			transition: none;
+		}
 	}
 
 	.featured__footer {

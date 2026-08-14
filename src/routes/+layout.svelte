@@ -227,6 +227,26 @@
 	.main {
 		flex: 1;
 		padding-top: 72px;
+
+		/*
+		 * The strip of hero colour the header's active tab flows into. See --hero-band.
+		 *
+		 * Here rather than on each page: the header draws its tab on every route, so a
+		 * page that forgets the band is a page where the tab looks broken, and that is
+		 * not a thing a new page should have to know. Pages with their own hero paint
+		 * over this in the same colour, so it only ever shows where there is none.
+		 *
+		 * content-box for both origin and clip: padding-top is the space behind the
+		 * fixed header, and the header is translucent. A band painted there would tint
+		 * the bar itself on every page.
+		 */
+		background-image: linear-gradient(
+			var(--cat-hero) 0 var(--hero-band),
+			transparent var(--hero-band)
+		);
+		background-repeat: no-repeat;
+		background-origin: content-box;
+		background-clip: content-box;
 	}
 
 	.boundary__inner {

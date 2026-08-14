@@ -344,3 +344,136 @@ test.describe('the application page', () => {
 		await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
 	});
 });
+
+test.describe('the header meets the page', () => {
+	/** First colour in the gradient the layout paints at the top of the content. */
+	const bandColour = (page: import('@playwright/test').Page) =>
+		page.evaluate(() => {
+			const image = getComputedStyle(document.querySelector('.main')!).backgroundImage;
+			return image.match(/rgba?\([^)]*\)/)?.[0] ?? image;
+		});
+
+	const waveColour = (page: import('@playwright/test').Page) =>
+		page.evaluate(() => getComputedStyle(document.querySelector('.header__wave path')!).fill);
+
+	// Every page, not only the ones that happen to open with a hero. This is the whole
+	// point of painting the band in the layout: the header draws its tab everywhere.
+	for (const path of ['/', '/favorites', '/adopt/cat', '/adopt/dog', '/apply']) {
+		test(`the active tab lands in a band of its own colour on ${path}`, async ({ page }) => {
+			await page.goto(path);
+			await page.waitForLoadState('networkidle');
+
+			const [band, wave] = await Promise.all([bandColour(page), waveColour(page)]);
+			expect(band, 'the layout paints no band').toMatch(/^rgba?\(/);
+			expect(wave, `the tab is drawn in ${wave} over a band of ${band}`).toBe(band);
+		});
+	}
+
+	test('the band is deep enough to outlast the tab opening', async ({ page }) => {
+		await page.goto('/');
+
+		// SETTLE_DISTANCE in tabWave.ts. Past it the tab is a closed rounded shape and
+		// has no skirts left to merge into anything.
+		const band = await page.evaluate(() =>
+			parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-band'))
+		);
+		expect(band).toBeGreaterThanOrEqual(120);
+	});
+
+	test('the shadow stays away until there is something to cast it on', async ({ page }) => {
+		await page.goto('/');
+		const opacity = () =>
+			page.evaluate(() =>
+				parseFloat(getComputedStyle(document.querySelector('.header')!, '::after').opacity)
+			);
+
+		// At the top the tab and the band are one shape in one colour, and a shadow
+		// across that join is a line drawn through the middle of it.
+		expect(await opacity()).toBe(0);
+
+		await page.evaluate(() => window.scrollTo({ top: 400, behavior: 'instant' }));
+		await page.waitForFunction(
+			() => parseFloat(getComputedStyle(document.querySelector('.header')!, '::after').opacity) > 0
+		);
+		expect(await opacity()).toBe(1);
+	});
+});
+
+test.describe('the carousel', () => {
+	test('is not shown until it holds the shuffled order', async ({ page }) => {
+		await page.goto('/');
+
+		const carousel = page.locator('.featured__carousel');
+		await expect(carousel).toHaveClass(/featured__carousel--shuffled/);
+		await expect(carousel).toBeVisible();
+	});
+
+	test('shows the build order rather than nothing when scripting is off', async ({ browser }) => {
+		// The hiding rule is gated on data-js, which the inline script sets. Without a
+		// script there is nothing to shuffle with, and hiding the cards for a shuffle
+		// that is never coming would leave an empty page.
+		const context = await browser.newContext({ javaScriptEnabled: false });
+		const page = await context.newPage();
+		await page.goto('/');
+
+		expect(await page.locator('html').getAttribute('data-js')).toBeNull();
+		await expect(page.locator('.featured__carousel')).toBeVisible();
+		await expect(page.getByTestId('featured-carousel-container')).toBeVisible();
+
+		await context.close();
+	});
+});
+
+test.describe('the page scrollbar', () => {
+	test('is the native one, themed, with its width always reserved', async ({ page }) => {
+		await page.goto('/');
+
+		const style = await page.evaluate(() => {
+			const cs = getComputedStyle(document.documentElement);
+			return { colour: cs.scrollbarColor, gutter: cs.scrollbarGutter, width: cs.scrollbarWidth };
+		});
+
+		// SCROLLBAR-v8 § 1: repainted, not replaced. PROJECT-CONTEXT.md § 4.13.
+		expect(style.colour, 'the scrollbar is not themed').not.toBe('auto');
+		// Without a reserved gutter a short page and a long one sit at different widths,
+		// and moving between tabs shifts the whole page sideways.
+		expect(style.gutter).toBe('stable');
+		expect(style.width, 'a hidden bar means a custom one has to exist').not.toBe('none');
+	});
+});
+
+test.describe('the application hero', () => {
+	for (const [path, lang] of [
+		['/apply', 'en'],
+		['/uk/apply', 'uk'],
+		['/de/apply', 'de'],
+		['/nl/apply', 'nl']
+	] as const) {
+		test(`keeps its subtitle on one line in ${lang}`, async ({ page }) => {
+			await page.setViewportSize({ width: 1280, height: 800 });
+			await page.goto(path);
+
+			const lines = await page
+				.locator('.apply-hero__subtitle')
+				.evaluate(
+					(el) => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)
+				);
+
+			expect(Math.round(lines), 'the sentence broke on a screen with room for it').toBe(1);
+		});
+	}
+});
+
+test('the favourites page offers cats and dogs as equal choices', async ({ page }) => {
+	await page.goto('/favorites');
+
+	// Same offer, so the same weight. A solid button beside a hollow one reads as a
+	// recommendation, and nobody decided to recommend dogs over cats.
+	const look = (testId: string) =>
+		page.getByTestId(testId).evaluate((el) => {
+			const cs = getComputedStyle(el);
+			return [cs.backgroundColor, cs.color, cs.borderStyle, cs.fontSize].join(' | ');
+		});
+
+	expect(await look('explore-dogs-link')).toBe(await look('explore-cats-link'));
+});

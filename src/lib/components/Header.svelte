@@ -171,7 +171,7 @@
 	const isApplyActive = $derived(isLinkActive('/apply'));
 </script>
 
-<header class="header">
+<header class="header" style="--header-shadow: {scrollProgress};">
 	<div bind:this={headerInnerElement} class="header__inner" style="--active-tab-bg: {activeColor};">
 		{#if indicatorVisible}
 			<div
@@ -364,6 +364,32 @@
 		backdrop-filter: blur(16px);
 		border-bottom: none;
 		transition: all var(--transition-normal);
+
+		/* The default the inline style above overrides on every frame. Declared rather
+		   than written as a var() fallback: a fallback would keep working the day the
+		   inline style stops being set, and the shadow would simply never appear. */
+		--header-shadow: 0;
+	}
+
+	/*
+	 * The shadow fades in as the page moves, on the same 0..1 the tab shape uses.
+	 *
+	 * At the top there is none, deliberately: the active tab and the band below it are
+	 * one colour and one shape there, and a shadow drawn across the join is a line
+	 * through the middle of it. By the time there is anything to cast a shadow onto,
+	 * the tab has closed into a rounded shape that owes nothing to what is behind it.
+	 *
+	 * On a pseudo-element rather than the header, so the strength is an opacity — a
+	 * box-shadow cannot be interpolated from a bare number without color-mix on a
+	 * calc() percentage, which is a lot of machinery for a fade.
+	 */
+	.header::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		box-shadow: var(--shadow-lg);
+		opacity: var(--header-shadow);
 	}
 
 	/* Where the backdrop cannot be blurred the bar has to carry itself, otherwise the
