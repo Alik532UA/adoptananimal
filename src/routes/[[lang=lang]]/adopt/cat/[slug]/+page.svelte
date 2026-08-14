@@ -92,6 +92,7 @@
 							src={withBase(animal.image)}
 							alt={animal.name}
 							class="detail__photo"
+							style={animal.imagePosition ? `object-position: ${animal.imagePosition}` : undefined}
 							onerror={() => (imageFailed = true)}
 						/>
 					{/if}

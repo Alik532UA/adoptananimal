@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'grau getigert',
 		nl: 'grijze cyper'
 	},
-	image: '/images/animals/cat_richard.jpg'
+	image: '/images/animals/cat_richard.jpg',
+	// A tall photo of a sitting cat: centred, the card cropped him at the forehead.
+	imagePosition: '50% 0%'
 };
 
 export const description: Translations = {

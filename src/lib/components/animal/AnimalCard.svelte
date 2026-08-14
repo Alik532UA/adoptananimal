@@ -39,6 +39,7 @@
 				src={withBase(animal.image)}
 				alt="{t('a11y.animalPhoto')} {animal.name}"
 				class="animal-card__photo"
+				style={animal.imagePosition ? `object-position: ${animal.imagePosition}` : undefined}
 				onerror={() => (imageFailed = true)}
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}

@@ -18,8 +18,12 @@ export default defineConfig({
 	 * too busy to finish a fade and reported contrast failures for pairings that pass.
 	 * Both are the machine, not the site, and a suite that fails for reasons the code
 	 * cannot fix teaches everyone to rerun it until it is green.
+	 *
+	 * Four held for a while and then stopped: the suite grew and this machine had less
+	 * free memory than the day it was set. Two is not a tuned number, it is a number
+	 * that does not depend on the tuning being right.
 	 */
-	workers: process.env.CI ? 2 : 4,
+	workers: 2,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',

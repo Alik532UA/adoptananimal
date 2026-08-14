@@ -667,3 +667,72 @@ test.describe('surfaces that should not hide the page', () => {
 		});
 	}
 });
+
+test.describe('animals and their photographs', () => {
+	/** Every card, paired with the file its <img> actually points at. */
+	const cards = (page: import('@playwright/test').Page) =>
+		page.$$eval('.animal-card', (els) =>
+			els.map((el) => ({
+				slug: el.id.replace('card-', ''),
+				file:
+					el
+						.querySelector('.animal-card__photo')
+						?.getAttribute('src')
+						?.split('/')
+						.pop()
+						?.replace(/^(cat|dog)_/, '')
+						.replace(/\.\w+$/, '') ?? null
+			}))
+		);
+
+	/*
+	 * A filter in the URL used to hand cards someone else's face.
+	 *
+	 * The build prerenders every animal; the page read the filter while hydrating, so
+	 * the client's first render had fourteen cards where the server had written
+	 * twenty-eight. Svelte adopted the first fourteen it found and patched the reactive
+	 * text onto them — leaving twelve cards with the right name, link, badges and href
+	 * over another animal's photograph. Nothing threw, nothing was logged, and every
+	 * existing filter test passed, because they all read names and never looked at the
+	 * pictures.
+	 */
+	for (const path of [
+		'/adopt/cat?gender=male',
+		'/adopt/cat?status=available',
+		'/adopt/cat?search=richard',
+		'/adopt/dog?gender=female',
+		'/adopt/dog?status=adopted'
+	]) {
+		test(`every card on ${path} shows its own animal`, async ({ page }) => {
+			await page.goto(path);
+			await page.waitForLoadState('networkidle');
+
+			const shown = await cards(page);
+			expect(shown.length, 'the filter matched nothing to check').toBeGreaterThan(0);
+
+			const wrong = shown.filter((c) => c.slug !== c.file);
+			expect(wrong, `cards wearing another animal's photo: ${JSON.stringify(wrong)}`).toEqual([]);
+		});
+	}
+
+	test('an animal that needs its photo shifted gets it shifted', async ({ page }) => {
+		await page.goto('/adopt/cat?search=richard');
+		await page.waitForLoadState('networkidle');
+
+		const photo = page.locator('#card-richard .animal-card__photo');
+		await expect(photo).toBeVisible();
+
+		// The computed value, not the attribute: an object-position the browser cannot
+		// parse — `centre top`, a missing unit — is dropped and silently falls back to
+		// the centre crop this exists to override.
+		const position = await photo.evaluate((el) => getComputedStyle(el).objectPosition);
+		expect(position, 'the declared object-position did not take').not.toBe('50% 50%');
+
+		// And the same photo on the detail page, which crops it too.
+		await page.goto('/adopt/cat/richard');
+		const detail = await page
+			.locator('.detail__photo')
+			.evaluate((el) => getComputedStyle(el).objectPosition);
+		expect(detail).toBe(position);
+	});
+});

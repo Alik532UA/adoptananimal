@@ -11,9 +11,30 @@
 
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
+	/**
+	 * Whether the first client render is behind us.
+	 *
+	 * `browser` is already true during hydration, so reading the filters there made the
+	 * client's first render disagree with the server's: the build prerenders every
+	 * animal, and a URL like ?gender=male rendered fourteen. Svelte adopted the first
+	 * fourteen cards it found, patched the reactive text onto them and left the rest —
+	 * so twelve cards carried the right name, link and badges over another animal's
+	 * photograph. Nothing failed; the page simply lied about who was who.
+	 *
+	 * The effect runs after that first render, so hydration matches and the filter is a
+	 * normal update afterwards.
+	 */
+	// The rule wants a writable $derived here, but there is nothing to derive it from:
+	// the value is "a render has happened", which only an effect can know.
+	// eslint-disable-next-line svelte/prefer-writable-derived
+	let hydrated = $state(false);
+	$effect(() => {
+		hydrated = true;
+	});
+
 	// url.searchParams throws during prerendering, so the build renders the full,
-	// unfiltered list — which is also what a crawler should see. Filters apply on hydration.
-	const urlParams = $derived(browser ? page.url.searchParams : new URLSearchParams());
+	// unfiltered list — which is also what a crawler should see.
+	const urlParams = $derived(browser && hydrated ? page.url.searchParams : new URLSearchParams());
 
 	const gender = $derived(urlParams.get('gender') || '');
 	const size = $derived(urlParams.get('size') || '');
