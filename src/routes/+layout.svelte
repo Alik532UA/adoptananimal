@@ -199,8 +199,8 @@
 		height: 50px;
 		border-radius: 50%;
 		background: color-mix(in srgb, var(--color-primary) 50%, transparent);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		color: white;
 		border: none;
 		display: flex;

@@ -134,8 +134,8 @@
 
 	.glass-card {
 		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		border: none;
 		border-radius: var(--radius-lg);
 		box-shadow: var(--shadow-xl);
@@ -214,8 +214,8 @@
 		padding: var(--space-xl);
 		align-items: center;
 		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		animation: fade-in-up 0.8s ease-out 0.2s backwards;
 	}
 

@@ -133,8 +133,8 @@
 		flex-direction: column;
 		background: var(--color-bg-card);
 		opacity: 1;
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		box-shadow: var(--shadow-md);
@@ -152,18 +152,34 @@
 		border-color: var(--color-primary);
 	}
 
+	/* Muted through the photo, not through the whole card. Dropping the card to
+	   opacity 0.5 took every word on it down with the picture: 72 contrast failures
+	   across the listing, all of them text nobody could read. */
 	.animal-card--adopted {
-		opacity: 0.5;
-		background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+		background: var(--color-bg-card);
 		box-shadow: var(--shadow-sm);
 		border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
 	}
 
+	.animal-card--adopted .animal-card__photo {
+		filter: grayscale(1) contrast(0.9);
+		opacity: 0.7;
+	}
+
+	.animal-card--adopted .animal-card__body {
+		/* The details step back a little; the name stays at full strength. */
+		color: var(--color-text-muted);
+	}
+
 	.animal-card--adopted:hover {
-		opacity: 0.85;
 		transform: translateY(-8px) scale(1.02);
 		box-shadow: var(--shadow-md);
 		border-color: var(--color-success);
+	}
+
+	.animal-card--adopted:hover .animal-card__photo {
+		filter: grayscale(0.3) contrast(1);
+		opacity: 1;
 	}
 
 	.animal-card__image {
@@ -190,7 +206,9 @@
 		left: 50%;
 		transform: translate(-50%, -50%) rotate(-7deg);
 		background: var(--color-success);
-		color: white;
+		/* Its own token: --color-text-on-accent is measured against --color-primary and
+		   does not carry over to the success green. */
+		color: var(--color-text-on-success);
 		padding: 8px 20px;
 		border-radius: var(--radius-md);
 		font-size: 1.1rem;
@@ -243,8 +261,8 @@
 		padding: 10px 20px;
 		background: var(--glass-bg);
 		border-radius: var(--radius-full);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		transform: translateY(20px);
 		transition: transform var(--transition-spring);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -263,8 +281,8 @@
 		height: 44px;
 		border-radius: 50%;
 		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		color: white;
 		display: flex;
 		align-items: center;

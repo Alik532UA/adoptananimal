@@ -13,25 +13,42 @@
 		/>
 		%sveltekit.head%
 		<script>
-			// First-frame theme, before hydration. The theme list and the default must stay
-			// in sync with src/lib/services/settings.svelte.ts — a value that is not a real
-			// theme leaves the first frame with no palette at all.
+			// First frame, before hydration. Both attributes matter, and both lists and
+			// defaults must stay in sync with src/lib/services/settings.svelte.ts.
+			//
+			// data-theme carries the palette: a value that is not a real theme leaves the
+			// first frame with no colours at all.
+			//
+			// data-style carries the shape tokens. Every --radius-* lives under
+			// [data-style], so without it border-radius: var(--radius-md) is invalid and
+			// every card, button and input renders square until hydration finishes.
 			(function () {
+				const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'];
+				const STYLES = ['modern', 'minimal', 'playful'];
+				const DARK = 'dark';
+				const LIGHT = 'light-green';
+				const root = document.documentElement;
+
+				let theme = DARK;
+				let style = 'modern';
+
 				try {
-					const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'];
-					const DARK = 'dark';
-					const LIGHT = 'light-green';
-					const saved = localStorage.getItem('adoptananimal_theme');
+					const savedTheme = localStorage.getItem('adoptananimal_theme');
+					const savedStyle = localStorage.getItem('adoptananimal_style');
 					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-					const theme = THEMES.includes(saved) ? saved : prefersDark ? DARK : LIGHT;
-					document.documentElement.setAttribute('data-theme', theme);
-					const meta = document.querySelector('meta[name="color-scheme"]');
-					if (meta) meta.setAttribute('content', theme === DARK ? 'dark' : 'light dark');
+
+					theme = THEMES.includes(savedTheme) ? savedTheme : prefersDark ? DARK : LIGHT;
+					if (STYLES.includes(savedStyle)) style = savedStyle;
 				} catch {
-					// Storage can be unavailable (private mode, blocked cookies) — the default
-					// theme from the stylesheet still applies, so there is nothing to recover.
-					document.documentElement.setAttribute('data-theme', 'dark');
+					// Storage can be unavailable (private mode, blocked cookies). The defaults
+					// above still give a complete first frame, which is the whole point.
 				}
+
+				root.setAttribute('data-theme', theme);
+				root.setAttribute('data-style', style);
+
+				const meta = document.querySelector('meta[name="color-scheme"]');
+				if (meta) meta.setAttribute('content', theme === DARK ? 'dark' : 'light dark');
 			})();
 		</script>
 	</head>

@@ -216,6 +216,35 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 10. the standard backdrop-filter survives minification --------------------
+// The source writes the prefixed property first and the standard one second. A
+// minifier that treats the pair as duplicates keeps the last, and this project once
+// shipped with only -webkit-backdrop-filter — which Chromium does not implement, so
+// every glass surface rendered with no blur at all. Nothing in src/ looked wrong.
+{
+	const cssFiles = [];
+	(function walkCss(dir) {
+		for (const entry of readdirSync(dir)) {
+			const full = join(dir, entry);
+			if (statSync(full).isDirectory()) walkCss(full);
+			else if (entry.endsWith('.css')) cssFiles.push(full);
+		}
+	})(BUILD_DIR);
+
+	for (const file of cssFiles) {
+		const css = readFileSync(file, 'utf-8');
+		const prefixed = (css.match(/-webkit-backdrop-filter\s*:/g) ?? []).length;
+		const standard = (css.match(/(?<!-)backdrop-filter\s*:/g) ?? []).length;
+
+		if (prefixed > standard) {
+			fail(
+				`${relative(BUILD_DIR, file)}: ${prefixed} prefixed backdrop-filter declarations ` +
+					`but only ${standard} standard ones — the blur will not render`
+			);
+		}
+	}
+}
+
 if (failures.length > 0) {
 	console.error(`\n${failures.length} problem(s) in the build:\n`);
 	for (const f of failures) console.error(`  - ${f}`);

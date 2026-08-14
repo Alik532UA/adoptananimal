@@ -135,8 +135,8 @@
 		padding: 0 10px;
 		border-radius: var(--radius-full);
 		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		border: 1px solid var(--glass-border);
 		color: var(--color-text);
 		display: inline-flex;

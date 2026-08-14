@@ -14,9 +14,17 @@ test('a visitor can go from the home page to an application for a specific cat',
 	await page.getByTestId('nav-adopt-cat-link').click();
 	await expect(page).toHaveURL(/\/adopt\/cat$/);
 
-	const firstCat = page.getByTestId('cats-list').getByRole('link').first();
-	const name = (await firstCat.locator('.animal-card__name').textContent())?.trim();
-	await firstCat.click();
+	// An adopted animal has no application button, and the first card in canonical
+	// order happens to be one — picking "the first card" made this test depend on
+	// which animals are currently available.
+	const available = page
+		.getByTestId('cats-list')
+		.getByRole('link')
+		.filter({ hasNot: page.locator('.animal-card__adopted-badge') })
+		.first();
+
+	const name = (await available.locator('.animal-card__name').textContent())?.trim();
+	await available.click();
 
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(name ?? '');
 

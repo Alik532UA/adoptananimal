@@ -201,8 +201,8 @@
 
 	.footer__content {
 		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		color: var(--color-text);
 		padding: var(--space-xl) 0;
 	}

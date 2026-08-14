@@ -232,8 +232,8 @@ ${formData.message}
 <style>
 	.glass-card {
 		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
 		-webkit-backdrop-filter: blur(var(--glass-blur));
+		backdrop-filter: blur(var(--glass-blur));
 		border: none;
 		border-radius: var(--radius-lg);
 		box-shadow: var(--shadow-xl);
@@ -282,23 +282,44 @@ ${formData.message}
 		position: relative;
 		display: flex;
 	}
+	/* input is listed explicitly: this rule used to read `input,
+	textarea` and the
+	   first line was lost when this component was split out of the route, which left
+	   every text field with the browser's default styling — a 16px grey bar. */
+	input,
 	textarea {
 		width: 100%;
-		padding: 16px 20px;
+		padding: 14px 16px;
 		border-radius: var(--radius-md);
-		border: none;
-		background: var(--glass-bg);
-		backdrop-filter: blur(var(--glass-blur));
-		-webkit-backdrop-filter: blur(var(--glass-blur));
+		/* A solid surface with a visible edge, not 50% glass over a blurred photo:
+		   a field the eye cannot find reads as text floating on the background. */
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-field-border);
 		color: var(--color-text);
 		font-family: inherit;
 		font-size: 1rem;
-		transition: all var(--transition-normal);
+		line-height: 1.4;
+		transition:
+			border-color var(--transition-fast),
+			box-shadow var(--transition-fast);
+		position: relative;
 		z-index: 1;
-		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 	}
-	:global([data-theme='dark']) textarea {
-		background: var(--glass-bg);
+
+	textarea {
+		min-height: 120px;
+		resize: vertical;
+	}
+
+	input:hover,
+	textarea:hover {
+		border-color: var(--color-field-border-hover);
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--color-text-muted);
+		opacity: 1;
 	}
 	.input-focus-bg {
 		position: absolute;
@@ -310,17 +331,22 @@ ${formData.message}
 		transition: opacity var(--transition-normal);
 		z-index: 0;
 	}
+	input:focus,
 	textarea:focus {
 		/* No outline: none — the global :focus-visible rule in app.css is the
 		   only focus indicator these fields have. */
-		background: var(--color-bg-card);
-		box-shadow: 0 0 0 3px var(--color-primary-light);
+		border-color: var(--color-primary);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 30%, transparent);
 	}
+
+	input:focus + .input-focus-bg,
 	textarea:focus + .input-focus-bg {
 		opacity: 0.15;
 	}
+
 	.input--error {
-		box-shadow: 0 0 0 3px var(--color-error) !important;
+		border-color: var(--color-error);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 30%, transparent);
 	}
 	.error-text {
 		color: var(--color-error);

@@ -44,8 +44,8 @@
 
 [data-style='minimal'] .animal-card {
 	background: var(--glass-bg);
-	backdrop-filter: blur(var(--glass-blur));
 	-webkit-backdrop-filter: blur(var(--glass-blur));
+	backdrop-filter: blur(var(--glass-blur));
 }
 
 [data-style='minimal'] .badge {
@@ -60,12 +60,12 @@
 [data-style='minimal'] .filter-bar {
 	box-shadow: none;
 	background: var(--glass-bg);
-	backdrop-filter: blur(var(--glass-blur));
 	-webkit-backdrop-filter: blur(var(--glass-blur));
+	backdrop-filter: blur(var(--glass-blur));
 }
 
 [data-style='minimal'] .hero {
 	background: var(--glass-bg);
-	backdrop-filter: blur(var(--glass-blur));
 	-webkit-backdrop-filter: blur(var(--glass-blur));
+	backdrop-filter: blur(var(--glass-blur));
 }

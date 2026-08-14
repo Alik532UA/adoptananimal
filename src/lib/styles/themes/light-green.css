@@ -23,7 +23,7 @@
 
 	/* Border & UI */
 	--color-border: transparent;
-	--header-bg: var(--glass-bg);
+	--header-bg: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
 	--header-border: transparent;
 	--footer-bg: #598f3a;
 	--footer-wave: #598f3a;
@@ -44,6 +44,8 @@
 	--color-overlay: rgba(89, 143, 58, 0.2);
 	--color-overlay-light: rgba(255, 255, 255, 0.6);
 	--color-border-alpha: rgba(0, 0, 0, 0.05);
+	--color-field-border: rgba(0, 0, 0, 0.18);
+	--color-field-border-hover: rgba(0, 0, 0, 0.32);
 
 	/* Shadows */
 	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -52,7 +54,8 @@
 	--shadow-xl: 0 20px 32px rgba(0, 0, 0, 0.2);
 
 	/* Specific colors */
-	--color-success: #598f3a;
+	--color-success: #3f6b28; /* 6.28:1 with white */
+	--color-text-on-success: #ffffff;
 	--color-error: #d44;
 	--color-stat: #13371b;
 

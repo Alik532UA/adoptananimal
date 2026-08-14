@@ -39,7 +39,10 @@
 	.apply-hero {
 		background: var(--cat-hero);
 		color: white;
-		padding: var(--space-xl) 0;
+		/* The bottom padding exists to be eaten by the card's negative margin below.
+		   It was --space-xl against a --space-4xl pull, so the card sat on top of the
+		   subtitle and cut the last line of it in half. */
+		padding: var(--space-2xl) 0 var(--space-4xl);
 		text-align: center;
 		position: relative;
 	}
@@ -63,7 +66,9 @@
 		grid-template-columns: 1fr 320px;
 		gap: var(--space-2xl);
 		align-items: start;
-		margin-top: calc(var(--space-4xl) * -1);
+		/* Less than the hero's bottom padding, so the card still overlaps the band
+		   while the text above it keeps clear air. */
+		margin-top: calc(var(--space-3xl) * -1);
 	}
 
 	@media (max-width: 900px) {

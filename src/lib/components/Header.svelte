@@ -345,10 +345,19 @@
 		right: 0;
 		z-index: 1000;
 		background: var(--header-bg);
-		backdrop-filter: blur(16px);
 		-webkit-backdrop-filter: blur(16px);
-		border-bottom: none;
+		backdrop-filter: blur(16px);
+		border-bottom: 1px solid var(--color-border-alpha);
 		transition: all var(--transition-normal);
+	}
+
+	/* Where the backdrop cannot be blurred the bar has to carry itself, otherwise the
+	   page scrolls through it. Worth having even in Chromium: the minifier drops the
+	   unprefixed property, so the blur is not guaranteed to survive the build. */
+	@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.header {
+			background: var(--color-bg-card);
+		}
 	}
 
 	.header__inner {

@@ -144,14 +144,16 @@
 		font-family: var(--font-accent);
 	}
 
+	/* A dark scrim, not a white one. Lightening the hero under white text pushed the
+	   pair to 3.5:1; darkening it takes the same white to 8.8:1. */
 	.stat-pill--waiting {
-		background: rgba(255, 255, 255, 0.24);
+		background: rgba(0, 0, 0, 0.22);
 		color: #ffffff;
 	}
 
 	.stat-pill--adopted {
-		background: rgba(255, 255, 255, 0.14);
-		color: rgba(255, 255, 255, 0.92);
+		background: rgba(0, 0, 0, 0.14);
+		color: #ffffff;
 	}
 
 	.animal-list {
