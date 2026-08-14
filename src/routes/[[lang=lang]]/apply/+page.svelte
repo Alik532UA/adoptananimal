@@ -15,6 +15,12 @@
 		message: ''
 	});
 
+	// $props.id(), not a hand-written string: two instances of this form on one page
+	// would otherwise share ids, and every <label for> would point at the first one.
+	const uid = $props.id();
+	const fieldId = (name: keyof AdoptionForm) => `${uid}-${name}`;
+	const errorId = (name: keyof AdoptionForm) => `${uid}-${name}-error`;
+
 	let errors = $state<Partial<Record<keyof AdoptionForm, string>>>({});
 	let isSubmitted = $state(false);
 
@@ -106,17 +112,17 @@ ${formData.message}
 						>
 							<div class="form-grid">
 								<div class="form-group form-group--full">
-									<label for="animal">
+									<label for={fieldId('animal')}>
 										<Icon name="paw" size="1rem" />
 										{t('apply.form.animal')}
 									</label>
 									<div class="input-wrapper">
 										<input
 											type="text"
-											id="animal"
+											id={fieldId('animal')}
 											autocomplete="off"
 											aria-invalid={Boolean(errors.animal)}
-											aria-describedby={errors.animal ? 'animal-error' : undefined}
+											aria-describedby={errors.animal ? errorId('animal') : undefined}
 											bind:value={formData.animal}
 											class:input--error={errors.animal}
 											placeholder={t('apply.form.animal.placeholder')}
@@ -133,17 +139,17 @@ ${formData.message}
 								</div>
 
 								<div class="form-group">
-									<label for="name">
+									<label for={fieldId('name')}>
 										<Icon name="home" size="1rem" />
 										{t('apply.form.name')}
 									</label>
 									<div class="input-wrapper">
 										<input
 											type="text"
-											id="name"
+											id={fieldId('name')}
 											autocomplete="name"
 											aria-invalid={Boolean(errors.name)}
-											aria-describedby={errors.name ? 'name-error' : undefined}
+											aria-describedby={errors.name ? errorId('name') : undefined}
 											bind:value={formData.name}
 											class:input--error={errors.name}
 											placeholder={t('apply.form.name.placeholder')}
@@ -160,17 +166,17 @@ ${formData.message}
 								</div>
 
 								<div class="form-group">
-									<label for="email">
+									<label for={fieldId('email')}>
 										<Icon name="email" size="1rem" />
 										{t('apply.form.email')}
 									</label>
 									<div class="input-wrapper">
 										<input
 											type="email"
-											id="email"
+											id={fieldId('email')}
 											autocomplete="email"
 											aria-invalid={Boolean(errors.email)}
-											aria-describedby={errors.email ? 'email-error' : undefined}
+											aria-describedby={errors.email ? errorId('email') : undefined}
 											bind:value={formData.email}
 											class:input--error={errors.email}
 											placeholder="your@email.com"
@@ -187,17 +193,17 @@ ${formData.message}
 								</div>
 
 								<div class="form-group form-group--full">
-									<label for="phone">
+									<label for={fieldId('phone')}>
 										<Icon name="globe" size="1rem" />
 										{t('apply.form.phone')}
 									</label>
 									<div class="input-wrapper">
 										<input
 											type="tel"
-											id="phone"
+											id={fieldId('phone')}
 											autocomplete="tel"
 											aria-invalid={Boolean(errors.phone)}
-											aria-describedby={errors.phone ? 'phone-error' : undefined}
+											aria-describedby={errors.phone ? errorId('phone') : undefined}
 											bind:value={formData.phone}
 											class:input--error={errors.phone}
 											placeholder={t('apply.form.phone.placeholder')}
@@ -214,16 +220,16 @@ ${formData.message}
 								</div>
 
 								<div class="form-group form-group--full">
-									<label for="message">
+									<label for={fieldId('message')}>
 										<Icon name="list" size="1rem" />
 										{t('apply.form.message')}
 									</label>
 									<div class="input-wrapper">
 										<textarea
-											id="message"
+											id={fieldId('message')}
 											rows="4"
 											aria-invalid={Boolean(errors.message)}
-											aria-describedby={errors.message ? 'message-error' : undefined}
+											aria-describedby={errors.message ? errorId('message') : undefined}
 											bind:value={formData.message}
 											class:input--error={errors.message}
 											placeholder={t('apply.form.message.placeholder')}

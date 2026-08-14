@@ -61,9 +61,7 @@ export const de = {
 	'adopt.dog.count': 'Hunde verfügbar',
 	'adopt.dog.browse': 'Hunde durchsuchen',
 	'list.cat.title': 'Katze adoptieren',
-	'list.cat.subtitle': 'Katzen suchen ihr endgültiges Zuhause',
 	'list.dog.title': 'Hund adoptieren',
-	'list.dog.subtitle': 'Hunde suchen ihr endgültiges Zuhause',
 	'list.viewAll': 'Profil ansehen',
 	'detail.cat': 'Katze',
 	'detail.dog': 'Hund',
@@ -183,5 +181,15 @@ export const de = {
 	'a11y.dismissNotification': 'Benachrichtigung schließen',
 	'contact.emailCopied': 'E-Mail-Adresse kopiert',
 	'contact.openMailClient': 'E-Mail-Programm öffnen',
-	'contact.copyFailed': 'Kopieren fehlgeschlagen — E-Mail-Programm wird geöffnet'
+	'contact.copyFailed': 'Kopieren fehlgeschlagen — E-Mail-Programm wird geöffnet',
+	'list.cat.count.one': '{count} Katze sucht ihr endgültiges Zuhause',
+	'list.cat.count.few': '{count} Katzen suchen ihr endgültiges Zuhause',
+	'list.cat.count.many': '{count} Katzen suchen ihr endgültiges Zuhause',
+	'list.cat.count.other': '{count} Katzen suchen ihr endgültiges Zuhause',
+	'list.dog.count.one': '{count} Hund sucht sein endgültiges Zuhause',
+	'list.dog.count.few': '{count} Hunde suchen ihr endgültiges Zuhause',
+	'list.dog.count.many': '{count} Hunde suchen ihr endgültiges Zuhause',
+	'list.dog.count.other': '{count} Hunde suchen ihr endgültiges Zuhause',
+	'list.cat.description': 'Entdecken Sie {count} Katzen aus der Ukraine, die ein Zuhause suchen.',
+	'list.dog.description': 'Entdecken Sie {count} Hunde aus der Ukraine, die ein Zuhause suchen.'
 } as const;

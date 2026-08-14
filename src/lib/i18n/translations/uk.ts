@@ -59,9 +59,7 @@ export const uk = {
 	'adopt.dog.count': 'собак доступно',
 	'adopt.dog.browse': 'Дивитися собак',
 	'list.cat.title': 'Прихистити кота',
-	'list.cat.subtitle': 'котів шукають свій вічний дім',
 	'list.dog.title': 'Прихистити собаку',
-	'list.dog.subtitle': 'собак шукають свій вічний дім',
 	'list.viewAll': 'Переглянути профіль',
 	'detail.cat': 'Кіт',
 	'detail.dog': 'Собака',
@@ -179,5 +177,16 @@ export const uk = {
 	'a11y.dismissNotification': 'Закрити сповіщення',
 	'contact.emailCopied': 'Адресу скопійовано',
 	'contact.openMailClient': 'Відкрити пошту',
-	'contact.copyFailed': 'Не вдалося скопіювати — відкриваємо пошту'
+	'contact.copyFailed': 'Не вдалося скопіювати — відкриваємо пошту',
+	'list.cat.count.one': '{count} кіт шукає свій вічний дім',
+	'list.cat.count.few': '{count} коти шукають свій вічний дім',
+	'list.cat.count.many': '{count} котів шукають свій вічний дім',
+	'list.cat.count.other': '{count} кота шукають свій вічний дім',
+	'list.dog.count.one': '{count} собака шукає свій вічний дім',
+	'list.dog.count.few': '{count} собаки шукають свій вічний дім',
+	'list.dog.count.many': '{count} собак шукають свій вічний дім',
+	'list.dog.count.other': '{count} собаки шукають свій вічний дім',
+	'list.cat.description':
+		'Перегляньте {count} котів, врятованих в Україні та готових до прихистку.',
+	'list.dog.description': 'Перегляньте {count} собак, врятованих в Україні та готових до прихистку.'
 } as const;

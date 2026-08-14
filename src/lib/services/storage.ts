@@ -3,6 +3,21 @@ import { browser } from '$app/environment';
 const PREFIX = 'adoptananimal_';
 
 /**
+ * Where the facade reports recoverable problems.
+ *
+ * Deliberately a hook rather than an import of logService: the logger reads its own
+ * buffer through this facade, so importing it back here would make the two modules
+ * depend on each other and leave whichever loaded second in the temporal dead zone.
+ * logService installs the real reporter at its own module init.
+ */
+type Reporter = (message: string) => void;
+let report: Reporter = () => {};
+
+export const setStorageReporter = (fn: Reporter) => {
+	report = fn;
+};
+
+/**
  * Storage facade to ensure isolation between multiple projects on the same domain (alik532ua.github.io).
  * Every key is automatically prefixed with 'adoptananimal_'.
  *
@@ -77,6 +92,10 @@ export const storage = {
 		try {
 			return JSON.parse(raw) as T;
 		} catch {
+			// Corrupt stored data is recoverable — the caller falls back to a default —
+			// but silence here once hid favourites disappearing with no trace at all.
+			// warn, not error: it is a known-possible state, not a broken build.
+			report(`Discarding unreadable value for "${key}"`);
 			return null;
 		}
 	},

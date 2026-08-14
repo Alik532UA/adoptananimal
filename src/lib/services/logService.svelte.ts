@@ -1,5 +1,5 @@
 import { browser, dev } from '$app/environment';
-import { storage } from '$lib/services/storage';
+import { setStorageReporter, storage } from '$lib/services/storage';
 
 export type LogCategory = 'app' | 'ui' | 'storage' | 'i18n' | 'network' | 'performance';
 export type LogLevel = 'info' | 'warn' | 'error';
@@ -142,3 +142,6 @@ class LogService {
 }
 
 export const logService = new LogService();
+
+// Lets the storage facade report a discarded value without importing this module back.
+setStorageReporter((message) => logService.warn('storage', message));

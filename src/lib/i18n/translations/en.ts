@@ -58,9 +58,7 @@ export const en = {
 	'adopt.dog.count': 'dogs available',
 	'adopt.dog.browse': 'Browse Dogs',
 	'list.cat.title': 'Adopt a Cat',
-	'list.cat.subtitle': 'cats waiting for a home',
 	'list.dog.title': 'Adopt a Dog',
-	'list.dog.subtitle': 'dogs waiting for a home',
 	'list.viewAll': 'View profile',
 	'detail.cat': 'Cat',
 	'detail.dog': 'Dog',
@@ -179,7 +177,17 @@ export const en = {
 	'a11y.dismissNotification': 'Dismiss notification',
 	'contact.emailCopied': 'Email address copied',
 	'contact.openMailClient': 'Open mail app',
-	'contact.copyFailed': 'Could not copy — opening your mail app'
+	'contact.copyFailed': 'Could not copy — opening your mail app',
+	'list.cat.count.one': '{count} cat waiting for a home',
+	'list.cat.count.few': '{count} cats waiting for a home',
+	'list.cat.count.many': '{count} cats waiting for a home',
+	'list.cat.count.other': '{count} cats waiting for a home',
+	'list.dog.count.one': '{count} dog waiting for a home',
+	'list.dog.count.few': '{count} dogs waiting for a home',
+	'list.dog.count.many': '{count} dogs waiting for a home',
+	'list.dog.count.other': '{count} dogs waiting for a home',
+	'list.cat.description': 'Browse {count} cats available for adoption, rescued from Ukraine.',
+	'list.dog.description': 'Browse {count} dogs available for adoption, rescued from Ukraine.'
 } as const;
 
 export type TranslationKey = keyof typeof en;

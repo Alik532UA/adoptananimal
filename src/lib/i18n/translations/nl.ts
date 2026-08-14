@@ -59,9 +59,7 @@ export const nl = {
 	'adopt.dog.count': 'honden beschikbaar',
 	'adopt.dog.browse': 'Bekijk honden',
 	'list.cat.title': 'Kat adopteren',
-	'list.cat.subtitle': 'katten op zoek naar hun forever home',
 	'list.dog.title': 'Hond adopteren',
-	'list.dog.subtitle': 'honden op zoek naar hun forever home',
 	'list.viewAll': 'Bekijk profiel',
 	'detail.cat': 'Kat',
 	'detail.dog': 'Hond',
@@ -179,5 +177,15 @@ export const nl = {
 	'a11y.dismissNotification': 'Melding sluiten',
 	'contact.emailCopied': 'E-mailadres gekopieerd',
 	'contact.openMailClient': 'E-mailprogramma openen',
-	'contact.copyFailed': 'Kopiëren mislukt — e-mailprogramma wordt geopend'
+	'contact.copyFailed': 'Kopiëren mislukt — e-mailprogramma wordt geopend',
+	'list.cat.count.one': '{count} kat op zoek naar een forever home',
+	'list.cat.count.few': '{count} katten op zoek naar hun forever home',
+	'list.cat.count.many': '{count} katten op zoek naar hun forever home',
+	'list.cat.count.other': '{count} katten op zoek naar hun forever home',
+	'list.dog.count.one': '{count} hond op zoek naar een forever home',
+	'list.dog.count.few': '{count} honden op zoek naar hun forever home',
+	'list.dog.count.many': '{count} honden op zoek naar hun forever home',
+	'list.dog.count.other': '{count} honden op zoek naar hun forever home',
+	'list.cat.description': 'Bekijk {count} katten uit Oekraïne die een thuis zoeken.',
+	'list.dog.description': 'Bekijk {count} honden uit Oekraïne die een thuis zoeken.'
 } as const;

@@ -6,7 +6,7 @@
 	import { animalService } from '$lib/services/animals';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import FilterBar from '$lib/components/FilterBar.svelte';
-	import { t } from '$lib/i18n';
+	import { t, tFormat, tPlural } from '$lib/i18n';
 	import type { FilterState } from '$lib/data/types';
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 
@@ -50,8 +50,7 @@
 	<title>{t('app.title.dog')}</title>
 	<meta
 		name="description"
-		content="Browse {animalService.dogs
-			.length} dogs available for adoption, rescued from Ukrainian frontlines."
+		content={tFormat('list.dog.description', { count: animalService.dogs.length })}
 	/>
 </svelte:head>
 
@@ -59,7 +58,7 @@
 	<div class="container">
 		<Breadcrumbs items={[{ label: t('breadcrumb.dogs') }]} />
 		<h1 class="list-hero__title">{t('list.dog.title')}</h1>
-		<p class="list-hero__subtitle">{animalService.dogs.length} {t('list.dog.subtitle')}</p>
+		<p class="list-hero__subtitle">{tPlural('list.dog.count', animalService.dogs.length)}</p>
 	</div>
 </section>
 
