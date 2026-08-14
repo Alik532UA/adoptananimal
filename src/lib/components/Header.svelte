@@ -82,6 +82,10 @@
 
 	let headerInnerElement: HTMLElement | undefined = $state();
 	let indicatorX = $state(0);
+	let indicatorTotalWidth = $state(288);
+	let indicatorPath = $state(
+		'M 0 48 C 56.3 48 62.5 0 100 0 L 132 0 C 169.5 0 175.8 48 232 48 L 0 48 Z'
+	);
 	let indicatorVisible = $state(false);
 	let isMounted = $state(false);
 
@@ -93,7 +97,23 @@
 		if (activeEl) {
 			const containerRect = headerInnerElement.getBoundingClientRect();
 			const activeRect = activeEl.getBoundingClientRect();
-			indicatorX = activeRect.left - containerRect.left + activeRect.width / 2;
+
+			const W = activeRect.width;
+			const S = 100; // ширина бокових спусків (slope width)
+			const T = Math.max(12, W - 48); // ширина верхнього плато залежно від ширини кнопки
+			const totalW = 2 * S + T;
+
+			const cp1x = (S * 0.5625).toFixed(1);
+			const cp2x = (S * 0.625).toFixed(1);
+			const x1 = S;
+			const x2 = S + T;
+			const cp3x = (x2 + S * 0.375).toFixed(1);
+			const cp4x = (x2 + S * 0.4375).toFixed(1);
+			const x3 = totalW;
+
+			indicatorPath = `M 0 48 C ${cp1x} 48 ${cp2x} 0 ${x1} 0 L ${x2} 0 C ${cp3x} 0 ${cp4x} 48 ${x3} 48 L 0 48 Z`;
+			indicatorTotalWidth = totalW;
+			indicatorX = activeRect.left - containerRect.left + W / 2;
 			indicatorVisible = true;
 		} else {
 			indicatorVisible = false;
@@ -137,11 +157,7 @@
 </script>
 
 <header class="header">
-	<div
-		bind:this={headerInnerElement}
-		class="header__inner container"
-		style="--active-tab-bg: {activeColor};"
-	>
+	<div bind:this={headerInnerElement} class="header__inner" style="--active-tab-bg: {activeColor};">
 		{#if indicatorVisible}
 			<div
 				class="header__indicator"
@@ -149,27 +165,39 @@
 				style="transform: translate3d({indicatorX}px, 0, 0);"
 				aria-hidden="true"
 			>
-				<svg class="header__wave" viewBox="0 0 288 48">
-					<path
-						d="M 0 48 C 72 48 80 0 128 0 L 160 0 C 208 0 216 48 288 48 L 0 48 Z"
-						fill="var(--active-tab-bg)"
-					/>
+				<svg
+					class="header__wave"
+					viewBox="0 0 {indicatorTotalWidth} 48"
+					style="width: {indicatorTotalWidth}px; left: -{indicatorTotalWidth / 2}px;"
+				>
+					<path d={indicatorPath} fill="var(--active-tab-bg)" />
 				</svg>
 			</div>
 		{/if}
 
 		<a
 			href={localePath('/')}
-			class="header__logo"
-			class:header__logo--active={isHomeActive}
+			class="header__logo header__logo--mobile"
 			onclick={closeMenu}
-			data-testid="header-logo-link"
+			data-testid="header-logo-mobile-link"
 		>
 			<Icon name="paw" size="1.75rem" class="header__logo-icon" />
 			<span class="header__logo-text">{t('nav.adopt')}</span>
 		</a>
 
 		<nav class="header__nav" class:header__nav--open={mobileMenuOpen}>
+			<a
+				href={localePath('/')}
+				class="header__link header__logo header__logo--nav"
+				class:header__link--active={isHomeActive}
+				class:header__logo--active={isHomeActive}
+				onclick={closeMenu}
+				data-testid="header-logo-link"
+			>
+				<Icon name="paw" size="1.75rem" class="header__logo-icon" />
+				<span class="header__logo-text">{t('nav.adopt')}</span>
+			</a>
+
 			{#each navItems as item (item.href)}
 				{@const active = isLinkActive(item.href)}
 				<a
@@ -329,6 +357,9 @@
 		justify-content: space-between;
 		height: 72px;
 		position: relative;
+		width: 100%;
+		padding: 0 var(--space-xl);
+		gap: var(--space-xl);
 	}
 
 	.header__logo {
@@ -345,6 +376,14 @@
 		position: relative;
 		z-index: 2;
 		transition: color 0.3s ease;
+	}
+
+	.header__logo--mobile {
+		display: none;
+	}
+
+	.header__logo--nav {
+		display: inline-flex;
 	}
 
 	.header__logo:hover {
@@ -371,7 +410,8 @@
 	.header__nav {
 		display: flex;
 		align-items: flex-end;
-		gap: 36px;
+		justify-content: space-between;
+		flex: 1;
 		height: 72px;
 		position: relative;
 	}
@@ -426,7 +466,9 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.header__indicator--animated {
+		.header__indicator--animated,
+		.header__wave,
+		.header__wave path {
 			transition: none;
 		}
 	}
@@ -434,10 +476,15 @@
 	.header__wave {
 		position: absolute;
 		bottom: 0;
-		left: -144px;
-		width: 288px;
 		height: 48px;
 		pointer-events: none;
+		transition:
+			width 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+			left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.header__wave path {
+		transition: d 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 	}
 
 	.header__fav-count {
@@ -506,8 +553,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-xs);
-		margin-left: var(--space-sm);
-		padding-left: var(--space-sm);
+		flex-shrink: 0;
 		align-self: center;
 		margin-bottom: 4px;
 	}
@@ -560,14 +606,20 @@
 	@media (max-width: 768px) {
 		.header__inner {
 			align-items: center;
+			padding: 0 var(--space-lg);
+			gap: var(--space-sm);
 		}
-		.header__logo {
+		.header__controls {
+			margin-left: auto;
+		}
+		.header__logo--mobile {
+			display: inline-flex;
 			height: auto;
 			padding: 0;
 			color: var(--color-primary);
 		}
-		.header__logo--active {
-			color: var(--color-primary);
+		.header__logo--nav {
+			display: none;
 		}
 		.header__burger {
 			display: flex;
