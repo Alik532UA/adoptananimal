@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { interleaveByType, longestRun, shuffle, type Kinded } from './interleave';
+import {
+	interleaveByType,
+	limitAdopted,
+	longestRun,
+	shuffle,
+	type Adoptable,
+	type Kinded
+} from './interleave';
 import { cats, dogs } from '$lib/data/animals';
 
 /** Deterministic pseudo-random, so a failure can be reproduced from its seed. */
@@ -105,5 +112,66 @@ describe('interleaveByType', () => {
 	it('handles the empty and single-type cases', () => {
 		expect(interleaveByType([], seeded(1))).toEqual([]);
 		expect(interleaveByType(make('ccc'), seeded(1))).toHaveLength(3);
+	});
+});
+
+describe('limitAdopted', () => {
+	interface Row extends Adoptable {
+		id: string;
+	}
+
+	const row = (i: number, isAdopted: boolean): Row => ({
+		type: i % 2 === 0 ? 'cat' : 'dog',
+		isAdopted,
+		id: `${isAdopted ? 'x' : 'a'}${i}`
+	});
+
+	const roster = (available: number, adopted: number): Row[] => [
+		...Array.from({ length: available }, (_, i) => row(i, false)),
+		...Array.from({ length: adopted }, (_, i) => row(i, true))
+	];
+
+	it('keeps every available animal', () => {
+		const out = limitAdopted(roster(34, 16), 0.1, seeded(1));
+		expect(out.filter((a) => !a.isAdopted)).toHaveLength(34);
+	});
+
+	it('holds adopted animals to the share of the resulting list', () => {
+		for (const [available, adopted] of [
+			[34, 16],
+			[10, 40],
+			[100, 5],
+			[1, 20]
+		]) {
+			const out = limitAdopted(roster(available, adopted), 0.1, seeded(3));
+			const shown = out.filter((a) => a.isAdopted).length;
+
+			expect(shown / out.length, `${available} available / ${adopted} adopted`).toBeLessThanOrEqual(
+				0.1
+			);
+		}
+	});
+
+	it('never invents animals that were not there', () => {
+		const out = limitAdopted(roster(5, 2), 0.1, seeded(1));
+		expect(out.filter((a) => a.isAdopted).length).toBeLessThanOrEqual(2);
+	});
+
+	it('draws a different few on different seeds', () => {
+		const input = roster(34, 16);
+		const pick = (seed: number) =>
+			limitAdopted(input, 0.1, seeded(seed))
+				.filter((a) => a.isAdopted)
+				.map((a) => a.id)
+				.sort()
+				.join();
+
+		// Over repeat visits every adopted animal gets its turn, rather than the same
+		// three appearing forever.
+		expect(new Set([1, 2, 3, 4, 5].map(pick)).size).toBeGreaterThan(1);
+	});
+
+	it('shows none when there is nothing to dilute them with', () => {
+		expect(limitAdopted(roster(0, 10), 0.1, seeded(1))).toHaveLength(0);
 	});
 });

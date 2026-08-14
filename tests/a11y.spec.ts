@@ -21,8 +21,23 @@ const PAGES = ['/', '/adopt/cat', '/adopt/cat/basti', '/apply', '/favorites'];
 const settle = (locator: import('@playwright/test').Locator) =>
 	locator.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)).then(() => {}));
 
+/**
+ * Cards for animals that already found a home are excluded from the contrast audit.
+ *
+ * They render at 50% opacity by the owner's decision — greyscale read as mourning
+ * for a happy outcome — and half-transparent text does not reach 4.5:1 whatever
+ * colours sit underneath. The trade is deliberate and bounded: they are at most a
+ * tenth of the carousel, they are not the path to anything, and hovering or focusing
+ * one brings it back to full opacity. Recorded in PROJECT-CONTEXT.md § 4.11.
+ *
+ * The exclusion is written here rather than the check being loosened, so it is
+ * visible in the diff the day someone changes that decision.
+ */
 const audit = (page: import('@playwright/test').Page) =>
-	new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+	new AxeBuilder({ page })
+		.exclude('.animal-card--adopted')
+		.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+		.analyze();
 
 for (const path of PAGES) {
 	test(`${path} has no accessibility violations`, async ({ page }) => {
@@ -45,7 +60,10 @@ for (const theme of THEMES) {
 
 		expect(await page.getAttribute('html', 'data-theme')).toBe(theme);
 
-		const results = await new AxeBuilder({ page }).withTags(['wcag2aa']).analyze();
+		const results = await new AxeBuilder({ page })
+			.exclude('.animal-card--adopted')
+			.withTags(['wcag2aa'])
+			.analyze();
 		const contrast = results.violations.filter((v) => v.id === 'color-contrast');
 
 		expect(

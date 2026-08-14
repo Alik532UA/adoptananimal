@@ -152,34 +152,24 @@
 		border-color: var(--color-primary);
 	}
 
-	/* Muted through the photo, not through the whole card. Dropping the card to
-	   opacity 0.5 took every word on it down with the picture: 72 contrast failures
-	   across the listing, all of them text nobody could read. */
+	/* Owner's call: the photo stays in colour and the whole card sits at 50%.
+	   Greyscale read as mourning for animals that found a home, which is the opposite
+	   of the message. The cost is that the text fades with the card — see
+	   PROJECT-CONTEXT.md § 4.11 — and it is why the carousel now shows only a few of
+	   them. Hover brings the card back to full strength for reading. */
 	.animal-card--adopted {
+		opacity: 0.5;
 		background: var(--color-bg-card);
 		box-shadow: var(--shadow-sm);
 		border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
 	}
 
-	.animal-card--adopted .animal-card__photo {
-		filter: grayscale(1) contrast(0.9);
-		opacity: 0.7;
-	}
-
-	.animal-card--adopted .animal-card__body {
-		/* The details step back a little; the name stays at full strength. */
-		color: var(--color-text-muted);
-	}
-
-	.animal-card--adopted:hover {
+	.animal-card--adopted:hover,
+	.animal-card--adopted:focus-within {
+		opacity: 1;
 		transform: translateY(-8px) scale(1.02);
 		box-shadow: var(--shadow-md);
 		border-color: var(--color-success);
-	}
-
-	.animal-card--adopted:hover .animal-card__photo {
-		filter: grayscale(0.3) contrast(1);
-		opacity: 1;
 	}
 
 	.animal-card__image {

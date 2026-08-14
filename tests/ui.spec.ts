@@ -100,7 +100,8 @@ test.describe('the featured carousel', () => {
 			[...document.querySelectorAll('.carousel-content:not([aria-hidden]) .animal-card')].map(
 				(card) => ({
 					slug: card.id.replace('card-', ''),
-					type: card.querySelector('.animal-card__image--cat') ? 'cat' : 'dog'
+					type: card.querySelector('.animal-card__image--cat') ? 'cat' : 'dog',
+					adopted: card.classList.contains('animal-card--adopted')
 				})
 			)
 		);
@@ -109,9 +110,13 @@ test.describe('the featured carousel', () => {
 		await page.goto('/');
 		const cards = await order(page);
 
-		// The whole shelter, not a selection: the carousel is the front page.
-		expect(cards.length).toBeGreaterThan(40);
+		// Everyone still looking for a home, plus a few who found one.
+		expect(cards.length).toBeGreaterThan(30);
 		expect(new Set(cards.map((c) => c.slug)).size).toBe(cards.length);
+
+		// A shelter that shows nothing but successes reads as an archive.
+		const adopted = cards.filter((c) => c.adopted).length;
+		expect(adopted / cards.length).toBeLessThanOrEqual(0.1);
 
 		let run = 1;
 		let longest = 1;
@@ -127,12 +132,21 @@ test.describe('the featured carousel', () => {
 		// The order used to come from the build, so every visitor saw the same one and
 		// the visible window of the carousel was always the same few cats.
 		await page.goto('/');
-		const first = (await order(page)).map((c) => c.slug).join();
+		const first = await order(page);
 
 		await page.reload();
-		const second = (await order(page)).map((c) => c.slug).join();
+		const second = await order(page);
 
-		expect(second).not.toBe(first);
-		expect(second.split(',').sort()).toEqual(first.split(',').sort());
+		expect(second.map((c) => c.slug).join()).not.toBe(first.map((c) => c.slug).join());
+
+		// Everyone still looking for a home is there both times. Which few adopted
+		// animals come along is drawn fresh, so that part of the set is expected to move.
+		const stillLooking = (cards: typeof first) =>
+			cards
+				.filter((c) => !c.adopted)
+				.map((c) => c.slug)
+				.sort();
+
+		expect(stillLooking(second)).toEqual(stillLooking(first));
 	});
 });

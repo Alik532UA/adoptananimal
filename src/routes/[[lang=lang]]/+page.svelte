@@ -5,7 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Carousel from '$lib/components/ui/Carousel.svelte';
 	import { t } from '$lib/i18n';
-	import { interleaveByType } from '$lib/utils/interleave';
+	import { interleaveByType, limitAdopted } from '$lib/utils/interleave';
 
 	let { data } = $props();
 
@@ -24,7 +24,7 @@
 	let animals = $derived(data.animals);
 
 	$effect(() => {
-		animals = interleaveByType(data.animals);
+		animals = interleaveByType(limitAdopted(data.animals));
 	});
 </script>
 
@@ -171,7 +171,12 @@
 
 	.about .section__title {
 		margin-top: 0;
-		white-space: nowrap;
+		/* No nowrap. The title is four different lengths in four languages, and the
+		   Ukrainian one is 689px inside a 688px card: one pixel over, auto margins
+		   collapse to zero, and the whole thing sits against the right edge looking
+		   like it was never centred. Wrapping keeps it centred at any width. */
+		max-width: 100%;
+		text-wrap: balance;
 		display: block;
 		width: fit-content;
 		margin-left: auto;

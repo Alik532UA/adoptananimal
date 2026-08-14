@@ -16,6 +16,34 @@ export interface Kinded {
 	type: 'cat' | 'dog';
 }
 
+export interface Adoptable extends Kinded {
+	isAdopted: boolean;
+}
+
+/**
+ * Keeps a few already-adopted animals in the list and drops the rest.
+ *
+ * They are worth showing — a shelter that never shows a success is a shelter that
+ * looks like it never places anyone — but sixteen of them among thirty-four
+ * available ones turns the front page into an archive. Which few appear is drawn
+ * fresh each time, so over repeat visits they all get their turn.
+ *
+ * `ratio` is the share of the *resulting* list, so S <= ratio * (A + S), which gives
+ * S <= A * ratio / (1 - ratio).
+ */
+export function limitAdopted<T extends Adoptable>(
+	animals: readonly T[],
+	ratio = 0.1,
+	random: () => number = Math.random
+): T[] {
+	const available = animals.filter((a) => !a.isAdopted);
+	const adopted = animals.filter((a) => a.isAdopted);
+
+	const allowance = Math.floor((available.length * ratio) / (1 - ratio));
+
+	return [...available, ...shuffle(adopted, random).slice(0, allowance)];
+}
+
 /**
  * Can `c` cats and `d` dogs still be laid out with no run longer than MAX_RUN?
  *
