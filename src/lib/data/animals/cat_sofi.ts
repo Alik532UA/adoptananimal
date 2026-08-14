@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'cremefarben',
 		nl: 'crème'
 	},
-	image: '/images/animals/cat_sofi.jpg'
+	image: '/images/animals/cat_sofi.jpg',
+	// A tall portrait of a sitting cat: centred, the card cropped him at the forehead.
+	imagePosition: '50% 0%'
 };
 
 export const description: Translations = {

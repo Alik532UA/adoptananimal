@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'grau',
 		nl: 'grijs'
 	},
-	image: '/images/animals/cat_mia.jpg'
+	image: '/images/animals/cat_mia.jpg',
+	// Nudged up so the ears stay in frame without stranding the cat at the top.
+	imagePosition: '50% 20%'
 };
 
 export const description: Translations = {

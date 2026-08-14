@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'grau-weiß',
 		nl: 'grijs-wit'
 	},
-	image: '/images/animals/cat_starlet.jpg'
+	image: '/images/animals/cat_starlet.jpg',
+	// Nudged up so the ears stay in frame without stranding the cat at the top.
+	imagePosition: '50% 20%'
 };
 
 export const description: Translations = {

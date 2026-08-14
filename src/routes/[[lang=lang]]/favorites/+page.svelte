@@ -83,7 +83,10 @@
 	}
 
 	.animal-list {
-		background: var(--color-bg-warm);
+		/* No background of its own: the page's own image sits behind it, and a flat panel
+		   the height of the list hid the whole thing. The cat and dog lists lost theirs
+		   two versions ago; this one was missed because the test only knew about those
+		   two pages. */
 		min-height: 40vh;
 		padding-top: var(--space-lg);
 	}

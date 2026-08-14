@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'schwarz',
 		nl: 'zwart'
 	},
-	image: '/images/animals/cat_black.jpg'
+	image: '/images/animals/cat_black.jpg',
+	// Nudged up so the ears stay in frame without stranding the cat at the top.
+	imagePosition: '50% 20%'
 };
 
 export const description: Translations = {

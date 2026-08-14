@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
@@ -107,5 +107,33 @@ describe('animal summaries', () => {
 		const { dogs, cats, CANONICAL_DOG_ORDER, CANONICAL_CAT_ORDER } = await import('./animals');
 		expect(dogs.map((d) => d.slug)).toEqual([...CANONICAL_DOG_ORDER]);
 		expect(cats.map((c) => c.slug)).toEqual([...CANONICAL_CAT_ORDER]);
+	});
+});
+
+describe('imagePosition', () => {
+	/*
+	 * A value the browser cannot parse is dropped and falls back to the centre crop the
+	 * field exists to override — silently, on the one card someone was trying to fix.
+	 * `centre top`, `50%0%`, `50 0` all look right in a diff and all do nothing.
+	 */
+	const VALUE =
+		/^(\d{1,3}% \d{1,3}%|left|right|center|top|bottom|(left|right|center) (top|bottom|center))$/;
+
+	const declared = dataFiles
+		.map((file) => ({
+			file,
+			value: readFileSync(resolve(DATA_DIR, file), 'utf8').match(/imagePosition:\s*'([^']*)'/)?.[1]
+		}))
+		.filter((entry): entry is { file: string; value: string } => entry.value !== undefined);
+
+	it('is declared on the animals whose photographs needed it', () => {
+		// Not an exact count: the point is that the field is in use, so a refactor that
+		// quietly stopped reading it would not leave this suite green.
+		expect(declared.length).toBeGreaterThan(5);
+	});
+
+	it('is a value a browser will accept', () => {
+		const bad = declared.filter((entry) => !VALUE.test(entry.value));
+		expect(bad, `unparseable object-position: ${JSON.stringify(bad)}`).toEqual([]);
 	});
 });

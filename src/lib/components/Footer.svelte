@@ -266,8 +266,9 @@
 
 	.footer__aside-label {
 		position: absolute;
-		/* To the left of the glyph, as a tooltip that does not cover the thing it names. */
-		right: calc(100% + var(--space-sm));
+		/* To the right of the glyph: the buttons sit against the left edge of the window,
+		   so there is room on that side and none on the other. */
+		left: calc(100% + var(--space-sm));
 		padding: 4px 10px;
 		border-radius: var(--radius-sm);
 		background: var(--color-bg-card);
@@ -293,16 +294,9 @@
 		}
 	}
 
-	/* Narrow screens have no room to the left of the icons, so the label goes to the
-	   right rather than off the edge of the window. */
 	@media (max-width: 700px) {
 		.footer__aside {
 			left: var(--space-sm);
-		}
-
-		.footer__aside-label {
-			right: auto;
-			left: calc(100% + var(--space-sm));
 		}
 	}
 

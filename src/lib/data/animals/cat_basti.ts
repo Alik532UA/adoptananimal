@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'schwarz-weiß',
 		nl: 'zwart-wit'
 	},
-	image: '/images/animals/cat_basti.jpg'
+	image: '/images/animals/cat_basti.jpg',
+	// Nudged up so the ears stay in frame without stranding the cat at the top.
+	imagePosition: '50% 20%'
 };
 
 export const description: Translations = {

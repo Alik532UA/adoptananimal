@@ -631,7 +631,10 @@ test.describe('the page background', () => {
 });
 
 test.describe('surfaces that should not hide the page', () => {
-	for (const path of ['/adopt/cat', '/adopt/dog']) {
+	// /favorites included after the fact: it has the same section and it kept its panel
+	// for two versions, because this loop only knew about the two pages that were fixed
+	// together. A list of the places a rule applies is a list that misses one.
+	for (const path of ['/adopt/cat', '/adopt/dog', '/favorites']) {
 		test(`the list on ${path} lets the page image through`, async ({ page }) => {
 			await page.goto(path);
 			const bg = await page
@@ -714,6 +717,29 @@ test.describe('animals and their photographs', () => {
 			expect(wrong, `cards wearing another animal's photo: ${JSON.stringify(wrong)}`).toEqual([]);
 		});
 	}
+
+	test('every declared photo shift actually lands', async ({ page }) => {
+		await page.goto('/adopt/cat');
+		await page.waitForLoadState('networkidle');
+
+		/*
+		 * Reads the computed value of every card that declares one, rather than naming the
+		 * animals here — the list of who needs a shift belongs in the data and would go
+		 * stale in a second copy. An object-position the browser cannot parse is dropped
+		 * and falls back to the centre crop the field exists to override, so a typo shows
+		 * up as "no effect" on exactly the card someone was trying to fix.
+		 */
+		const shifted = await page.$$eval('.animal-card__photo[style*="object-position"]', (imgs) =>
+			imgs.map((el) => ({
+				card: el.closest('.animal-card')?.id ?? '?',
+				computed: getComputedStyle(el).objectPosition
+			}))
+		);
+
+		expect(shifted.length, 'no card declares a shift').toBeGreaterThan(5);
+		const ignored = shifted.filter((s) => s.computed === '50% 50%');
+		expect(ignored, `declared but not applied: ${JSON.stringify(ignored)}`).toEqual([]);
+	});
 
 	test('an animal that needs its photo shifted gets it shifted', async ({ page }) => {
 		await page.goto('/adopt/cat?search=richard');
@@ -837,7 +863,7 @@ test.describe('the footer aside links', () => {
 		expect(await opacity(page, 'footer-order-site-link')).toBeCloseTo(0.8, 2);
 	});
 
-	test('names itself on hover, and to the left of the glyph', async ({ page }) => {
+	test('names itself on hover, and to the right of the glyph', async ({ page }) => {
 		await page.goto('/');
 		const link = page.getByTestId('footer-games-link');
 		await link.scrollIntoViewIfNeeded();
@@ -850,11 +876,20 @@ test.describe('the footer aside links', () => {
 			.poll(() => label.evaluate((el) => parseFloat(getComputedStyle(el).opacity)))
 			.toBe(1);
 
-		const { labelRight, glyphLeft } = await link.evaluate((el) => ({
-			labelRight: el.querySelector('.footer__aside-label')!.getBoundingClientRect().right,
-			glyphLeft: el.querySelector('svg')!.getBoundingClientRect().left
-		}));
-		expect(labelRight, 'the label covers the glyph it names').toBeLessThanOrEqual(glyphLeft + 1);
+		const { labelLeft, glyphRight, labelRight, windowWidth } = await link.evaluate((el) => {
+			const label = el.querySelector('.footer__aside-label')!.getBoundingClientRect();
+			return {
+				labelLeft: label.left,
+				labelRight: label.right,
+				glyphRight: el.querySelector('svg')!.getBoundingClientRect().right,
+				windowWidth: window.innerWidth
+			};
+		});
+
+		// To the right of the glyph, where there is room: the buttons sit against the left
+		// edge of the window, so a label on their left had nowhere to go.
+		expect(labelLeft, 'the label covers the glyph it names').toBeGreaterThanOrEqual(glyphRight - 1);
+		expect(labelRight, 'the label runs off the window').toBeLessThanOrEqual(windowWidth);
 	});
 
 	test('comes fully up for a keyboard, which never hovers', async ({ page }) => {

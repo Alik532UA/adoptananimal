@@ -35,7 +35,9 @@ export const summary: AnimalSummary = {
 		de: 'rot-weiß',
 		nl: 'rood-wit'
 	},
-	image: '/images/animals/cat_tyler.jpg'
+	image: '/images/animals/cat_tyler.jpg',
+	// Nudged up so the ears stay in frame without stranding the cat at the top.
+	imagePosition: '50% 20%'
 };
 
 export const description: Translations = {
