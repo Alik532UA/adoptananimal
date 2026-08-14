@@ -24,45 +24,16 @@
 		ArrowRight,
 		ArrowLeft,
 		ArrowUp,
+		ClipboardList,
 		ExternalLink,
 		Gamepad2,
 		Plus,
 		X
 	} from 'lucide-svelte';
+	import type { IconName } from './icons';
 
 	interface Props {
-		name:
-			| 'paw'
-			| 'cat'
-			| 'dog'
-			| 'heart'
-			| 'heart-filled'
-			| 'list'
-			| 'email'
-			| 'globe'
-			| 'idea'
-			| 'sun'
-			| 'moon'
-			| 'sparkles'
-			| 'minimal'
-			| 'playful'
-			| 'home'
-			| 'winter'
-			| 'view'
-			| 'male'
-			| 'female'
-			| 'gender'
-			| 'size'
-			| 'age'
-			| 'breed'
-			| 'color'
-			| 'arrow-right'
-			| 'arrow-left'
-			| 'arrow-up'
-			| 'close'
-			| 'external-link'
-			| 'gamepad'
-			| 'plus';
+		name: IconName;
 		size?: string | number;
 		class?: string;
 		strokeWidth?: number;
@@ -145,6 +116,8 @@
 			<Gamepad2 {size} class={className} {strokeWidth} />
 		{:else if name === 'plus'}
 			<Plus {size} class={className} {strokeWidth} />
+		{:else if name === 'application'}
+			<ClipboardList {size} class={className} {strokeWidth} />
 		{/if}
 	{/key}
 </span>

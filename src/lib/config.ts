@@ -1,6 +1,7 @@
 import { localeSegment, type Locale } from '$lib/i18n/locales';
 import type { TranslationKey } from '$lib/i18n/translations/en';
 import type { ScrollbarMode } from '$lib/services/scrollbar.svelte';
+import type { IconName } from '$lib/components/ui/icons';
 
 /**
  * Absolute origin of the deployed site.
@@ -106,6 +107,6 @@ export const SIDE_PROJECTS = [
 ] as const satisfies readonly {
 	id: string;
 	url: string;
-	icon: 'gamepad' | 'plus';
+	icon: IconName;
 	key: TranslationKey;
 }[];

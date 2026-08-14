@@ -982,3 +982,60 @@ test.describe('the email toast', () => {
 		expect(seen.insideWindow, 'the toast hangs off the edge of the window').toBe(true);
 	});
 });
+
+test.describe('the header navigation', () => {
+	test('every destination carries its own glyph', async ({ page }) => {
+		await page.setViewportSize({ width: 1400, height: 900 });
+		await page.goto('/');
+
+		const items = await page.$$eval('.header__nav .header__link', (links) =>
+			links.map((el) => ({
+				testId: el.getAttribute('data-testid'),
+				text: el.textContent?.trim() ?? '',
+				// lucide puts three classes on every icon — `lucide-icon`, `lucide`, and one
+				// named after the icon itself. Only the third says which glyph this is; the
+				// first matches `lucide-` too, and taking it made all five look identical.
+				icon:
+					[...(el.querySelector('svg')?.classList ?? [])].find(
+						(c) => c.startsWith('lucide-') && c !== 'lucide-icon'
+					) ?? null
+			}))
+		);
+
+		// The logo plus cats, dogs, favourites and the application.
+		expect(items.length, 'the nav is not what it was').toBe(5);
+
+		for (const item of items) {
+			// One had a paw and the other four had nothing, so the row read as a single
+			// button followed by four labels.
+			expect(item.icon, `${item.testId} ("${item.text}") has no icon`).not.toBeNull();
+			// And the label stays: a glyph alone is a guess about what it means.
+			expect(item.text.length, `${item.testId} lost its label`).toBeGreaterThan(1);
+		}
+
+		// Distinct, or two destinations look like the same one.
+		const icons = items.map((i) => i.icon);
+		expect(new Set(icons).size, `repeated icons: ${icons.join(', ')}`).toBe(icons.length);
+
+		// The two that name a species say which species.
+		expect(items.find((i) => i.testId === 'nav-adopt-cat-link')?.icon).toBe('lucide-cat');
+		expect(items.find((i) => i.testId === 'nav-adopt-dog-link')?.icon).toBe('lucide-dog');
+		expect(items.find((i) => i.testId === 'nav-favorites-link')?.icon).toBe('lucide-heart');
+	});
+
+	test('the active tab still measures itself around the wider item', async ({ page }) => {
+		await page.setViewportSize({ width: 1400, height: 900 });
+		await page.goto('/adopt/cat');
+		await page.waitForLoadState('networkidle');
+
+		// The wave is drawn to the width of the active item, which the icon just changed.
+		// Measured from the DOM rather than assumed, so this follows on its own — but a
+		// tab narrower than its own label is the visible symptom if it ever stops.
+		const { tab, label } = await page.evaluate(() => ({
+			tab: document.querySelector('.header__wave')!.getBoundingClientRect().width,
+			label: document.querySelector('.header__link--active')!.getBoundingClientRect().width
+		}));
+
+		expect(tab, 'the tab is narrower than the item it sits behind').toBeGreaterThanOrEqual(label);
+	});
+});

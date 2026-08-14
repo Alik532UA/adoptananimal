@@ -6,6 +6,7 @@
 	import { base } from '$app/paths';
 	import { splitLocale } from '$lib/i18n/locales';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import type { IconName } from '$lib/components/ui/icons';
 	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
 	import { clamp01, SETTLE_DISTANCE, tabShape } from '$lib/utils/tabWave';
 
@@ -160,11 +161,21 @@
 		return 'var(--cat-hero)';
 	});
 
-	const navItems: { href: string; label: TranslationKey }[] = [
+	/**
+	 * The icon travels with the item rather than being chosen in the markup.
+	 *
+	 * Adding a fifth destination is then one line here, and it cannot arrive without an
+	 * icon — which is what happened to the four that already existed: the logo had a paw
+	 * and the rest had nothing, so the row read as one button and four labels.
+	 *
+	 * A clipboard for the application: the plus already belongs to "order a website" in
+	 * the footer, and this is a form to fill in rather than something to add.
+	 */
+	const navItems: { href: string; label: TranslationKey; icon: IconName }[] = [
 		// { href: '/', label: 'nav.home' }, // Тимчасово закоментовано: логотип виконує роль переходу на головну
-		{ href: '/adopt/cat', label: 'nav.cats' },
-		{ href: '/adopt/dog', label: 'nav.dogs' },
-		{ href: '/favorites', label: 'nav.favorites' }
+		{ href: '/adopt/cat', label: 'nav.cats', icon: 'cat' },
+		{ href: '/adopt/dog', label: 'nav.dogs', icon: 'dog' },
+		{ href: '/favorites', label: 'nav.favorites', icon: 'heart' }
 	];
 
 	const isHomeActive = $derived(isLinkActive('/'));
@@ -222,6 +233,9 @@
 					onclick={closeMenu}
 					data-testid="nav-{item.href.replaceAll('/', '-').replace(/^-|-$/g, '') || 'home'}-link"
 				>
+					<!-- Decorative: the label beside it is what names the link, and an icon
+						 with a name of its own would have a screen reader say it twice. -->
+					<Icon name={item.icon} size="1.05rem" class="header__link-icon" />
 					<span class="header__link-label">{t(item.label)}</span>
 
 					{#if item.href === '/favorites' && settings.favorites.length > 0}
@@ -238,6 +252,7 @@
 				onclick={closeMenu}
 				data-testid="nav-apply-now-link"
 			>
+				<Icon name="application" size="1.05rem" class="header__link-icon" />
 				<span class="header__link-label">{t('nav.applyNow')}</span>
 			</a>
 
@@ -478,8 +493,17 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		/* Between the glyph and its label. */
+		gap: 8px;
 		line-height: 1;
 		z-index: 2;
+	}
+
+	.header__link :global(.header__link-icon) {
+		/* Above the wave the active tab draws behind the item, like the label. */
+		position: relative;
+		z-index: 2;
+		flex-shrink: 0;
 	}
 
 	.header__link-label {
