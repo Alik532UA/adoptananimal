@@ -1,14 +1,50 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import type { PageData } from './$types';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import { resolve } from '$lib/utils/resolve';
+	import { absoluteFromRoot } from '$lib/config';
 
 	let { data }: { data: PageData } = $props();
 	const animal = $derived(data.animal);
 	let imageFailed = $state(false);
+
+	const photo = $derived(absoluteFromRoot(animal.image));
+
+	/**
+	 * Schema.org description of the animal. Rendered with {@html} because Svelte does
+	 * not evaluate expressions inside a literal <script> tag (SEO § 3.2). The payload
+	 * is our own data and is JSON-encoded, with "<" escaped so it cannot close the tag.
+	 */
+	const jsonLd = $derived(
+		JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'Product',
+			name: animal.name,
+			image: photo,
+			description: animal.description[settings.locale]?.[0] || animal.description.en[0],
+			category: 'Cat',
+			additionalProperty: [
+				{ '@type': 'PropertyValue', name: 'Breed', value: animal.breed.en },
+				{ '@type': 'PropertyValue', name: 'Age', value: animal.age.en },
+				{ '@type': 'PropertyValue', name: 'Gender', value: animal.gender.en },
+				{ '@type': 'PropertyValue', name: 'Size', value: animal.size.en }
+			],
+			offers: {
+				'@type': 'Offer',
+				price: '0',
+				priceCurrency: 'EUR',
+				availability: animal.isAdopted ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock'
+			}
+		}).replace(/</g, '\u003c')
+	);
+
+	// Assembled here rather than inline so the closing tag never appears as a literal
+	// sequence in the source. {@html} is required: Svelte does not evaluate expressions
+	// inside a literal <script> tag (SEO § 3.2), and the payload is our own JSON.
+	const jsonLdTag = $derived('<script type="application/ld+json">' + jsonLd + '<' + '/script>');
 
 	const breadcrumbItems = $derived([
 		{ label: t('breadcrumb.cats'), href: '/adopt/cat' },
@@ -29,6 +65,10 @@
 		content={animal.description[settings.locale][0] || animal.description.en[0]}
 	/>
 	<meta property="og:type" content="website" />
+	<meta property="og:image" content={photo} />
+	<meta property="og:image:alt" content={animal.name} />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- payload is JSON.stringify of our own data, with "<" escaped -->
+	{@html jsonLdTag}
 </svelte:head>
 
 <section class="detail-hero detail-hero--cat">
@@ -49,7 +89,7 @@
 				<div class="detail__image">
 					{#if !imageFailed}
 						<img
-							src={resolve(animal.image)}
+							src={withBase(animal.image)}
 							alt={animal.name}
 							class="detail__photo"
 							class:animal-card__photo--adopted={animal.isAdopted}
@@ -62,7 +102,7 @@
 				</div>
 				{#if !animal.isAdopted}
 					<a
-						href={resolve(`/apply?animal=${animal.name}`)}
+						href={withBase(`/apply?animal=${animal.name}`)}
 						class="btn btn--accent btn--lg detail__apply-btn"
 						data-testid="apply-top-link"
 					>
@@ -114,12 +154,15 @@
 				<div class="detail__actions">
 					{#if !animal.isAdopted}
 						<a
-							href={resolve(`/apply?animal=${animal.name}`)}
+							href={withBase(`/apply?animal=${animal.name}`)}
 							class="btn btn--primary btn--lg"
 							data-testid="apply-bottom-link">{t('detail.applyBtn')}</a
 						>
 					{/if}
-					<a href={resolve('/adopt/cat')} class="btn btn--secondary" data-testid="back-to-cats-link"
+					<a
+						href={withBase('/adopt/cat')}
+						class="btn btn--secondary"
+						data-testid="back-to-cats-link"
 						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backCats')}</a
 					>
 				</div>

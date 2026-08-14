@@ -8,7 +8,7 @@
 
 	/* Backgrounds */
 	--color-bg: #f0f7ff;
-	--bg-image: url('/images/background/bg-winter-v01.webp');
+	--bg-image: url('../../assets/backgrounds/bg-winter-v01.webp');
 	--color-bg-surface: #e6f2ff;
 	--color-bg-warm: #ffffff;
 	--color-bg-card: #ffffff;

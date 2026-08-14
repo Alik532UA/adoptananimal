@@ -96,7 +96,6 @@ export const de = {
 	'apply.note.title': 'Wichtiger Hinweis',
 	'apply.note.text':
 		'Alle unsere Tiere sind geimpft, gechipt und besitzen einen internationalen Pass.',
-	'apply.browseAnimals': 'Alle Tiere durchсuchen',
 	'apply.email.subject': 'Adoptionsantrag für',
 	'apply.success.title': 'Antrag bereit',
 	'apply.success.text':
@@ -111,7 +110,6 @@ export const de = {
 	'favs.title': 'Meine Favoriten',
 	'favs.subtitle': 'Tiere, die Sie für später gespeichert haben',
 	'favs.empty': 'Sie haben noch keine Tiere zu Ihren Favoriten hinzugefügt.',
-	'favs.browse': 'Alle Tiere durchsuchen',
 	'filter.all': 'Alle',
 	'filter.gender': 'Geschlecht',
 	'filter.gender.male': 'Männlich',
@@ -166,5 +164,20 @@ export const de = {
 	'about.thanks': 'Vielen Dank für Ihr Verständnis!',
 	'about.thanks.note': 'Danke!',
 	'about.thanks.note.short': 'Danke!',
-	'about.thanks.note.very.short': 'Danke!'
+	'about.thanks.note.very.short': 'Danke!',
+	'a11y.toggleMenu': 'Menü umschalten',
+	'a11y.backToTop': 'Nach oben',
+	'a11y.copyDebugReport': 'Debug-Bericht kopieren',
+	'a11y.breadcrumb': 'Brotkrumennavigation',
+	'carousel.label': 'Tiergalerie',
+	'carousel.prev': 'Vorherige Tiere',
+	'carousel.next': 'Nächste Tiere',
+	'apply.form.animal.placeholder': 'Name des Tieres',
+	'apply.form.name.placeholder': 'Ihr Name',
+	'apply.form.phone.placeholder': '+49...',
+	'apply.form.message.placeholder': 'Erzählen Sie uns etwas über sich...',
+	'country.ua': 'Ukraine',
+	'country.de': 'Deutschland',
+	'country.at': 'Österreich',
+	'country.nl': 'Niederlande'
 } as const;

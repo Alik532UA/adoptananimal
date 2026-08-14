@@ -3,7 +3,6 @@ import { uk } from './translations/uk';
 import { de } from './translations/de';
 import { nl } from './translations/nl';
 import { settings, type Locale } from '$lib/services/settings.svelte';
-import { base } from '$app/paths';
 
 type Translations = Record<TranslationKey, string>;
 
@@ -38,16 +37,6 @@ export const formatDate = (
  */
 export const formatNumber = (num: number, options: Intl.NumberFormatOptions = {}): string => {
 	return new Intl.NumberFormat(settings.locale, options).format(num);
-};
-
-/**
- * Resolves a given path to include the base path of the application.
- * This ensures that links work correctly when the app is deployed in a subfolder.
- */
-export const resolve = (path: string): string => {
-	if (path.startsWith('http') || path.startsWith('mailto:')) return path;
-	const cleanPath = path.startsWith('/') ? path : `/${path}`;
-	return base + cleanPath;
 };
 
 export const setLocale = (locale: string) => {

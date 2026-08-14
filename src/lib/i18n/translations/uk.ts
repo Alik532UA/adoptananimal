@@ -160,5 +160,20 @@ export const uk = {
 	'about.thanks': 'Дякуємо за розуміння!',
 	'about.thanks.note': 'Дякуємо!',
 	'about.thanks.note.short': 'Дякуємо!',
-	'about.thanks.note.very.short': 'Дякуємо!'
+	'about.thanks.note.very.short': 'Дякуємо!',
+	'a11y.toggleMenu': 'Показати меню',
+	'a11y.backToTop': 'Нагору',
+	'a11y.copyDebugReport': 'Скопіювати звіт для розробника',
+	'a11y.breadcrumb': 'Навігаційний ланцюжок',
+	'carousel.label': 'Галерея тварин',
+	'carousel.prev': 'Попередні тварини',
+	'carousel.next': 'Наступні тварини',
+	'apply.form.animal.placeholder': 'Ім’я тварини',
+	'apply.form.name.placeholder': 'Ваше ім’я',
+	'apply.form.phone.placeholder': '+380...',
+	'apply.form.message.placeholder': 'Розкажіть трохи про себе...',
+	'country.ua': 'Україна',
+	'country.de': 'Німеччина',
+	'country.at': 'Австрія',
+	'country.nl': 'Нідерланди'
 } as const;

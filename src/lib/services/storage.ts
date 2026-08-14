@@ -5,6 +5,10 @@ const PREFIX = 'adoptananimal_';
 /**
  * Storage facade to ensure isolation between multiple projects on the same domain (alik532ua.github.io).
  * Every key is automatically prefixed with 'adoptananimal_'.
+ *
+ * The facade never throws: quota limits, private-mode restrictions and blocked cookies
+ * all surface as exceptions from the Web Storage API, and none of them is worth
+ * taking the page down for. Reads fall back to null, writes are dropped.
  */
 export const storage = {
 	/**
@@ -12,15 +16,24 @@ export const storage = {
 	 */
 	get(key: string): string | null {
 		if (!browser) return null;
-		return localStorage.getItem(PREFIX + key);
+		try {
+			return localStorage.getItem(PREFIX + key);
+		} catch {
+			return null;
+		}
 	},
 
 	/**
-	 * Sets a string value in localStorage.
+	 * Sets a string value in localStorage. Returns false if the write was rejected.
 	 */
-	set(key: string, value: string): void {
-		if (!browser) return;
-		localStorage.setItem(PREFIX + key, value);
+	set(key: string, value: string): boolean {
+		if (!browser) return false;
+		try {
+			localStorage.setItem(PREFIX + key, value);
+			return true;
+		} catch {
+			return false;
+		}
 	},
 
 	/**
@@ -28,7 +41,11 @@ export const storage = {
 	 */
 	remove(key: string): void {
 		if (!browser) return;
-		localStorage.removeItem(PREFIX + key);
+		try {
+			localStorage.removeItem(PREFIX + key);
+		} catch {
+			// nothing to recover: the key is either gone or unreachable
+		}
 	},
 
 	/**
@@ -37,14 +54,18 @@ export const storage = {
 	 */
 	clear(): void {
 		if (!browser) return;
-		const keysToRemove: string[] = [];
-		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i);
-			if (key?.startsWith(PREFIX)) {
-				keysToRemove.push(key);
+		try {
+			const keysToRemove: string[] = [];
+			for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i);
+				if (key?.startsWith(PREFIX)) {
+					keysToRemove.push(key);
+				}
 			}
+			keysToRemove.forEach((k) => localStorage.removeItem(k));
+		} catch {
+			// storage unreachable — there is nothing left to clear
 		}
-		keysToRemove.forEach((k) => localStorage.removeItem(k));
 	},
 
 	/**
@@ -61,9 +82,46 @@ export const storage = {
 	},
 
 	/**
-	 * Serializes and sets a JSON value in localStorage.
+	 * Serializes and sets a JSON value in localStorage. Returns false if the write was rejected.
 	 */
-	setJSON(key: string, value: unknown): void {
-		this.set(key, JSON.stringify(value));
+	setJSON(key: string, value: unknown): boolean {
+		try {
+			return this.set(key, JSON.stringify(value));
+		} catch {
+			return false;
+		}
+	},
+
+	/**
+	 * Session-scoped counterpart, same prefix and same no-throw contract.
+	 */
+	session: {
+		get(key: string): string | null {
+			if (!browser) return null;
+			try {
+				return sessionStorage.getItem(PREFIX + key);
+			} catch {
+				return null;
+			}
+		},
+
+		set(key: string, value: string): boolean {
+			if (!browser) return false;
+			try {
+				sessionStorage.setItem(PREFIX + key, value);
+				return true;
+			} catch {
+				return false;
+			}
+		},
+
+		remove(key: string): void {
+			if (!browser) return;
+			try {
+				sessionStorage.removeItem(PREFIX + key);
+			} catch {
+				// nothing to recover
+			}
+		}
 	}
 };

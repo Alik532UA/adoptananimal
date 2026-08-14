@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import { t } from '$lib/i18n';
-	import { resolve } from '$lib/utils/resolve';
 
 	interface Props {
 		items: { label: string; href?: string }[];
@@ -9,16 +9,16 @@
 	let { items }: Props = $props();
 </script>
 
-<nav class="breadcrumbs" aria-label="Breadcrumb" data-testid="breadcrumb-nav">
+<nav class="breadcrumbs" aria-label={t('a11y.breadcrumb')} data-testid="breadcrumb-nav">
 	<ol class="breadcrumbs__list">
 		<li class="breadcrumbs__item">
-			<a href={resolve('/')} data-testid="breadcrumb-home-link">{t('breadcrumb.home')}</a>
+			<a href={withBase('/')} data-testid="breadcrumb-home-link">{t('breadcrumb.home')}</a>
 		</li>
 		{#each items as item, i (item.label)}
 			<li class="breadcrumbs__item">
 				<span class="breadcrumbs__separator">/</span>
 				{#if item.href && i < items.length - 1}
-					<a href={resolve(item.href)} data-testid={`breadcrumb-${item.label.toLowerCase()}-link`}
+					<a href={withBase(item.href)} data-testid={`breadcrumb-${item.label.toLowerCase()}-link`}
 						>{item.label}</a
 					>
 				{:else}

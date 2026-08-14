@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import { page } from '$app/state';
 	import { t } from '$lib/i18n';
 	import Icon from '$lib/components/ui/Icon.svelte';
@@ -28,7 +29,7 @@
 		<p class="error-message">{message}</p>
 
 		<div class="error-actions">
-			<a href="/" class="btn btn--primary btn--lg">
+			<a href={withBase('/')} class="btn btn--primary btn--lg">
 				{t('error.backHome')}
 			</a>
 			<button class="btn btn--secondary btn--lg" onclick={() => window.location.reload()}>

@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Carousel from '$lib/components/ui/Carousel.svelte';
 	import { t } from '$lib/i18n';
-	import { resolve } from '$lib/utils/resolve';
 
 	let { data } = $props();
 </script>
@@ -16,9 +16,9 @@
 <!-- Featured Carousel (Moved to the very beginning) -->
 <section class="featured section">
 	<Carousel speed={30} testId="featured-carousel">
-		{#each data.animals as animal (animal.slug)}
+		{#each data.animals as animal, i (animal.slug)}
 			<div class="carousel-item">
-				<AnimalCard {animal} />
+				<AnimalCard {animal} priority={i === 0} />
 			</div>
 		{/each}
 	</Carousel>
@@ -26,14 +26,14 @@
 	<div class="container">
 		<div class="featured__footer">
 			<Button
-				href={resolve('/adopt/cat')}
+				href={withBase('/adopt/cat')}
 				variant="secondary"
 				size="lg"
 				data-testid="featured-see-all-cats-link"
 				>{t('featured.browseCats')} <Icon name="cat" size="1.2rem" /></Button
 			>
 			<Button
-				href={resolve('/adopt/dog')}
+				href={withBase('/adopt/dog')}
 				variant="secondary"
 				size="lg"
 				data-testid="featured-see-all-dogs-link"
@@ -74,16 +74,16 @@
 			<div class="about__note-visual">
 				<div class="about__flags">
 					<div class="about__flag-wrapper">
-						<img src={resolve('/images/flags/uk.svg')} alt="Ukraine" class="about__flag" />
+						<img src={withBase('/images/flags/uk.svg')} alt={t('country.ua')} class="about__flag" />
 					</div>
 					<div class="about__flag-wrapper">
-						<img src={resolve('/images/flags/de.svg')} alt="Germany" class="about__flag" />
+						<img src={withBase('/images/flags/de.svg')} alt={t('country.de')} class="about__flag" />
 					</div>
 					<div class="about__flag-wrapper">
-						<img src={resolve('/images/flags/at.svg')} alt="Austria" class="about__flag" />
+						<img src={withBase('/images/flags/at.svg')} alt={t('country.at')} class="about__flag" />
 					</div>
 					<div class="about__flag-wrapper">
-						<img src={resolve('/images/flags/nl.svg')} alt="Netherlands" class="about__flag" />
+						<img src={withBase('/images/flags/nl.svg')} alt={t('country.nl')} class="about__flag" />
 					</div>
 				</div>
 			</div>

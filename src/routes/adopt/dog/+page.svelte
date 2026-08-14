@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import { page } from '$app/state';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { animalService } from '$lib/services/animals';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
@@ -9,12 +11,15 @@
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
-	import { resolve } from '$lib/utils/resolve';
 
-	const gender = $derived(page.url.searchParams.get('gender') || '');
-	const size = $derived(page.url.searchParams.get('size') || '');
-	const status = $derived(page.url.searchParams.get('status') || '');
-	const search = $derived(page.url.searchParams.get('search') || '');
+	// url.searchParams throws during prerendering, so the build renders the full,
+	// unfiltered list — which is also what a crawler should see. Filters apply on hydration.
+	const urlParams = $derived(browser ? page.url.searchParams : new URLSearchParams());
+
+	const gender = $derived(urlParams.get('gender') || '');
+	const size = $derived(urlParams.get('size') || '');
+	const status = $derived(urlParams.get('status') || '');
+	const search = $derived(urlParams.get('search') || '');
 
 	const filteredDogs = $derived(animalService.getFiltered('dog', { gender, size, status, search }));
 
@@ -33,7 +38,11 @@
 		if (filters.search) params.set('search', filters.search);
 		else params.delete('search');
 
-		goto(resolve(`?${params.toString()}`), { replaceState: true, keepFocus: true, noScroll: true });
+		goto(withBase(`?${params.toString()}`), {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
 	}
 </script>
 

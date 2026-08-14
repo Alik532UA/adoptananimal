@@ -160,7 +160,22 @@ export const en = {
 	'about.thanks': 'Thank you for your understanding!',
 	'about.thanks.note': 'Thanks!',
 	'about.thanks.note.short': 'Thanks!',
-	'about.thanks.note.very.short': 'Thanks!'
+	'about.thanks.note.very.short': 'Thanks!',
+	'a11y.toggleMenu': 'Toggle menu',
+	'a11y.backToTop': 'Back to top',
+	'a11y.copyDebugReport': 'Copy debug report',
+	'a11y.breadcrumb': 'Breadcrumb',
+	'carousel.label': 'Animals gallery',
+	'carousel.prev': 'Previous animals',
+	'carousel.next': 'Next animals',
+	'apply.form.animal.placeholder': 'Animal name',
+	'apply.form.name.placeholder': 'Your name',
+	'apply.form.phone.placeholder': '+380...',
+	'apply.form.message.placeholder': 'Tell us about yourself...',
+	'country.ua': 'Ukraine',
+	'country.de': 'Germany',
+	'country.at': 'Austria',
+	'country.nl': 'Netherlands'
 } as const;
 
 export type TranslationKey = keyof typeof en;

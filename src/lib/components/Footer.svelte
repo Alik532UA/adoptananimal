@@ -1,7 +1,19 @@
 <script lang="ts">
-	import { resolve } from '$lib/utils/resolve';
+	import { withBase } from '$lib/utils/withBase';
 
 	let activeOrg = $state<string | null>(null);
+
+	// Proper nouns, so no i18n: these are the accessible names of the icon links,
+	// which previously read out as "inst", "fb", "li".
+	const SOCIAL_NAMES: Record<string, string> = {
+		inst: 'Instagram',
+		fb: 'Facebook',
+		tt: 'TikTok',
+		yt: 'YouTube',
+		li: 'LinkedIn',
+		x: 'X',
+		mail: 'Email'
+	};
 
 	const organizations = [
 		{
@@ -85,19 +97,27 @@
 			}
 		}
 	}
+
+	// Collapse the mobile flyout on an outside click. Previously this was an onclick
+	// on <footer> itself, which made a landmark element interactive.
+	$effect(() => {
+		const close = () => (activeOrg = null);
+		window.addEventListener('click', close);
+		return () => window.removeEventListener('click', close);
+	});
 </script>
 
-<footer class="footer" onclick={() => (activeOrg = null)}>
+<footer class="footer">
 	<div class="footer__content">
 		<div class="container">
 			<div class="footer__logos">
 				{#each organizations as org (org.id)}
+					<!-- Reveal is CSS-only (:hover and :focus-within); activeOrg covers the
+						 mobile tap-to-reveal, where there is no hover to rely on. -->
 					<div
 						class="footer__org-wrapper"
 						class:footer__org-wrapper--active={activeOrg === org.id}
 						class:footer__org-wrapper--left={org.id === 'notpfote'}
-						onmouseenter={() => (activeOrg = org.id)}
-						onmouseleave={() => (activeOrg = null)}
 					>
 						<a
 							href={org.url}
@@ -107,7 +127,7 @@
 							onclick={(e) => toggleOrg(org.id, e)}
 							data-testid={`footer-org-${org.id}-link`}
 						>
-							<img src={resolve(org.logo)} alt={org.name} class="footer__logo-img" />
+							<img src={withBase(org.logo)} alt={org.name} class="footer__logo-img" />
 						</a>
 
 						<div class="footer__social-flyout">
@@ -118,9 +138,14 @@
 									rel="noopener noreferrer"
 									class="footer__social-icon-link"
 									style="--index: {i}"
-									title={social.id}
+									title="{org.name} — {SOCIAL_NAMES[social.id] ?? social.id}"
+									data-testid="footer-org-{org.id}-{social.id}-link"
 								>
-									<img src={resolve(social.icon)} alt={social.id} class="footer__social-icon" />
+									<img
+										src={withBase(social.icon)}
+										alt="{org.name} — {SOCIAL_NAMES[social.id] ?? social.id}"
+										class="footer__social-icon"
+									/>
 								</a>
 							{/each}
 						</div>
@@ -198,6 +223,7 @@
 	}
 
 	.footer__org-wrapper:hover .footer__social-flyout,
+	.footer__org-wrapper:focus-within .footer__social-flyout,
 	.footer__org-wrapper--active .footer__social-flyout {
 		opacity: 1;
 		pointer-events: auto;
@@ -217,6 +243,7 @@
 	}
 
 	.footer__org-wrapper--left:hover .footer__social-icon-link,
+	.footer__org-wrapper--left:focus-within .footer__social-icon-link,
 	.footer__org-wrapper--left.footer__org-wrapper--active .footer__social-icon-link {
 		transform: scale(1) translateX(0);
 	}
@@ -231,6 +258,7 @@
 	}
 
 	.footer__org-wrapper:hover .footer__social-icon-link,
+	.footer__org-wrapper:focus-within .footer__social-icon-link,
 	.footer__org-wrapper--active .footer__social-icon-link {
 		transform: scale(1) translateX(0);
 	}
@@ -243,15 +271,6 @@
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
-	}
-
-	.footer__bottom {
-		margin-top: var(--space-2xl);
-		padding-top: var(--space-lg);
-		border-top: none;
-		text-align: center;
-		opacity: 0.6;
-		font-size: 0.85rem;
 	}
 
 	@media (max-width: 1024px) {

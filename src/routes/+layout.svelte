@@ -2,7 +2,9 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { t, resolve } from '$lib/i18n';
+	import { t } from '$lib/i18n';
+	import { page } from '$app/state';
+	import { absoluteFromPathname, absoluteFromRoot, DEFAULT_OG_IMAGE } from '$lib/config';
 	import { onNavigate } from '$app/navigation';
 	import { logService } from '$lib/services/logService.svelte';
 	import Header from '$lib/components/Header.svelte';
@@ -13,11 +15,26 @@
 	let { children } = $props();
 	let showBackToTop = $state(false);
 
-	if (browser) {
-		window.addEventListener('scroll', () => {
-			showBackToTop = window.scrollY > 400;
-		});
-	}
+	// pathname already carries the base path; only the origin has to come from config.
+	const canonical = $derived(absoluteFromPathname(page.url.pathname));
+
+	// Throttled to one read per frame and removed on unmount: an unbounded scroll
+	// handler runs on every wheel tick and this one outlived the component before.
+	$effect(() => {
+		let queued = false;
+
+		const onScroll = () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => {
+				showBackToTop = window.scrollY > 400;
+				queued = false;
+			});
+		};
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	});
 
 	function scrollToTop() {
 		window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -102,11 +119,18 @@
 		name="description"
 		content="Adopt an animal from Ukraine. A joint project of Notpfote & Vet Crew giving rescued dogs and cats a second chance."
 	/>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<!-- Built from SITE_ORIGIN, never from page.url.origin: during prerender the
+		 latter is the placeholder host `sveltekit-prerender`. -->
+	<link rel="canonical" href={canonical} />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:site_name" content={t('app.title')} />
+	<meta property="og:image" content={absoluteFromRoot(DEFAULT_OG_IMAGE)} />
+	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<a href={resolve('#main-content')} class="skip-link">{t('a11y.skipToContent')}</a>
+<!-- A bare fragment on purpose: withBase() would prefix it with base and send
+	 keyboard users to the home page instead of this page's content. -->
+<a href="#main-content" class="skip-link">{t('a11y.skipToContent')}</a>
 
 <Header />
 
@@ -124,7 +148,7 @@
 	class="back-to-top"
 	class:back-to-top--visible={showBackToTop}
 	onclick={scrollToTop}
-	aria-label="Back to top"
+	aria-label={t('a11y.backToTop')}
 >
 	<Icon name="arrow-up" size="1.5rem" />
 </button>

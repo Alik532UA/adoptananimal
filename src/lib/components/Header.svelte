@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import { page } from '$app/state';
 	import { t, type TranslationKey } from '$lib/i18n';
 	import { settings, type Locale, type SiteStyle, type Theme } from '$lib/services/settings.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import { resolve } from '$lib/utils/resolve';
 
 	let mobileMenuOpen = $state(false);
 	let langMenuOpen = $state(false);
@@ -49,13 +49,18 @@
 		themeMenuOpen = false;
 	}
 
-	if (typeof window !== 'undefined') {
-		window.addEventListener('click', () => {
+	// Close the dropdowns on any outside click. In an $effect so the listener is
+	// removed with the component instead of outliving it.
+	$effect(() => {
+		const closeDropdowns = () => {
 			langMenuOpen = false;
 			styleMenuOpen = false;
 			themeMenuOpen = false;
-		});
-	}
+		};
+
+		window.addEventListener('click', closeDropdowns);
+		return () => window.removeEventListener('click', closeDropdowns);
+	});
 
 	const navItems: { href: string; label: TranslationKey }[] = [
 		{ href: '/', label: 'nav.home' },
@@ -67,7 +72,7 @@
 
 <header class="header">
 	<div class="header__inner container">
-		<a href={resolve('/')} class="header__logo" onclick={closeMenu} data-testid="header-logo-link">
+		<a href={withBase('/')} class="header__logo" onclick={closeMenu} data-testid="header-logo-link">
 			<Icon name="paw" size="1.75rem" class="header__logo-icon" />
 			<span class="header__logo-text">{t('nav.adopt')}</span>
 		</a>
@@ -75,9 +80,9 @@
 		<nav class="header__nav" class:header__nav--open={mobileMenuOpen}>
 			{#each navItems as item (item.href)}
 				<a
-					href={resolve(item.href)}
+					href={withBase(item.href)}
 					class="header__link"
-					class:header__link--active={page.url.pathname === item.href}
+					class:header__link--active={page.url.pathname === withBase(item.href)}
 					onclick={closeMenu}
 					data-testid="nav-{item.href.replace('/', '') || 'home'}-link"
 				>
@@ -88,7 +93,7 @@
 				</a>
 			{/each}
 			<a
-				href={resolve('/apply')}
+				href={withBase('/apply')}
 				class="btn btn--primary btn--sm header__cta"
 				onclick={closeMenu}
 				data-testid="nav-apply-now-link"
@@ -107,7 +112,7 @@
 							styleMenuOpen = false;
 							langMenuOpen = false;
 						}}
-						aria-label="Toggle theme"
+						aria-label={t('a11y.toggleTheme')}
 						data-testid="theme-toggle-btn"
 					>
 						<Icon
@@ -186,12 +191,12 @@
 							styleMenuOpen = false;
 							themeMenuOpen = false;
 						}}
-						aria-label="Select language"
+						aria-label={t('a11y.toggleLanguage')}
 						data-testid="lang-toggle-btn"
 					>
 						<div class="lang-btn__flags">
 							{#each locales.find((l) => l.id === settings.locale)?.flags || [] as flag (flag)}
-								<img src={flag} alt="" class="flag-icon" />
+								<img src={withBase(flag)} alt="" class="flag-icon" />
 							{/each}
 						</div>
 						<span class="lang-btn__code">{settings.locale.toUpperCase()}</span>
@@ -212,7 +217,7 @@
 								>
 									<div class="dropdown-item__flags">
 										{#each locale.flags as flag (flag)}
-											<img src={flag} alt="" class="flag-icon" />
+											<img src={withBase(flag)} alt="" class="flag-icon" />
 										{/each}
 									</div>
 									<span class="dropdown-label">{locale.label}</span>
@@ -227,7 +232,7 @@
 		<button
 			class="header__burger"
 			onclick={toggleMenu}
-			aria-label="Toggle menu"
+			aria-label={t('a11y.toggleMenu')}
 			aria-expanded={mobileMenuOpen}
 			data-testid="mobile-menu-burger-btn"
 		>

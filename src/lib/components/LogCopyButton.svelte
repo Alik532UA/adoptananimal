@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { logService } from '$lib/services/logService.svelte';
+	import { t } from '$lib/i18n';
 	import { ClipboardCheck, AlertCircle } from 'lucide-svelte';
 
 	let copied = $state(false);
@@ -22,7 +23,7 @@
 		class:log-fab--copied={copied}
 		onclick={copyReport}
 		title="Copy debug report ({logService.errorCount} errors)"
-		aria-label="Copy debug report"
+		aria-label={t('a11y.copyDebugReport')}
 		data-testid="debug-log-copy-btn"
 	>
 		<div class="log-fab__icon">

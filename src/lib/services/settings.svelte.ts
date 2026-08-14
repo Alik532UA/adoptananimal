@@ -24,12 +24,15 @@ class Settings {
 		if (browser) {
 			logService.info('storage', 'Initializing settings via Storage Facade');
 
-			// Theme
+			// Theme. The fallback must match the first-frame script in app.html,
+			// otherwise the palette changes once on hydration.
 			const savedTheme = storage.get('theme') as Theme | null;
 			if (savedTheme && this.themes.includes(savedTheme)) {
 				this.theme = savedTheme;
 			} else {
-				this.theme = 'dark';
+				this.theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+					? 'dark'
+					: 'light-green';
 			}
 
 			// Locale
@@ -78,7 +81,8 @@ class Settings {
 
 			$effect(() => {
 				if (browser) {
-					storage.setJSON('favorites', this.favorites);
+					// $state.snapshot: a proxy crossing into JSON.stringify is the § 1.6 anti-pattern.
+					storage.setJSON('favorites', $state.snapshot(this.favorites));
 				}
 			});
 		});

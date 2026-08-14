@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import Icon from './Icon.svelte';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		children: Snippet;
@@ -20,6 +21,9 @@
 	let startX: number;
 	let startScrollLeft: number;
 	let autoScrollActive = $state(true);
+	// The clone exists only to make the scroll seamless, so it is not worth doubling
+	// the prerendered HTML for. It appears once the component is running in a browser.
+	let mounted = $state(false);
 	let animationFrame: number;
 	let resumeTimeout: ReturnType<typeof setTimeout>;
 	let lastTime: number = 0;
@@ -153,6 +157,26 @@
 		if (e.key === 'ArrowRight') scrollBy(1);
 	}
 
+	/**
+	 * Takes every interactive descendant out of the tab order. Used on the cloned
+	 * half of the track, which is aria-hidden and must therefore hold nothing tabbable.
+	 */
+	function untabbable(node: HTMLElement) {
+		const apply = () => {
+			for (const el of node.querySelectorAll<HTMLElement>(
+				'a, button, input, select, textarea, [tabindex]'
+			)) {
+				el.tabIndex = -1;
+			}
+		};
+
+		apply();
+		const observer = new MutationObserver(apply);
+		observer.observe(node, { childList: true, subtree: true });
+
+		return () => observer.disconnect();
+	}
+
 	function handleClickCapture(e: MouseEvent) {
 		if (isMoved) {
 			e.preventDefault();
@@ -161,6 +185,8 @@
 	}
 
 	onMount(() => {
+		mounted = true;
+
 		const init = async () => {
 			await tick();
 			if (viewport && content) {
@@ -180,30 +206,38 @@
 	});
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<!-- Pointer and focus handlers pause auto-scroll (WCAG 2.2.2 Pause, Stop, Hide).
+	 Arrow keys are handled here because keydown bubbles up from the nav buttons,
+	 which are the keyboard entry point into the carousel. -->
 <div
 	class="carousel-root"
 	role="region"
 	aria-roledescription="carousel"
-	aria-label="Animals gallery"
+	aria-label={t('carousel.label')}
 	data-testid={finalTestId}
 	onmouseenter={() => pauseOnHover && (autoScrollActive = false)}
 	onmouseleave={() => (autoScrollActive = true)}
+	onfocusin={() => (autoScrollActive = false)}
+	onfocusout={() => (autoScrollActive = true)}
 	onkeydown={handleKeyDown}
 	onclickcapture={handleClickCapture}
 >
 	<button
 		class="nav-btn nav-btn--prev"
 		onclick={() => scrollBy(-1)}
-		aria-label="Previous"
+		aria-label={t('carousel.prev')}
 		data-testid={`${testId}-prev-btn`}
 	>
 		<Icon name="arrow-left" size="1.5rem" />
 	</button>
 
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!-- Drag-to-scroll on a natively scrollable element: the pointer handlers add an
+		 affordance, they are not the only way to reach the content (arrows, wheel,
+		 native scrolling and the nav buttons all work). -->
 	<div
 		class="carousel-viewport"
-		role="group"
-		aria-roledescription="slide"
 		style="will-change: scroll-position"
 		bind:this={viewport}
 		onscroll={handleScroll}
@@ -219,17 +253,21 @@
 			<div class="carousel-content">
 				{@render children()}
 			</div>
-			<!-- Duplicate for infinite scroll -->
-			<div class="carousel-content" aria-hidden="true">
-				{@render children()}
-			</div>
+			<!-- Duplicate for infinite scroll. It is hidden from assistive tech, so its
+				 links must leave the tab order too — aria-hidden wrapped around tabbable
+				 elements is a WCAG 4.1.2 failure. Pointer users can still click them. -->
+			{#if mounted}
+				<div class="carousel-content" aria-hidden="true" {@attach untabbable}>
+					{@render children()}
+				</div>
+			{/if}
 		</div>
 	</div>
 
 	<button
 		class="nav-btn nav-btn--next"
 		onclick={() => scrollBy(1)}
-		aria-label="Next"
+		aria-label={t('carousel.next')}
 		data-testid={`${testId}-next-btn`}
 	>
 		<Icon name="arrow-right" size="1.5rem" />

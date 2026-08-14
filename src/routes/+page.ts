@@ -2,8 +2,12 @@ import { animalService } from '$lib/services/animals';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = () => {
-	// Shuffle on the server/load to ensure stable hydration and no flickering
-	const animals = [...animalService.cats, ...animalService.dogs].sort(() => Math.random() - 0.5);
+	// Deliberately not shuffled: this load runs once at build time, so a random order
+	// would be frozen into the HTML and then differ again on client-side navigation.
+	// Not-yet-adopted animals come first; the rest keeps the data order.
+	const animals = [...animalService.cats, ...animalService.dogs].sort(
+		(a, b) => Number(a.isAdopted) - Number(b.isAdopted)
+	);
 
 	return {
 		animals

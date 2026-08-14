@@ -14,13 +14,10 @@
 
 	let { gender, size, status, search, showSize = true, onchange }: Props = $props();
 
-	let localSearch = $state('');
+	// Writable $derived: tracks the prop, and typing overrides it until the prop
+	// changes again. The previous $state + $effect.pre pair could drift from the URL.
+	let localSearch = $derived(search);
 	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-
-	$effect.pre(() => {
-		// Sync local state if prop changes from parent
-		localSearch = search;
-	});
 
 	function update(field: string, value: string) {
 		if (field === 'search') {
@@ -257,7 +254,7 @@
 	.filter-toggle--active {
 		background: var(--color-primary);
 		color: var(--color-text-on-accent);
-		box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 147, 191, 76), 0.3);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
 	}
 
 	@media (max-width: 600px) {

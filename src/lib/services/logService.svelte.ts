@@ -1,4 +1,5 @@
 import { browser, dev } from '$app/environment';
+import { storage } from '$lib/services/storage';
 
 export type LogCategory = 'app' | 'ui' | 'storage' | 'i18n' | 'network' | 'performance';
 export type LogLevel = 'info' | 'warn' | 'error';
@@ -12,6 +13,7 @@ export interface LogEntry {
 }
 
 const MAX_LOGS = 1000;
+const LOG_KEY = 'logs';
 
 class LogService {
 	logs = $state<LogEntry[]>([]);
@@ -28,7 +30,7 @@ class LogService {
 
 	constructor() {
 		if (browser && dev) {
-			const savedLogs = sessionStorage.getItem('adoptananimal_logs');
+			const savedLogs = storage.session.get(LOG_KEY);
 			if (savedLogs) {
 				try {
 					this.logs = JSON.parse(savedLogs);
@@ -82,8 +84,9 @@ class LogService {
 			};
 
 			if (dev || level === 'error') {
+				// Masked here too: the console is copied into bug reports as often as getReport().
 				console.log(
-					`%c[${entry.timestamp}] [${level.toUpperCase()}] [${category.toUpperCase()}] ${message}`,
+					`%c[${entry.timestamp}] [${level.toUpperCase()}] [${category.toUpperCase()}] ${this.maskPII(message)}`,
 					styles[level],
 					data || ''
 				);
@@ -95,7 +98,7 @@ class LogService {
 
 	private persist() {
 		if (browser && dev) {
-			sessionStorage.setItem('adoptananimal_logs', JSON.stringify(this.logs));
+			storage.session.set(LOG_KEY, JSON.stringify(this.logs));
 		}
 	}
 
@@ -112,7 +115,9 @@ class LogService {
 	getReport(): string {
 		const header = [
 			'--- LOG REPORT ---',
-			`DATE: ${new Date().toLocaleString()}`,
+			// ISO, not toLocaleString(): a report is read by a developer, not by the
+			// user's locale, and an unqualified toLocaleString() differs per machine.
+			`DATE: ${new Date().toISOString()}`,
 			`VERSION: v${__APP_VERSION__}`,
 			`URL: ${browser ? window.location.href : 'N/A'}`,
 			`UA: ${browser ? navigator.userAgent : 'N/A'}`,
@@ -132,9 +137,7 @@ class LogService {
 	clear() {
 		this.logs = [];
 		this.errorCount = 0;
-		if (browser) {
-			sessionStorage.removeItem('adoptananimal_logs');
-		}
+		storage.session.remove(LOG_KEY);
 	}
 }
 

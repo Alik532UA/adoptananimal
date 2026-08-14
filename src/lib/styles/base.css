@@ -15,15 +15,12 @@
 	--transition-slow: 0.5s ease;
 	--transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-	/* Modern Glassmorphism System */
-	--glass-bg: color-mix(in srgb, var(--color-bg-card, #ffffff) 50%, transparent);
+	/* Modern Glassmorphism System.
+	   No var() fallbacks here on purpose: --color-bg-card is declared by every theme,
+	   and a fallback would hide a typo in exactly the theme being developed in. */
+	--glass-bg: color-mix(in srgb, var(--color-bg-card) 50%, transparent);
 	--glass-border: transparent;
 	--glass-blur: 16px;
-}
-
-[data-theme='dark'] {
-	--glass-bg: color-mix(in srgb, var(--color-bg-card, #2a2a2a) 50%, transparent);
-	--glass-border: transparent;
 }
 
 *,
@@ -41,13 +38,13 @@ html {
 }
 
 a {
-	color: var(--color-link, var(--color-primary));
+	color: var(--color-link);
 	text-decoration: none;
 	transition: color var(--transition-fast);
 }
 
 a:hover {
-	color: var(--color-link-hover, var(--color-primary-dark));
+	color: var(--color-link-hover);
 }
 
 body {

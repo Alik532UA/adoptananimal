@@ -1,22 +1,24 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import type { Animal } from '$lib/data/animals';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import { resolve } from '$lib/utils/resolve';
 
 	interface Props {
 		animal: Animal;
+		/** Set on the first card above the fold: it is the LCP element and must not lazy-load. */
+		priority?: boolean;
 	}
 
-	let { animal }: Props = $props();
+	let { animal, priority = false }: Props = $props();
 
 	let imageFailed = $state(false);
 	let typeUrl = $derived(animal.type === 'cat' ? 'cat' : 'dog');
 </script>
 
 <a
-	href={resolve(`/adopt/${typeUrl}/${animal.slug}`)}
+	href={withBase(`/adopt/${typeUrl}/${animal.slug}`)}
 	class="animal-card"
 	class:animal-card--adopted={animal.isAdopted}
 	id="card-{animal.slug}"
@@ -34,12 +36,14 @@
 		{/if}
 		{#if !imageFailed}
 			<img
-				src={resolve(animal.image)}
+				src={withBase(animal.image)}
 				alt="{t('a11y.animalPhoto')} {animal.name}"
 				class="animal-card__photo"
 				class:animal-card__photo--adopted={animal.isAdopted}
 				onerror={() => (imageFailed = true)}
-				loading="lazy"
+				loading={priority ? 'eager' : 'lazy'}
+				fetchpriority={priority ? 'high' : 'auto'}
+				decoding={priority ? 'sync' : 'async'}
 				width="400"
 				height="400"
 			/>
@@ -61,7 +65,7 @@
 				settings.toggleFavorite(animal.slug);
 			}}
 			aria-label="{t('a11y.toggleFavorite')} {animal.name}"
-			data-testid="favorite-btn"
+			data-testid="animal-card-{animal.slug}-favorite-btn"
 		>
 			<Icon
 				name={settings.isFavorite(animal.slug) ? 'heart-filled' : 'heart'}
@@ -204,7 +208,7 @@
 		inset: 0;
 		background: linear-gradient(
 			to top,
-			rgba(var(--color-primary-rgb, 147, 191, 76), 0.9),
+			color-mix(in srgb, var(--color-primary) 90%, transparent),
 			transparent
 		);
 		opacity: 0;

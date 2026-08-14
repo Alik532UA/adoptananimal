@@ -7,18 +7,35 @@
 		<meta name="color-scheme" content="light dark" />
 		<meta
 			http-equiv="Content-Security-Policy"
-			content="default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://www.transparenttextures.com; connect-src 'self' https://vercel.live;"
+			content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.transparenttextures.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none';"
+		/>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap"
 		/>
 		%sveltekit.head%
 		<script>
+			// First-frame theme, before hydration. The theme list and the default must stay
+			// in sync with src/lib/services/settings.svelte.ts — a value that is not a real
+			// theme leaves the first frame with no palette at all.
 			(function () {
-				const PREFIX = 'adoptananimal_';
-				const saved = localStorage.getItem(PREFIX + 'theme');
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-				const theme = saved || (prefersDark ? 'dark' : 'light');
-				document.documentElement.setAttribute('data-theme', theme);
-				const meta = document.querySelector('meta[name="color-scheme"]');
-				if (meta) meta.setAttribute('content', theme === 'dark' ? 'dark' : 'light dark');
+				try {
+					const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'];
+					const DARK = 'dark';
+					const LIGHT = 'light-green';
+					const saved = localStorage.getItem('adoptananimal_theme');
+					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					const theme = THEMES.includes(saved) ? saved : prefersDark ? DARK : LIGHT;
+					document.documentElement.setAttribute('data-theme', theme);
+					const meta = document.querySelector('meta[name="color-scheme"]');
+					if (meta) meta.setAttribute('content', theme === DARK ? 'dark' : 'light dark');
+				} catch {
+					// Storage can be unavailable (private mode, blocked cookies) — the default
+					// theme from the stylesheet still applies, so there is nothing to recover.
+					document.documentElement.setAttribute('data-theme', 'dark');
+				}
 			})();
 		</script>
 	</head>

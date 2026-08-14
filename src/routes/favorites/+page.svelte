@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { withBase } from '$lib/utils/withBase';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import { allAnimals } from '$lib/data/animals';
@@ -6,7 +7,6 @@
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import { resolve } from '$lib/utils/resolve';
 
 	let favoriteAnimals = $derived(
 		(allAnimals as Animal[]).filter((a) => settings.favorites.includes(a.slug))
@@ -40,11 +40,11 @@
 					<Icon name="heart" size="4rem" class="mb-lg" />
 					<h2>{t('favs.empty')}</h2>
 					<div class="mt-lg">
-						<Button href={resolve('/adopt/dog')} variant="primary" data-testid="explore-dogs-link">
+						<Button href={withBase('/adopt/dog')} variant="primary" data-testid="explore-dogs-link">
 							{t('featured.browseDogs')}
 						</Button>
 						<Button
-							href={resolve('/adopt/cat')}
+							href={withBase('/adopt/cat')}
 							variant="secondary"
 							data-testid="explore-cats-link"
 						>

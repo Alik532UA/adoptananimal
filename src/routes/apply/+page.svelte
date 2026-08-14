@@ -5,8 +5,6 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { adoptionSchema, type AdoptionForm } from '$lib/data/schemas';
 
-	const animalNameFromUrl = $derived(page.url.searchParams.get('animal') || '');
-
 	let formData = $state<AdoptionForm>({
 		name: '',
 		email: '',
@@ -18,9 +16,12 @@
 	let errors = $state<Partial<Record<keyof AdoptionForm, string>>>({});
 	let isSubmitted = $state(false);
 
+	// Read inside the effect, not in a $derived: effects never run during prerender,
+	// and url.searchParams is not available there.
 	$effect(() => {
-		if (animalNameFromUrl) {
-			formData.animal = animalNameFromUrl;
+		const fromUrl = page.url.searchParams.get('animal');
+		if (fromUrl) {
+			formData.animal = fromUrl;
 		}
 	});
 
@@ -76,7 +77,7 @@ ${formData.message}
 <section class="apply section">
 	<div class="container container--narrow">
 		<div class="apply__layout">
-			<main class="apply__main">
+			<div class="apply__main">
 				{#if isSubmitted}
 					<div class="apply__success glass-card" role="alert">
 						<div class="success-icon">
@@ -87,8 +88,7 @@ ${formData.message}
 						<Button
 							onclick={() => (isSubmitted = false)}
 							variant="secondary"
-							class="mt-lg"
-							data-testid="apply-new-form"
+							data-testid="apply-reset-btn"
 						>
 							<Icon name="arrow-left" size="1.2rem" />
 							{t('apply.newForm')}
@@ -112,14 +112,22 @@ ${formData.message}
 										<input
 											type="text"
 											id="animal"
+											autocomplete="off"
+											aria-invalid={Boolean(errors.animal)}
+											aria-describedby={errors.animal ? 'animal-error' : undefined}
 											bind:value={formData.animal}
 											class:input--error={errors.animal}
-											placeholder="Animal name"
+											placeholder={t('apply.form.animal.placeholder')}
 											data-testid="form-animal-input"
 										/>
 										<div class="input-focus-bg"></div>
 									</div>
-									{#if errors.animal}<span class="error-text">{errors.animal}</span>{/if}
+									{#if errors.animal}<span
+											class="error-text"
+											id="animal-error"
+											role="alert"
+											data-testid="form-animal-error">{errors.animal}</span
+										>{/if}
 								</div>
 
 								<div class="form-group">
@@ -131,14 +139,22 @@ ${formData.message}
 										<input
 											type="text"
 											id="name"
+											autocomplete="name"
+											aria-invalid={Boolean(errors.name)}
+											aria-describedby={errors.name ? 'name-error' : undefined}
 											bind:value={formData.name}
 											class:input--error={errors.name}
-											placeholder="Your name"
+											placeholder={t('apply.form.name.placeholder')}
 											data-testid="form-name-input"
 										/>
 										<div class="input-focus-bg"></div>
 									</div>
-									{#if errors.name}<span class="error-text">{errors.name}</span>{/if}
+									{#if errors.name}<span
+											class="error-text"
+											id="name-error"
+											role="alert"
+											data-testid="form-name-error">{errors.name}</span
+										>{/if}
 								</div>
 
 								<div class="form-group">
@@ -150,6 +166,9 @@ ${formData.message}
 										<input
 											type="email"
 											id="email"
+											autocomplete="email"
+											aria-invalid={Boolean(errors.email)}
+											aria-describedby={errors.email ? 'email-error' : undefined}
 											bind:value={formData.email}
 											class:input--error={errors.email}
 											placeholder="your@email.com"
@@ -157,7 +176,12 @@ ${formData.message}
 										/>
 										<div class="input-focus-bg"></div>
 									</div>
-									{#if errors.email}<span class="error-text">{errors.email}</span>{/if}
+									{#if errors.email}<span
+											class="error-text"
+											id="email-error"
+											role="alert"
+											data-testid="form-email-error">{errors.email}</span
+										>{/if}
 								</div>
 
 								<div class="form-group form-group--full">
@@ -169,14 +193,22 @@ ${formData.message}
 										<input
 											type="tel"
 											id="phone"
+											autocomplete="tel"
+											aria-invalid={Boolean(errors.phone)}
+											aria-describedby={errors.phone ? 'phone-error' : undefined}
 											bind:value={formData.phone}
 											class:input--error={errors.phone}
-											placeholder="+380..."
+											placeholder={t('apply.form.phone.placeholder')}
 											data-testid="form-phone-input"
 										/>
 										<div class="input-focus-bg"></div>
 									</div>
-									{#if errors.phone}<span class="error-text">{errors.phone}</span>{/if}
+									{#if errors.phone}<span
+											class="error-text"
+											id="phone-error"
+											role="alert"
+											data-testid="form-phone-error">{errors.phone}</span
+										>{/if}
 								</div>
 
 								<div class="form-group form-group--full">
@@ -188,14 +220,21 @@ ${formData.message}
 										<textarea
 											id="message"
 											rows="4"
+											aria-invalid={Boolean(errors.message)}
+											aria-describedby={errors.message ? 'message-error' : undefined}
 											bind:value={formData.message}
 											class:input--error={errors.message}
-											placeholder="Tell us about yourself..."
+											placeholder={t('apply.form.message.placeholder')}
 											data-testid="form-message-textarea"
 										></textarea>
 										<div class="input-focus-bg"></div>
 									</div>
-									{#if errors.message}<span class="error-text">{errors.message}</span>{/if}
+									{#if errors.message}<span
+											class="error-text"
+											id="message-error"
+											role="alert"
+											data-testid="form-message-error">{errors.message}</span
+										>{/if}
 								</div>
 							</div>
 
@@ -204,7 +243,7 @@ ${formData.message}
 									type="submit"
 									size="lg"
 									class="apply__submit-btn"
-									data-testid="apply-form-submit"
+									data-testid="apply-submit-btn"
 								>
 									{t('apply.form.submit')}
 									<Icon name="arrow-right" size="1.2rem" />
@@ -213,7 +252,7 @@ ${formData.message}
 						</form>
 					</div>
 				{/if}
-			</main>
+			</div>
 
 			<aside class="apply__sidebar">
 				<div class="glass-card apply__info-card">
@@ -556,10 +595,6 @@ ${formData.message}
 		transform: translateX(5px);
 	}
 
-	.mt-lg {
-		margin-top: var(--space-lg);
-	}
-
 	@media (max-width: 900px) {
 		.apply__layout {
 			grid-template-columns: 1fr;
@@ -567,10 +602,6 @@ ${formData.message}
 
 		.apply__sidebar {
 			order: 1;
-		}
-
-		.apply__title {
-			font-size: 3rem;
 		}
 	}
 

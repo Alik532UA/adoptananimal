@@ -94,7 +94,6 @@ export const nl = {
 	'apply.note.title': 'Belangrijke opmerking',
 	'apply.note.text':
 		'Al onze dieren zijn gevaccineerd, gechipt en hebben een internationaal paspoort.',
-	'apply.browseAnimals': 'Bekijk alle dieren',
 	'apply.email.subject': 'Adoptieaanvraag voor',
 	'apply.success.title': 'Aanvraag gereed',
 	'apply.success.text': 'We hebben je e-mail voorbereid. Verstuur deze vanuit je e-mailprogramma.',
@@ -108,7 +107,6 @@ export const nl = {
 	'favs.title': 'Mijn Favorieten',
 	'favs.subtitle': 'Dieren die je voor later hebt bewaard',
 	'favs.empty': 'Je hebt nog geen dieren aan je favorieten toegevoegd.',
-	'favs.browse': 'Bekijk alle dieren',
 	'filter.all': 'Alle',
 	'filter.gender': 'Geslacht',
 	'filter.gender.male': 'Mannetje',
@@ -162,5 +160,20 @@ export const nl = {
 	'about.thanks': 'Bedankt voor uw begrip!',
 	'about.thanks.note': 'Bedankt!',
 	'about.thanks.note.short': 'Bedankt!',
-	'about.thanks.note.very.short': 'Bedankt!'
+	'about.thanks.note.very.short': 'Bedankt!',
+	'a11y.toggleMenu': 'Menu wisselen',
+	'a11y.backToTop': 'Naar boven',
+	'a11y.copyDebugReport': 'Debugrapport kopiëren',
+	'a11y.breadcrumb': 'Kruimelpad',
+	'carousel.label': 'Dierengalerij',
+	'carousel.prev': 'Vorige dieren',
+	'carousel.next': 'Volgende dieren',
+	'apply.form.animal.placeholder': 'Naam van het dier',
+	'apply.form.name.placeholder': 'Uw naam',
+	'apply.form.phone.placeholder': '+31...',
+	'apply.form.message.placeholder': 'Vertel ons iets over uzelf...',
+	'country.ua': 'Oekraïne',
+	'country.de': 'Duitsland',
+	'country.at': 'Oostenrijk',
+	'country.nl': 'Nederland'
 } as const;
