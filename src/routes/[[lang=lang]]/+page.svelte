@@ -5,8 +5,27 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Carousel from '$lib/components/ui/Carousel.svelte';
 	import { t } from '$lib/i18n';
+	import { interleaveByType } from '$lib/utils/interleave';
 
 	let { data } = $props();
+
+	/**
+	 * The order the build produced, reshuffled once this is running in a browser.
+	 *
+	 * It cannot be shuffled in `load`: that runs at build time on a prerendered site,
+	 * so a random order would be frozen into the HTML and every visitor would see the
+	 * same "random" one — which is exactly what was happening. Shuffling after mount
+	 * gives each visit its own order while the prerendered HTML stays stable for
+	 * crawlers and for hydration.
+	 */
+	// A writable $derived: it holds the build order until the effect below replaces it,
+	// and falls back to the build order again if the page data ever changes. The effect
+	// depends on data.animals, not on this, so the assignment does not re-trigger it.
+	let animals = $derived(data.animals);
+
+	$effect(() => {
+		animals = interleaveByType(data.animals);
+	});
 </script>
 
 <svelte:head>
@@ -16,7 +35,7 @@
 <!-- Featured Carousel (Moved to the very beginning) -->
 <section class="featured section">
 	<Carousel speed={30} testId="featured-carousel">
-		{#each data.animals as animal, i (animal.slug)}
+		{#each animals as animal, i (animal.slug)}
 			<div class="carousel-item">
 				<AnimalCard {animal} priority={i === 0} />
 			</div>
