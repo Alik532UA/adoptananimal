@@ -6,12 +6,28 @@
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import { absoluteFromRoot } from '$lib/config';
+	import { animalService } from '$lib/services/animals';
 
 	let { data }: { data: PageData } = $props();
 	const animal = $derived(data.animal);
 	let imageFailed = $state(false);
 
 	const photo = $derived(absoluteFromRoot(animal.image));
+
+	/**
+	 * The next animal in the list, wrapping round at the end.
+	 *
+	 * Taken from the same ordered list the listing page shows, so "next" means the same
+	 * thing in both places, and it wraps rather than disappearing on the last one — a
+	 * button that is there on twenty pages and missing on the twenty-first reads as a
+	 * fault rather than as the end of something.
+	 */
+	const next = $derived.by(() => {
+		const all = animalService.cats;
+		const here = all.findIndex((a) => a.slug === animal.slug);
+		if (here === -1 || all.length < 2) return null;
+		return all[(here + 1) % all.length];
+	});
 
 	/**
 	 * Schema.org description of the animal. Rendered with {@html} because Svelte does
@@ -166,6 +182,32 @@
 						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backCats')}</a
 					>
 				</div>
+
+				{#if next}
+					<!-- The face is the point: a name alone says nothing about who is next, and
+						 the thumbnail is the reason to press it. -->
+					<a
+						class="detail__next"
+						href={localePath(`/adopt/cat/${next.slug}`)}
+						data-testid="next-animal-link"
+					>
+						<img
+							class="detail__next-thumb"
+							src={withBase(next.image)}
+							alt=""
+							loading="lazy"
+							decoding="async"
+							width="64"
+							height="64"
+							style={next.imagePosition ? `object-position: ${next.imagePosition}` : undefined}
+						/>
+						<span class="detail__next-text">
+							<span class="detail__next-label">{t('detail.nextAnimal')}</span>
+							<span class="detail__next-name">{next.name}</span>
+						</span>
+						<Icon name="arrow-right" size="1.2rem" />
+					</a>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -307,6 +349,59 @@
 		color: var(--color-text-muted);
 		line-height: 1.8;
 		font-size: 1rem;
+	}
+
+	/*
+	 * A doorway to the next animal, rather than only a way back to the list.
+	 *
+	 * Its own row under the buttons: it is a different kind of thing from "apply" and
+	 * "back", and lined up beside them it read as a third button of equal weight.
+	 */
+	.detail__next {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-md);
+		margin-top: var(--space-lg);
+		padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-sm);
+		border-radius: var(--radius-full);
+		background: var(--color-bg-card);
+		color: var(--color-text);
+		box-shadow: var(--shadow-sm);
+		transition:
+			transform var(--transition-spring),
+			box-shadow var(--transition-normal);
+	}
+
+	.detail__next:hover,
+	.detail__next:focus-visible {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-lg);
+		color: var(--color-text);
+	}
+
+	.detail__next-thumb {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		object-fit: cover;
+		flex-shrink: 0;
+	}
+
+	.detail__next-text {
+		display: flex;
+		flex-direction: column;
+		text-align: left;
+	}
+
+	.detail__next-label {
+		font-size: 0.8rem;
+		color: var(--color-text-muted);
+	}
+
+	.detail__next-name {
+		font-family: var(--font-accent);
+		font-weight: 900;
+		font-size: 1.1rem;
 	}
 
 	.detail__actions {

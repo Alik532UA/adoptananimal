@@ -207,6 +207,7 @@ export const en = {
 	'scrollbar.minimapFull': 'Visual minimap',
 
 	// The two quiet links in the footer's corner.
+	'detail.nextAnimal': 'See the next one',
 	'footer.openSite': 'Open the website',
 	'footer.play': 'Play',
 	'footer.orderSite': 'Order a website'

@@ -212,6 +212,7 @@ export const de = {
 	'scrollbar.minimapFull': 'Visuelle Minimap',
 
 	// The two quiet links in the footer's corner.
+	'detail.nextAnimal': 'Nächstes Tier ansehen',
 	'footer.openSite': 'Website öffnen',
 	'footer.play': 'Spielen',
 	'footer.orderSite': 'Website bestellen'
