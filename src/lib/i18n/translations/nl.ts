@@ -208,6 +208,7 @@ export const nl = {
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Bekijk de volgende',
+	'detail.prevAnimal': 'Bekijk de vorige',
 	'footer.openSite': 'Website openen',
 	'footer.play': 'Spelen',
 	'footer.orderSite': 'Website bestellen'

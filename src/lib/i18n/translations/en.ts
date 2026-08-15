@@ -208,6 +208,7 @@ export const en = {
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'See the next one',
+	'detail.prevAnimal': 'See the previous one',
 	'footer.openSite': 'Open the website',
 	'footer.play': 'Play',
 	'footer.orderSite': 'Order a website'

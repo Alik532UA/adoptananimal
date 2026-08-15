@@ -213,6 +213,7 @@ export const de = {
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Nächstes Tier ansehen',
+	'detail.prevAnimal': 'Vorheriges Tier ansehen',
 	'footer.openSite': 'Website öffnen',
 	'footer.play': 'Spielen',
 	'footer.orderSite': 'Website bestellen'

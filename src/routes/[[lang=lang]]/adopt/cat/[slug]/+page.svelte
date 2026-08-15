@@ -7,6 +7,7 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import { absoluteFromRoot } from '$lib/config';
 	import { animalService } from '$lib/services/animals';
+	import type { AnimalSummary } from '$lib/data/types';
 
 	let { data }: { data: PageData } = $props();
 	const animal = $derived(data.animal);
@@ -22,21 +23,29 @@
 	 * button that is there on twenty pages and missing on the twenty-first reads as a
 	 * fault rather than as the end of something.
 	 */
-	const next = $derived.by(() => {
-		// Only the ones still looking. Offering someone who already has a home is a
-		// dead end dressed up as a suggestion.
+	/**
+	 * The animals either side of this one, wrapping round at both ends.
+	 *
+	 * Only the ones still looking: offering someone who already has a home is a dead end
+	 * dressed up as a suggestion. From the page of an animal who has been adopted — who
+	 * is therefore not in this list at all — the two ends of it are the answer rather
+	 * than nothing, because that page is exactly where someone needs a way on.
+	 *
+	 * Wrapping rather than stopping: a control that is there on twenty pages and missing
+	 * on the twenty-first reads as a fault, not as the end of something.
+	 */
+	const siblings = $derived.by(() => {
 		const waiting = animalService.cats.filter((a) => !a.isAdopted);
 		if (waiting.length === 0) return null;
 
 		const here = waiting.findIndex((a) => a.slug === animal.slug);
-		/*
-		 * Not in the list means this one has been adopted. Then the first who has not
-		 * is the right answer rather than no answer: a page about an animal who is no
-		 * longer available is exactly where someone needs a way on to one who is.
-		 */
-		if (here === -1) return waiting[0];
+		if (here === -1) return { previous: waiting[waiting.length - 1], next: waiting[0] };
 		if (waiting.length < 2) return null;
-		return waiting[(here + 1) % waiting.length];
+
+		return {
+			previous: waiting[(here - 1 + waiting.length) % waiting.length],
+			next: waiting[(here + 1) % waiting.length]
+		};
 	});
 
 	/**
@@ -103,6 +112,29 @@
 	</div>
 </section>
 
+{#snippet sibling(target: AnimalSummary, back: boolean)}
+	<a
+		class="detail__sibling"
+		class:detail__sibling--back={back}
+		href={localePath(`/adopt/cat/${target.slug}`)}
+		aria-label="{t(back ? 'detail.prevAnimal' : 'detail.nextAnimal')}: {target.name}"
+		data-testid={back ? 'prev-animal-link' : 'next-animal-link'}
+	>
+		<Icon name={back ? 'arrow-left' : 'arrow-right'} size="1.2rem" />
+		<span class="detail__sibling-name">{target.name}</span>
+		<img
+			class="detail__sibling-thumb"
+			src={withBase(target.image)}
+			alt=""
+			loading="lazy"
+			decoding="async"
+			width="48"
+			height="48"
+			style={target.imagePosition ? `object-position: ${target.imagePosition}` : undefined}
+		/>
+	</a>
+{/snippet}
+
 <section class="detail section">
 	<div class="container">
 		{#if animal.isAdopted}
@@ -152,30 +184,14 @@
 						><Icon name="arrow-left" size="1.1rem" /> {t('featured.browseCats')}</a
 					>
 
-					{#if next}
-						<!-- The face is the point: a name alone says nothing about who is next,
-							 and the thumbnail is the reason to press it. -->
-						<a
-							class="detail__next"
-							href={localePath(`/adopt/cat/${next.slug}`)}
-							data-testid="next-animal-link"
-						>
-							<img
-								class="detail__next-thumb"
-								src={withBase(next.image)}
-								alt=""
-								loading="lazy"
-								decoding="async"
-								width="64"
-								height="64"
-								style={next.imagePosition ? `object-position: ${next.imagePosition}` : undefined}
-							/>
-							<span class="detail__next-text">
-								<span class="detail__next-label">{t('detail.nextAnimal')}</span>
-								<span class="detail__next-name">{next.name}</span>
-							</span>
-							<Icon name="arrow-right" size="1.2rem" />
-						</a>
+					{#if siblings}
+						<!-- No wording: the arrows say which way, and the face says who. The
+							 direction is in each link's accessible name instead, so a screen
+							 reader is told what the arrow shows. -->
+						<div class="detail__siblings">
+							{@render sibling(siblings.previous, true)}
+							{@render sibling(siblings.next, false)}
+						</div>
 					{/if}
 				</div>
 			</div>
@@ -384,9 +400,10 @@
 	 * that means something: it is the thing the page is for.
 	 */
 	.detail__aside-actions .btn,
-	.detail__next {
+	.detail__sibling {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		gap: var(--space-md);
 		min-height: 64px;
 		padding: var(--space-sm) var(--space-lg);
@@ -394,10 +411,9 @@
 		font-size: 1rem;
 	}
 
-	/* The two that are not the main action share a surface, so the accent stands alone. */
+	/* The ones that are not the main action share a surface, so the accent stands alone. */
 	.detail__aside-actions .btn--secondary,
-	.detail__next {
-		justify-content: center;
+	.detail__sibling {
 		background: var(--color-bg-card);
 		color: var(--color-text);
 		box-shadow: var(--shadow-sm);
@@ -407,19 +423,35 @@
 	}
 
 	.detail__aside-actions .btn--secondary:hover,
-	.detail__next:hover,
-	.detail__next:focus-visible {
+	.detail__sibling:hover,
+	.detail__sibling:focus-visible {
 		transform: translateY(-2px);
 		box-shadow: var(--shadow-lg);
 		background: var(--color-bg-card-hover);
 		color: var(--color-text);
 	}
 
-	/* Centred like the other two. Left-aligned it was the only one of the three whose
-	   contents started somewhere else, and the photograph made that the first thing you
-	   noticed about the set. */
+	/* Two of them on the row the single one used to have, so the pair takes no more room
+	   than it did. */
+	.detail__siblings {
+		display: flex;
+		gap: var(--space-sm);
+	}
 
-	.detail__next-thumb {
+	.detail__sibling {
+		flex: 1;
+		min-width: 0;
+		/* Written for the backward one — arrow, name, face — and reversed for the forward
+		   one, so each points away from this page and the two mirror each other. */
+		flex-direction: row-reverse;
+		padding: var(--space-sm);
+	}
+
+	.detail__sibling--back {
+		flex-direction: row;
+	}
+
+	.detail__sibling-thumb {
 		width: 48px;
 		height: 48px;
 		border-radius: 50%;
@@ -427,21 +459,14 @@
 		flex-shrink: 0;
 	}
 
-	.detail__next-text {
-		display: flex;
-		flex-direction: column;
-		text-align: left;
-	}
-
-	.detail__next-label {
-		font-size: 0.8rem;
-		color: var(--color-text-muted);
-	}
-
-	.detail__next-name {
+	.detail__sibling-name {
 		font-family: var(--font-accent);
 		font-weight: 900;
-		font-size: 1.1rem;
+		font-size: 1rem;
+		/* A long name shortens rather than pushing the face out of its own button. */
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.detail__apply-btn {

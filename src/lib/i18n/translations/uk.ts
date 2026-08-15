@@ -210,6 +210,7 @@ export const uk = {
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Дивитися наступного',
+	'detail.prevAnimal': 'Дивитися попереднього',
 	'footer.openSite': 'Відкрити сайт',
 	'footer.play': 'Грати',
 	'footer.orderSite': 'Замовити сайт'
