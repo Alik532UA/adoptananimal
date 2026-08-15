@@ -1,85 +1,24 @@
 <script lang="ts">
-	import { localePath, withBase } from '$lib/utils/withBase';
+	import { localePath } from '$lib/utils/withBase';
 	import { page } from '$app/state';
 	import { t, type TranslationKey } from '$lib/i18n';
-	import { settings, type Locale, type SiteStyle, type Theme } from '$lib/services/settings.svelte';
-	import { base } from '$app/paths';
-	import { splitLocale } from '$lib/i18n/locales';
+	import { settings } from '$lib/services/settings.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import type { IconName } from '$lib/components/ui/icons';
-	import { SIDE_PROJECTS } from '$lib/config';
-	import OrgLogos from '$lib/components/OrgLogos.svelte';
-	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
+	import HeaderControls from '$lib/components/header/HeaderControls.svelte';
+	import HeaderMenuFooter from '$lib/components/header/HeaderMenuFooter.svelte';
 	import { clamp01, SETTLE_DISTANCE, tabShape } from '$lib/utils/tabWave';
 
 	let mobileMenuOpen = $state(false);
 
 	// One name rather than three booleans: opening a menu closes the others by
 	// construction, instead of by remembering to reset the other two every time.
-	let openMenu = $state<'theme' | 'style' | 'lang' | null>(null);
-
-	const locales: { id: Locale; label: string; flags: string[] }[] = [
-		{ id: 'en', label: 'English', flags: ['/images/flags/en.svg'] },
-		{ id: 'uk', label: 'Українська', flags: ['/images/flags/uk.svg'] },
-		{ id: 'de', label: 'Deutsch', flags: ['/images/flags/de.svg', '/images/flags/at.svg'] },
-		{ id: 'nl', label: 'Nederlands', flags: ['/images/flags/nl.svg'] }
-	];
-
-	const styles: {
-		id: SiteStyle;
-		labelKey: TranslationKey;
-		icon: 'sparkles' | 'minimal' | 'playful';
-	}[] = [
-		/*
-		 * Minimal is deliberately absent from this list, not deleted.
-		 *
-		 * Its stylesheet, its tokens and its handling everywhere else are intact, and
-		 * setting the stored value by hand still applies it — it is simply not offered.
-		 * Removing the code would make bringing it back a rewrite instead of a line.
-		 */
-		{ id: 'playful', labelKey: 'style.playful', icon: 'playful' },
-		{ id: 'modern', labelKey: 'style.modern', icon: 'sparkles' }
-	];
-
-	const themes: {
-		id: Theme;
-		labelKey: TranslationKey;
-		icon: 'moon' | 'sun' | 'idea' | 'winter';
-	}[] = [
-		{ id: 'dark', labelKey: 'theme.dark', icon: 'moon' },
-		{ id: 'light-green', labelKey: 'theme.light-green', icon: 'sun' },
-		{ id: 'orange-purple', labelKey: 'theme.orange-purple', icon: 'idea' },
-		{ id: 'winter', labelKey: 'theme.winter', icon: 'winter' }
-	];
-
 	function toggleMenu() {
 		mobileMenuOpen = !mobileMenuOpen;
 	}
 
 	function closeMenu() {
 		mobileMenuOpen = false;
-		openMenu = null;
-	}
-
-	// Close the dropdowns on any outside click. In an $effect so the listener is
-	// removed with the component instead of outliving it.
-	$effect(() => {
-		const close = () => (openMenu = null);
-		window.addEventListener('click', close);
-		return () => window.removeEventListener('click', close);
-	});
-
-	/**
-	 * The same page in another language. Built from the current pathname so the
-	 * reader keeps their place instead of being dropped on the home page.
-	 */
-	function localeHref(locale: Locale): string {
-		const pathname =
-			base && page.url.pathname.startsWith(base)
-				? page.url.pathname.slice(base.length)
-				: page.url.pathname;
-
-		return localePath(splitLocale(pathname).path, locale);
 	}
 
 	function isLinkActive(href: string): boolean {
@@ -264,129 +203,9 @@
 				<span class="header__link-label">{t('nav.applyNow')}</span>
 			</a>
 
-			<div class="header__controls">
-				<DropdownMenu
-					label={t('a11y.toggleTheme')}
-					testId="theme"
-					items={themes.map((theme) => ({
-						id: theme.id,
-						label: t(theme.labelKey),
-						active: settings.theme === theme.id
-					}))}
-					open={openMenu === 'theme'}
-					onToggle={(next) => (openMenu = next ? 'theme' : null)}
-					onselect={(id) => {
-						settings.setTheme(id as Theme);
-						openMenu = null;
-					}}
-				>
-					{#snippet trigger()}
-						<Icon
-							name={themes.find((x) => x.id === settings.theme)?.icon ?? 'moon'}
-							size="1.2rem"
-						/>
-					{/snippet}
-					{#snippet itemVisual(item)}
-						<Icon name={themes.find((x) => x.id === item.id)?.icon ?? 'moon'} size="1.1rem" />
-					{/snippet}
-				</DropdownMenu>
+			<HeaderControls />
 
-				<DropdownMenu
-					label={t('a11y.toggleStyle')}
-					testId="style"
-					items={styles.map((style) => ({
-						id: style.id,
-						label: t(style.labelKey),
-						active: settings.style === style.id
-					}))}
-					open={openMenu === 'style'}
-					onToggle={(next) => (openMenu = next ? 'style' : null)}
-					onselect={(id) => {
-						settings.setStyle(id as SiteStyle);
-						openMenu = null;
-					}}
-				>
-					{#snippet trigger()}
-						<Icon
-							name={styles.find((x) => x.id === settings.style)?.icon ?? 'sparkles'}
-							size="1.2rem"
-						/>
-					{/snippet}
-					{#snippet itemVisual(item)}
-						<Icon name={styles.find((x) => x.id === item.id)?.icon ?? 'sparkles'} size="1.1rem" />
-					{/snippet}
-				</DropdownMenu>
-
-				<DropdownMenu
-					label={t('a11y.toggleLanguage')}
-					testId="lang"
-					items={locales.map((locale) => ({
-						id: locale.id,
-						label: locale.label,
-						href: localeHref(locale.id),
-						hreflang: locale.id,
-						active: settings.locale === locale.id
-					}))}
-					open={openMenu === 'lang'}
-					onToggle={(next) => (openMenu = next ? 'lang' : null)}
-					onselect={(id) => {
-						settings.setLocale(id as Locale);
-						openMenu = null;
-					}}
-				>
-					{#snippet trigger()}
-						<span class="header__lang">
-							{#if locales.find((l) => l.id === settings.locale)?.flags[0]}
-								<img
-									src={withBase(locales.find((l) => l.id === settings.locale)!.flags[0])}
-									alt=""
-									class="header__flag"
-								/>
-							{/if}
-							<span class="header__lang-code">{settings.locale.toUpperCase()}</span>
-						</span>
-					{/snippet}
-					{#snippet itemVisual(item)}
-						<span class="header__flags">
-							{#each locales.find((l) => l.id === item.id)?.flags ?? [] as flag (flag)}
-								<img src={withBase(flag)} alt="" class="header__flag" />
-							{/each}
-						</span>
-					{/snippet}
-				</DropdownMenu>
-			</div>
-
-			<!--
-				The footer's own contents, repeated at the foot of the open menu.
-
-				Not a duplicate of the markup: the organisations and the side projects each
-				come from the one module the footer reads. On a phone the menu covers the
-				whole screen, and a visitor who opened it to go somewhere had no way to reach
-				either of those without closing it and scrolling to the bottom of the page.
-			-->
-			<div class="header__nav-footer">
-				<!-- The same component the footer uses, so a tap here opens the same panel
-					 of accounts rather than jumping straight to the site. -->
-				<div class="header__nav-orgs">
-					<OrgLogos scope="nav" />
-				</div>
-
-				<div class="header__nav-projects">
-					{#each SIDE_PROJECTS as project (project.id)}
-						<a
-							href={project.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="header__nav-project"
-							onclick={closeMenu}
-							data-testid="nav-{project.id}-link"
-						>
-							<Icon name={project.icon} size="1.2rem" />
-							<span>{t(project.key)}</span>
-						</a>
-					{/each}
-				</div>
-			</div>
+			<HeaderMenuFooter onNavigate={closeMenu} />
 		</nav>
 
 		<button
@@ -663,50 +482,6 @@
 		color: #ffffff;
 	}
 
-	/* Only ever shown inside the open mobile menu — see the media block below. */
-	.header__nav-footer {
-		display: none;
-	}
-
-	.header__controls {
-		display: flex;
-		align-items: center;
-		gap: var(--space-xs);
-		flex-shrink: 0;
-		align-self: center;
-		margin-bottom: 4px;
-	}
-
-	.header__lang {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-	}
-
-	.header__flags {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		flex-shrink: 0;
-	}
-
-	.header__flag {
-		width: 20px;
-		height: 14px;
-		object-fit: cover;
-		border-radius: 2px;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-		display: block;
-	}
-
-	.header__lang-code {
-		font-size: 0.85rem;
-		font-weight: 800;
-		font-family: var(--font-accent);
-		letter-spacing: 0.04em;
-		line-height: 1;
-	}
-
 	.header__burger {
 		display: none;
 		flex-direction: column;
@@ -727,9 +502,6 @@
 			align-items: center;
 			padding: 0 var(--space-lg);
 			gap: var(--space-sm);
-		}
-		.header__controls {
-			margin-left: auto;
 		}
 		.header__logo--mobile {
 			display: inline-flex;
@@ -772,18 +544,6 @@
 			align-items: stretch;
 			gap: var(--space-sm);
 		}
-		.header__nav-footer {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			/* Wider than the rest, so the logos sit clear of the buttons rather than just
-			   above them. */
-			gap: var(--space-xl);
-			/* Pushed to the foot of the panel, which is otherwise empty below the links. */
-			margin-top: auto;
-			padding-top: var(--space-xl);
-			border-top: 1px solid var(--color-border);
-		}
 
 		/*
 		 * While the accounts panel is open, the rest of the menu steps back.
@@ -798,8 +558,8 @@
 		 * would otherwise prune the rule as unused.
 		 */
 		.header__nav:has(:global(.org-logos--revealing)) .header__link,
-		.header__nav:has(:global(.org-logos--revealing)) .header__controls,
-		.header__nav:has(:global(.org-logos--revealing)) .header__nav-projects {
+		.header__nav:has(:global(.org-logos--revealing)) :global(.header__controls),
+		.header__nav:has(:global(.org-logos--revealing)) :global(.header__nav-projects) {
 			opacity: 0.5;
 			transition: opacity var(--transition-normal);
 		}
@@ -822,35 +582,6 @@
 		.header__nav :global(.dropdown__menu) {
 			background: var(--control-surface-hover);
 			border: 1px solid var(--color-border);
-		}
-
-		.header__nav-orgs {
-			--org-logos-size: 68px;
-			--org-logos-gap: var(--space-2xl);
-		}
-
-		/* Stacked, full width. Side by side they were two short pills adrift in a wide
-		   panel; one under the other they are the same shape as the links above them. */
-		.header__nav-projects {
-			display: flex;
-			flex-direction: column;
-			align-self: stretch;
-			gap: var(--space-sm);
-		}
-
-		.header__nav-project {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			gap: var(--space-sm);
-			/* WCAG 2.5.8, and a comfortable tap target beside its neighbour. */
-			min-height: 44px;
-			padding: 0 var(--space-md);
-			border-radius: var(--radius-full);
-			background: var(--control-surface);
-			color: var(--color-text);
-			font-size: 0.85rem;
-			font-weight: 700;
 		}
 
 		.header__indicator,
