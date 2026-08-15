@@ -23,9 +23,11 @@
 	 */
 	function toggleOrg(id: string, e: MouseEvent) {
 		if (!window.matchMedia('(max-width: 768px)').matches) return;
-		if (activeOrg === id) return;
+		// Never follows the link on a phone: the logo is the way in and out of the panel,
+		// and a second tap that navigated away meant there was no way to close it. Going
+		// to the site is its own button inside the panel.
 		e.preventDefault();
-		activeOrg = id;
+		activeOrg = activeOrg === id ? null : id;
 	}
 
 	/*
@@ -48,7 +50,7 @@
 	});
 </script>
 
-<footer class="footer">
+<footer class="footer" class:footer--revealing={activeOrg !== null}>
 	<div class="footer__content">
 		<!-- Two links to the shelter's other sites. Icons only, and barely there until
 			 someone comes down here — see .footer__aside in the styles. -->
@@ -91,6 +93,17 @@
 						</a>
 
 						<div class="footer__social-flyout">
+							<!-- Phone only: with hover there is no panel to be stuck in, and the
+							 logo itself is the link. -->
+							<a
+								href={org.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="footer__visit-site"
+								data-testid="footer-org-{org.id}-site-link"
+							>
+								{t('footer.openSite')}
+							</a>
 							{#each org.socials as social, i (social.id)}
 								<a
 									href={social.url}
@@ -376,6 +389,11 @@
 		transform: scale(1.15) !important;
 	}
 
+	/* Shown only inside the fly-out on a phone — see the media block below. */
+	.footer__visit-site {
+		display: none;
+	}
+
 	.footer__social-icon {
 		width: 100%;
 		height: 100%;
@@ -421,10 +439,28 @@
 			 */
 			gap: var(--space-sm);
 			background: var(--color-bg-card);
-			border-radius: var(--radius-full);
+			/* Two rows now, so a pill is the wrong shape. */
+			border-radius: var(--radius-lg);
+			flex-wrap: wrap;
+			justify-content: center;
 			padding: var(--space-sm);
 			margin-bottom: var(--space-sm);
 			box-shadow: var(--shadow-lg);
+		}
+
+		/* A line of its own above the icons: first in the markup, and full width, so the
+		   row of socials wraps underneath it. */
+		.footer__visit-site {
+			display: block;
+			flex-basis: 100%;
+			padding: 8px 14px;
+			border-radius: var(--radius-md);
+			background: var(--color-primary);
+			color: var(--color-text-on-accent);
+			font-size: 0.85rem;
+			font-weight: 700;
+			text-align: center;
+			white-space: nowrap;
 		}
 
 		.footer__org-wrapper--left .footer__social-icon-link,
@@ -441,8 +477,32 @@
 			max-height: 60px;
 		}
 
-		.footer__org-wrapper--active .footer__logo-img {
-			transform: scale(0.7);
+		/*
+		 * The pressed logo stays its own size; everything else in the footer steps back.
+		 *
+		 * Shrinking the one that was tapped said the wrong thing — it looked like the
+		 * press had pushed it away, when the panel above it belongs to it. Dimming its
+		 * neighbours says the same thing the other way round, and reads as focus rather
+		 * than as recoil.
+		 */
+		.footer--revealing .footer__org-wrapper:not(.footer__org-wrapper--active) .footer__logo-img,
+		.footer--revealing .footer__aside .footer__aside-link {
+			opacity: 0.3;
+		}
+
+		/*
+		 * And a resting opacity a finger can find.
+		 *
+		 * The ladder these climb — 0.1 on the page, 0.5 in the footer, 1 under the pointer
+		 * — is built on hover, which a phone does not have. Left at 0.1 they were a control
+		 * nobody could reveal, so they sit at a visible weight here and step back to 0.3
+		 * only while a panel is open, which is the whole point of the dimming.
+		 *
+		 * Written through .footer__aside so it outweighs the hover rules, which are more
+		 * specific than a bare .footer__aside-link.
+		 */
+		.footer__aside .footer__aside-link {
+			opacity: 0.6;
 		}
 
 		.footer__social-icon-link {

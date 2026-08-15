@@ -207,6 +207,7 @@ export const nl = {
 	'scrollbar.minimapFull': 'Visuele minimap',
 
 	// The two quiet links in the footer's corner.
+	'footer.openSite': 'Website openen',
 	'footer.play': 'Spelen',
 	'footer.orderSite': 'Website bestellen'
 } as const;

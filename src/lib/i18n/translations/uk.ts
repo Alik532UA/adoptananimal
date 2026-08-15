@@ -209,6 +209,7 @@ export const uk = {
 	'scrollbar.minimapFull': 'Візуальна мінімапа',
 
 	// The two quiet links in the footer's corner.
+	'footer.openSite': 'Відкрити сайт',
 	'footer.play': 'Грати',
 	'footer.orderSite': 'Замовити сайт'
 } as const;
