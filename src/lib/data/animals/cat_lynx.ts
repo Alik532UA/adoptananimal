@@ -35,7 +35,10 @@ export const summary: AnimalSummary = {
 		de: 'getigert',
 		nl: 'cyper'
 	},
-	image: '/images/animals/cat_lynx.jpg'
+	image: '/images/animals/cat_lynx.jpg',
+	// A wide photograph in a square frame on the detail page: centred, the crop cut
+	// through his face on the right. Pulled left so the head is what survives.
+	imagePosition: '100% 50%'
 };
 
 export const description: Translations = {
