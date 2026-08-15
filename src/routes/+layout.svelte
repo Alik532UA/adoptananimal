@@ -331,6 +331,20 @@
 		box-shadow: var(--shadow-xl);
 	}
 
+	/*
+	 * Clear of the footer's right-hand button on a phone.
+	 *
+	 * It sits in the same corner, and at 32px in from the edge the two overlapped once
+	 * the footer's buttons moved out to the edges. Lifted rather than moved sideways,
+	 * because the right-hand corner is where a back-to-top belongs.
+	 */
+	@media (max-width: 700px) {
+		.back-to-top {
+			right: var(--space-md);
+			bottom: calc(var(--space-md) + 56px);
+		}
+	}
+
 	.main {
 		flex: 1;
 		padding-top: 72px;

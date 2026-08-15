@@ -238,6 +238,30 @@
 			justify-content: space-between;
 		}
 
+		/*
+		 * Under the button, not beside it — and pinned to the edge the button stands on.
+		 *
+		 * The two buttons now sit at opposite edges of the footer, so a label opening
+		 * sideways from the right-hand one ran off the page. That is not merely clipped:
+		 * it widened the document, and everything else — the back-to-top button included —
+		 * shifted with it.
+		 *
+		 * Centring under the button would put half the label past the same edge, so each
+		 * one is anchored to its own side instead: the left button's label starts where
+		 * the button starts, the right button's ends where the button ends.
+		 */
+		.footer__aside-label {
+			top: calc(100% + var(--space-xs));
+			bottom: auto;
+			left: 0;
+			right: auto;
+		}
+
+		.footer__aside-link:last-child .footer__aside-label {
+			left: auto;
+			right: 0;
+		}
+
 		.footer__content {
 			padding: var(--space-lg) 0;
 		}
