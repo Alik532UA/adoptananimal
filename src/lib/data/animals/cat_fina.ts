@@ -35,7 +35,8 @@ export const summary: AnimalSummary = {
 		de: 'weiß-grau',
 		nl: 'wit-grijs'
 	},
-	image: '/images/animals/cat_fina.jpg'
+	image: '/images/animals/cat_fina.jpg',
+	imagePosition: '30% 50%'
 };
 
 export const description: Translations = {

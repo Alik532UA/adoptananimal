@@ -35,7 +35,8 @@ export const summary: AnimalSummary = {
 		de: 'grau (grünäugig)',
 		nl: 'grijs (groenoog)'
 	},
-	image: '/images/animals/cat_cucumber.jpg'
+	image: '/images/animals/cat_cucumber.jpg',
+	imagePosition: '70% 50%'
 };
 
 export const description: Translations = {

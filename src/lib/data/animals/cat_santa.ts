@@ -35,7 +35,8 @@ export const summary: AnimalSummary = {
 		de: 'weiß',
 		nl: 'wit'
 	},
-	image: '/images/animals/cat_santa.jpg'
+	image: '/images/animals/cat_santa.jpg',
+	imagePosition: '30% 50%'
 };
 
 export const description: Translations = {

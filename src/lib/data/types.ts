@@ -27,6 +27,15 @@ export interface AnimalSummary {
 	 *
 	 * `50% 0%` shows the top of the photo, `50% 100%` the bottom. Left out, the frame
 	 * centres as before.
+	 *
+	 * The first number does the same for the sides, and it is worth saying which way
+	 * round it goes, because it reads backwards: it says which part of the *photo* to
+	 * keep, so a larger number keeps the right-hand side and therefore slides the
+	 * picture left. `30% 50%` pushes the picture right, `70% 50%` pulls it left.
+	 *
+	 * Sideways values are judged on the detail page, where the frame is square and the
+	 * crop is at its tightest. The same value reaches the card in the list, which is
+	 * 4:3 and cuts a wide photo far less — so it moves there too, but less.
 	 */
 	imagePosition?: string;
 }

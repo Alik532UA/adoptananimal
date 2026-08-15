@@ -35,7 +35,8 @@ export const summary: AnimalSummary = {
 		de: 'grau getigert',
 		nl: 'grijze cyper'
 	},
-	image: '/images/animals/cat_martin.jpg'
+	image: '/images/animals/cat_martin.jpg',
+	imagePosition: '30% 50%'
 };
 
 export const description: Translations = {

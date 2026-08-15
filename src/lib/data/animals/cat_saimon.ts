@@ -35,7 +35,8 @@ export const summary: AnimalSummary = {
 		de: 'rot getigert',
 		nl: 'rode cyper'
 	},
-	image: '/images/animals/cat_saimon.jpg'
+	image: '/images/animals/cat_saimon.jpg',
+	imagePosition: '70% 50%'
 };
 
 export const description: Translations = {

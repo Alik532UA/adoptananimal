@@ -35,7 +35,8 @@ export const summary: AnimalSummary = {
 		de: 'braun',
 		nl: 'bruin'
 	},
-	image: '/images/animals/dog_comet.jpg'
+	image: '/images/animals/dog_comet.jpg',
+	imagePosition: '30% 50%'
 };
 
 export const description: Translations = {
