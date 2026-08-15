@@ -185,18 +185,28 @@
 }
 
 .grid--4 {
-	grid-template-columns: repeat(4, 1fr);
+	/*
+	 * minmax(0, …) rather than a bare 1fr, which is minmax(auto, 1fr) and therefore
+	 * a floor: a column cannot get narrower than its content's min-content width.
+	 *
+	 * Nothing is wrong today — measured, the grid shrinks to 72px — because the
+	 * cards carry nothing unbreakable. The zero is there for the day one does: a
+	 * German or Dutch breed name long enough to outgrow its column would push the
+	 * whole page sideways, and the symptom would appear on a phone rather than in a
+	 * build (FLUID-SIZING-v8 § 1).
+	 */
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 @media (max-width: 1024px) {
 	.grid--4 {
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
 @media (max-width: 768px) {
 	.grid--4 {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 	.section__title {
 		font-size: 2.5rem;
