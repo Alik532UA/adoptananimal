@@ -4,12 +4,54 @@
 	import { t } from '$lib/i18n';
 	import { SIDE_PROJECTS } from '$lib/config';
 
-	// Proper nouns, so no i18n: these are the accessible names of the icon links,
-	// which previously read out as "inst", "fb", "li".
+	/** How long the two names stay up after the footer comes into view. */
+	const NAMING_MS = 3000;
+
+	let content = $state<HTMLElement | undefined>();
+	let naming = $state(false);
+
+	/**
+	 * The two side buttons say what they are, then stop.
+	 *
+	 * On a phone their names only appeared on a press — and a press on a link goes
+	 * straight to another site, so the only way to read one was to come back and press
+	 * the other. They introduce themselves on arrival instead, and fade once they have.
+	 * Leaving the footer and returning starts them over, which is what someone who
+	 * missed it will do.
+	 *
+	 * Not a WCAG 2.2.1 concern: the name is the link's accessible name and stays in the
+	 * accessibility tree the whole time — opacity hides it from the eye, not from a
+	 * screen reader — and nothing is lost by missing it, since scrolling back brings it
+	 * again.
+	 */
+	$effect(() => {
+		if (!content) return;
+
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				clearTimeout(timer);
+				if (!entry.isIntersecting) {
+					// Reset rather than leave it up, or coming back would show nothing.
+					naming = false;
+					return;
+				}
+				naming = true;
+				timer = setTimeout(() => (naming = false), NAMING_MS);
+			},
+			{ threshold: 0.35 }
+		);
+
+		observer.observe(content);
+		return () => {
+			clearTimeout(timer);
+			observer.disconnect();
+		};
+	});
 </script>
 
-<footer class="footer">
-	<div class="footer__content">
+<footer class="footer" class:footer--naming={naming}>
+	<div class="footer__content" bind:this={content}>
 		<!-- Two links to the shelter's other sites. Icons only, and barely there until
 			 someone comes down here — see .footer__aside in the styles. -->
 		<div class="footer__aside">
@@ -223,6 +265,18 @@
 		 */
 		.footer__aside .footer__aside-link {
 			opacity: 0.8;
+		}
+
+		/* Up on arrival, then gone. Written through .footer__aside so it outweighs the
+		   hover rule, which is more specific than a bare .footer__aside-label. */
+		.footer--naming .footer__aside .footer__aside-label {
+			opacity: 1;
+		}
+
+		/* Slower than the hover fade: this one is not answering a gesture, so it should
+		   read as the label withdrawing rather than as something being switched off. */
+		.footer__aside .footer__aside-label {
+			transition: opacity var(--transition-slow);
 		}
 
 		/* :has, because the open state lives inside OrgLogos now. Reaching in for one of
