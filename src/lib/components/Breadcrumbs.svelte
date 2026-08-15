@@ -88,8 +88,20 @@
 		color: var(--color-text);
 	}
 
+	/*
+	 * A scrim, not --color-overlay-light.
+	 *
+	 * That token is white — 80% of it in winter, 60% in light-green — so the pill lifted
+	 * the hero almost to white while the text stayed the white it inherits from the hero.
+	 * The crumbs were legible only because the reader knew what they said.
+	 *
+	 * Plain black rather than a theme colour, because the job is "darken whatever is
+	 * behind me". White already clears 4.5:1 on every theme's hero — that is what those
+	 * hero colours were darkened for — and a black scrim can only take that further, so
+	 * this cannot go wrong in a theme nobody develops in.
+	 */
 	:global([data-style='playful']) .breadcrumbs {
-		background: var(--color-overlay-light);
+		background: rgba(0, 0, 0, 0.28);
 		padding: 4px 12px;
 		border-radius: 12px;
 		width: fit-content;
