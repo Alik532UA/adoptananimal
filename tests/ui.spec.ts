@@ -1274,3 +1274,68 @@ test.describe('the browse buttons', () => {
 		});
 	}
 });
+
+test.describe('the header dropdowns', () => {
+	const MENUS = ['theme', 'style', 'lang'];
+	/** The gap the component keeps between a menu and the edge of the window. */
+	const EDGE = 8;
+
+	/**
+	 * Opened at 375px, which is an iPhone SE — the narrowest screen this project still
+	 * supports and the one that found this. The theme menu is 180px under a 44px button
+	 * near the left margin; anchored to the trigger's right edge it started at −6px, and
+	 * the panel it opens in clips, so the first item was simply gone. FLUID-SIZING-v8 § 5.
+	 */
+	for (const [where, width] of [
+		['a phone', 375],
+		['a desktop', 1280]
+	] as const) {
+		test(`stay inside the window on ${where}`, async ({ page }) => {
+			await page.setViewportSize({ width, height: 800 });
+			await page.goto('/');
+			if (width < 769) await page.getByTestId('mobile-menu-burger-btn').click();
+
+			for (const menu of MENUS) {
+				await page.getByTestId(`${menu}-toggle-btn`).click();
+				const box = await page.locator('.dropdown__menu').boundingBox();
+
+				expect(box, `${menu} menu did not open`).not.toBeNull();
+				expect(box!.x, `${menu} menu starts off the left edge`).toBeGreaterThanOrEqual(0);
+				expect(box!.x + box!.width, `${menu} menu runs past the right edge`).toBeLessThanOrEqual(
+					width
+				);
+
+				await page.keyboard.press('Escape');
+			}
+		});
+
+		test(`sit under the middle of their button on ${where}, or as near as the edge allows`, async ({
+			page
+		}) => {
+			await page.setViewportSize({ width, height: 800 });
+			await page.goto('/');
+			if (width < 769) await page.getByTestId('mobile-menu-burger-btn').click();
+
+			for (const menu of MENUS) {
+				const trigger = page.getByTestId(`${menu}-toggle-btn`);
+				await trigger.click();
+
+				const t = (await trigger.boundingBox())!;
+				const m = (await page.locator('.dropdown__menu').boundingBox())!;
+
+				// Centred is the rule; being pushed against a margin is the only exception,
+				// and then it has to be against that margin rather than somewhere near it.
+				const offCentre = Math.abs(t.x + t.width / 2 - (m.x + m.width / 2));
+				const atLeft = Math.abs(m.x - EDGE) <= 1;
+				const atRight = Math.abs(m.x + m.width - (width - EDGE)) <= 1;
+
+				expect(
+					offCentre <= 1 || atLeft || atRight,
+					`${menu} menu is ${Math.round(offCentre)}px off centre and against neither margin`
+				).toBe(true);
+
+				await page.keyboard.press('Escape');
+			}
+		});
+	}
+});

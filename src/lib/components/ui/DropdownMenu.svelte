@@ -66,9 +66,67 @@
 	function focusFirstItem(node: HTMLElement) {
 		node.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
 	}
+
+	let anchorElement: HTMLElement | undefined = $state();
+	let menuElement: HTMLElement | undefined = $state();
+
+	/**
+	 * Where the menu sits, measured from the trigger's left edge. `null` until it has
+	 * been measured, and the markup then centres it in CSS — so the frame before the
+	 * measurement is already the right shape rather than a jump.
+	 */
+	let placement = $state<number | null>(null);
+
+	/** Gap kept between the menu and the edge of the window. */
+	const EDGE = 8;
+
+	/**
+	 * Centred under its trigger, then pulled back on screen.
+	 *
+	 * Centring alone is not enough and edge-anchoring alone was worse: `right: 0` put
+	 * the theme menu's 180px under a 44px button near the left margin, and on a 375px
+	 * screen it started at −6px — the first item cut off by the window with nothing to
+	 * scroll, because the panel it opens in clips. Which edge runs out depends on which
+	 * trigger it is and how wide the label is, so it is measured rather than guessed.
+	 */
+	function place() {
+		if (!anchorElement || !menuElement) return;
+
+		const anchor = anchorElement.getBoundingClientRect();
+		const width = menuElement.offsetWidth;
+		const centred = anchor.left + anchor.width / 2 - width / 2;
+
+		// Both edges can run out at once on a narrow screen. The left one wins: a menu
+		// that starts off screen has nothing readable at all, while one that ends off
+		// screen at least reads from the beginning.
+		const rightmost = Math.max(EDGE, window.innerWidth - EDGE - width);
+		placement = Math.min(Math.max(centred, EDGE), rightmost) - anchor.left;
+	}
+
+	$effect(() => {
+		if (!open || !menuElement) {
+			placement = null;
+			return;
+		}
+
+		place();
+
+		// Two things move it: the window, which moves the trigger, and the menu's own
+		// width. The second is watched on the menu rather than on the items that fill
+		// it — what decides the placement is how wide it came out, and that changes with
+		// the locale's labels as readily as with the length of the list.
+		const observer = new ResizeObserver(place);
+		observer.observe(menuElement);
+		window.addEventListener('resize', place);
+
+		return () => {
+			observer.disconnect();
+			window.removeEventListener('resize', place);
+		};
+	});
 </script>
 
-<div class="dropdown">
+<div bind:this={anchorElement} class="dropdown">
 	<button
 		class="dropdown__trigger"
 		onclick={(event) => {
@@ -87,7 +145,9 @@
 
 	{#if open}
 		<div
+			bind:this={menuElement}
 			class="dropdown__menu"
+			style={placement === null ? 'left: 50%; translate: -50% 0;' : `left: ${placement}px;`}
 			role="menu"
 			tabindex="-1"
 			onkeydown={handleKeydown}
@@ -157,7 +217,9 @@
 	.dropdown__menu {
 		position: absolute;
 		top: calc(100% + 8px);
-		right: 0;
+		/* Sideways placement comes from the inline style above, which is measured. The
+		   `translate` there rather than `transform` on purpose: the opening animation
+		   owns `transform`, and a keyframe would wipe a centring written into it. */
 		background: var(--color-bg-card);
 		border: none;
 		border-radius: var(--radius-md);
