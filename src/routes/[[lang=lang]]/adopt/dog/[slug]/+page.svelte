@@ -174,16 +174,6 @@
 						</a>
 					{/if}
 
-					<!-- The same words the home page and the favourites page already use for
-						 this destination. A third phrase for one place is how a site starts
-						 feeling like several. -->
-					<a
-						href={localePath('/adopt/dog')}
-						class="btn btn--secondary"
-						data-testid="back-to-dogs-link"
-						><Icon name="arrow-left" size="1.1rem" /> {t('featured.browseDogs')}</a
-					>
-
 					{#if siblings}
 						<!-- No wording: the arrows say which way, and the face says who. The
 							 direction is in each link's accessible name instead, so a screen
@@ -193,6 +183,21 @@
 							{@render sibling(siblings.next, false)}
 						</div>
 					{/if}
+
+					<!--
+						Last, and without an arrow.
+
+						The same words the home page and the favourites page already use for this
+						destination — a third phrase for one place is how a site starts feeling
+						like several. No arrow, because the two links above it have just spent
+						two arrows on "sideways"; a third pointing left would be the same symbol
+						meaning "up a level", which is a different thing.
+					-->
+					<a
+						href={localePath('/adopt/dog')}
+						class="btn btn--secondary"
+						data-testid="back-to-dogs-link">{t('featured.browseDogs')}</a
+					>
 				</div>
 			</div>
 

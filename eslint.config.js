@@ -135,17 +135,23 @@ export default defineConfig(
 			],
 			'no-restricted-properties': [
 				'error',
-				{ object: 'window', property: 'localStorage', message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.' },
-				{ object: 'window', property: 'sessionStorage', message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.' }
+				{
+					object: 'window',
+					property: 'localStorage',
+					message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.'
+				},
+				{
+					object: 'window',
+					property: 'sessionStorage',
+					message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.'
+				}
 			]
 		}
 	},
 	{
 		// Сам фасад і міграція — єдині місця, де прямий доступ є реалізацією,
 		// а не обходом (STORAGE-NAMESPACE-v8, Кроки 3 і 4).
-		files: [
-			'src/lib/services/storage.ts'
-		],
+		files: ['src/lib/services/storage.ts'],
 		rules: {
 			'no-restricted-globals': 'off',
 			'no-restricted-properties': 'off'
