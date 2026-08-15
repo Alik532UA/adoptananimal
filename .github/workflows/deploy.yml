@@ -58,6 +58,13 @@ jobs:
         env:
           BASE_PATH: ${{ steps.base.outputs.path }}
 
+      # The only machine check of "a build artefact is not committed"
+      # (VERSIONING-v8 § 1.4). It costs a second and it is the difference between
+      # noticing a generated file on the first push and finding it months later in
+      # every diff, having been re-committed by everyone who ever ran a build.
+      - name: The build leaves tracked files alone
+        run: git diff --exit-code
+
       # Without this step Playwright fails with "Executable doesn't exist".
       - run: npx playwright install --with-deps chromium
 
