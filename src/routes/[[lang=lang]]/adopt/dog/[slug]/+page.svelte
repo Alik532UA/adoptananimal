@@ -358,16 +358,33 @@
 	.detail__aside-actions {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-md);
+		gap: var(--space-sm);
 		margin-top: var(--space-lg);
 	}
 
+	/*
+	 * The three read as one set.
+	 *
+	 * They arrived from three different places — a large button, a default-sized one and
+	 * a pill of my own — so they had three heights, three corner radii and three kinds of
+	 * background. Only the first is a different colour, and that is the one difference
+	 * that means something: it is the thing the page is for.
+	 */
+	.detail__aside-actions .btn,
 	.detail__next {
 		display: flex;
 		align-items: center;
 		gap: var(--space-md);
-		padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-sm);
-		border-radius: var(--radius-full);
+		min-height: 64px;
+		padding: var(--space-sm) var(--space-lg);
+		border-radius: var(--radius-lg);
+		font-size: 1rem;
+	}
+
+	/* The two that are not the main action share a surface, so the accent stands alone. */
+	.detail__aside-actions .btn--secondary,
+	.detail__next {
+		justify-content: center;
 		background: var(--color-bg-card);
 		color: var(--color-text);
 		box-shadow: var(--shadow-sm);
@@ -376,21 +393,29 @@
 			box-shadow var(--transition-normal);
 	}
 
+	.detail__aside-actions .btn--secondary:hover,
+	.detail__next:hover,
+	.detail__next:focus-visible {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-lg);
+		background: var(--color-bg-card-hover);
+		color: var(--color-text);
+	}
+
+	.detail__next {
+		/* The photograph sits inside the same inset as the labels beside it, so all three
+		   start on one vertical line. */
+		justify-content: flex-start;
+	}
+
 	.detail__next :global(.icon-wrapper) {
 		/* Pushed to the end, so the arrow sits at the edge whatever the name's length. */
 		margin-left: auto;
 	}
 
-	.detail__next:hover,
-	.detail__next:focus-visible {
-		transform: translateY(-2px);
-		box-shadow: var(--shadow-lg);
-		color: var(--color-text);
-	}
-
 	.detail__next-thumb {
-		width: 64px;
-		height: 64px;
+		width: 48px;
+		height: 48px;
 		border-radius: 50%;
 		object-fit: cover;
 		flex-shrink: 0;
