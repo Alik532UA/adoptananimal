@@ -41,10 +41,4 @@
 		line-height: 1.8;
 		font-size: 1rem;
 	}
-
-	/*
-	 * A doorway to the next animal, rather than only a way back to the list.
-	 *
-	 * Its own row under the buttons: it is a different kind of thing from "apply" and
-	 * "back", and lined up beside them it read as a third button of equal weight.
 </style>

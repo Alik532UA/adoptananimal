@@ -204,9 +204,9 @@ export const uk = {
 	// Scrollbar modes, offered on the bar's own right-click menu.
 	'scrollbar.title': 'Смуга прокрутки',
 	'scrollbar.standard': 'Стандартна',
-	'scrollbar.custom': 'Власна смуга',
-	'scrollbar.minimap': 'Схематична мінімапа',
-	'scrollbar.minimapFull': 'Візуальна мінімапа',
+	'scrollbar.custom': 'Авторська',
+	'scrollbar.minimap': 'Мінімапа мінімальна',
+	'scrollbar.minimapFull': 'Мінімапа',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Дивитися наступного',

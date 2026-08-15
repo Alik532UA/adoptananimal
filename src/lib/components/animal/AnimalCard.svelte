@@ -142,15 +142,16 @@
 		transition: all var(--transition-spring);
 		text-decoration: none;
 		color: inherit;
-		border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
 		position: relative;
 		height: 100%;
 	}
 
+	/* No outline, on any state: the shadow already separates the card from the page, and
+	   an edge on top of it was one line too many. The hover reads through the lift and
+	   the deeper shadow instead. */
 	.animal-card:hover {
 		transform: translateY(-8px) scale(1.02);
 		box-shadow: var(--shadow-xl);
-		border-color: var(--color-primary);
 	}
 
 	/* Owner's call: the photo stays in colour and the whole card sits at 50%.
@@ -162,7 +163,6 @@
 		opacity: 0.5;
 		background: var(--color-bg-card);
 		box-shadow: var(--shadow-sm);
-		border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
 	}
 
 	.animal-card--adopted:hover,
@@ -170,7 +170,6 @@
 		opacity: 1;
 		transform: translateY(-8px) scale(1.02);
 		box-shadow: var(--shadow-md);
-		border-color: var(--color-success);
 	}
 
 	.animal-card__image {

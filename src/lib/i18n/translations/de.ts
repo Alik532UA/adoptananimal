@@ -207,9 +207,9 @@ export const de = {
 	// Scrollbar modes, offered on the bar's own right-click menu.
 	'scrollbar.title': 'Bildlaufleiste',
 	'scrollbar.standard': 'Standard',
-	'scrollbar.custom': 'Eigene Leiste',
-	'scrollbar.minimap': 'Schematische Minimap',
-	'scrollbar.minimapFull': 'Visuelle Minimap',
+	'scrollbar.custom': 'Eigene',
+	'scrollbar.minimap': 'Minimap minimal',
+	'scrollbar.minimapFull': 'Minimap',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Nächstes Tier ansehen',

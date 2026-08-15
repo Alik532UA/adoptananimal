@@ -31,7 +31,6 @@
 	/** Everything the species decides, decided once. */
 	const listPath = $derived(`/adopt/${kind}`);
 	const listLabel = $derived(kind === 'cat' ? t('breadcrumb.cats') : t('breadcrumb.dogs'));
-	const browseAll = $derived(kind === 'cat' ? t('featured.browseCats') : t('featured.browseDogs'));
 	const heroColour = $derived(kind === 'cat' ? 'var(--cat-hero)' : 'var(--dog-hero)');
 
 	const photo = $derived(absoluteFromRoot(animal.image));

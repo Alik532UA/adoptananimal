@@ -21,7 +21,8 @@ class Settings {
 	/** The language the visitor last chose, used to offer their language on arrival. */
 	preferredLocale = $state<Locale | null>(null);
 
-	style = $state<SiteStyle>('modern');
+	/** Playful by owner's choice; see the theme note below for why that is written here. */
+	style = $state<SiteStyle>('playful');
 	favorites = $state<string[]>([]);
 
 	private themes: Theme[] = ['dark', 'light-green', 'orange-purple', 'winter'];
@@ -31,16 +32,22 @@ class Settings {
 		if (browser) {
 			logService.info('storage', 'Initializing settings via Storage Facade');
 
-			// Theme. The fallback must match the first-frame script in app.html,
-			// otherwise the palette changes once on hydration.
+			/*
+			 * Theme. The fallback must match the first-frame script in app.html, or the
+			 * palette changes once on hydration.
+			 *
+			 * DELIBERATE EXCEPTION, at the owner's request rather than by a developer's
+			 * preference. UI-UX-v8 says the first visit follows prefers-color-scheme, and
+			 * that rule stands — it is right, and it stays in the instructions. This site
+			 * opens on the green theme for everyone, because the owner wants the same first
+			 * impression regardless of what a visitor's operating system happens to be set
+			 * to. It costs the visitor nothing they cannot undo: the theme picker is in the
+			 * header, and whatever they choose is remembered from then on.
+			 *
+			 * Recorded in PROJECT-CONTEXT.md § 4.16.
+			 */
 			const savedTheme = storage.get('theme') as Theme | null;
-			if (savedTheme && this.themes.includes(savedTheme)) {
-				this.theme = savedTheme;
-			} else {
-				this.theme = window.matchMedia('(prefers-color-scheme: dark)').matches
-					? 'dark'
-					: 'light-green';
-			}
+			this.theme = savedTheme && this.themes.includes(savedTheme) ? savedTheme : 'light-green';
 
 			// Seeded from the attribute the server already wrote, before any effect can
 			// run. Starting at the default instead meant hydration briefly stamped
@@ -160,7 +167,7 @@ class Settings {
 		this.theme = 'dark';
 		this.locale = DEFAULT_LOCALE;
 		this.preferredLocale = null;
-		this.style = 'modern';
+		this.style = 'playful';
 		this.favorites = [];
 	}
 

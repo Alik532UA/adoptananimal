@@ -28,13 +28,20 @@ test.describe('the scrollbar modes', () => {
 		await page.goto('/');
 	});
 
-	test('the native bar is what a visitor gets until they ask otherwise', async ({ page }) => {
-		// § 1: none of the three reasons to replace it applies to this site, so the
-		// alternatives are opt-in. A default of anything else would hand every visitor a
-		// bar the project decided it did not need.
+	test('the custom bar is what a visitor gets before they choose', async ({ page }) => {
+		// The owner's default, and a departure from § 1 — recorded in PROJECT-CONTEXT.md
+		// § 4.13. What § 1 actually protects is still true and is what this checks: the
+		// native bar is never hidden with nothing in its place.
+		await expect(page.locator('html')).toHaveClass(/has-custom-scrollbar/);
+		await expect(page.getByTestId('page-scrollbar-container')).toBeVisible();
+		await expect(page.getByTestId('minimap-container')).toHaveCount(0);
+	});
+
+	test('choosing the standard bar gives the native one back', async ({ page }) => {
+		await useMode(page, 'standard');
+
 		await expect(page.locator('html')).not.toHaveClass(/has-custom-scrollbar/);
 		await expect(page.getByTestId('page-scrollbar-container')).toHaveCount(0);
-		await expect(page.getByTestId('minimap-container')).toHaveCount(0);
 
 		const width = await page.evaluate(
 			() => getComputedStyle(document.documentElement).scrollbarWidth
@@ -187,6 +194,10 @@ test.describe('the scrollbar menu', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.setViewportSize(WIDE);
 		await page.goto('/');
+		// These exercise the hardest case: reaching the menu when the bar is the browser's
+		// own and hands the page no events at all. The custom bar has its own contextmenu
+		// handler and needs no trick, so it would test nothing here.
+		await useMode(page, 'standard');
 	});
 
 	/** Right-click the strip at the right edge, where the native bar is drawn. */
@@ -210,11 +221,11 @@ test.describe('the scrollbar menu', () => {
 		}
 
 		// Mutually exclusive options, so a screen reader has to be told which is on.
-		await expect(page.getByTestId('scrollbar-menu-standard-btn')).toHaveAttribute(
+		await expect(page.getByTestId('scrollbar-menu-custom-btn')).toHaveAttribute(
 			'aria-checked',
 			'true'
 		);
-		await expect(page.getByTestId('scrollbar-menu-custom-btn')).toHaveAttribute(
+		await expect(page.getByTestId('scrollbar-menu-standard-btn')).toHaveAttribute(
 			'aria-checked',
 			'false'
 		);

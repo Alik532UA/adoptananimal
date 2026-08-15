@@ -30,9 +30,15 @@
 		labelKey: TranslationKey;
 		icon: 'sparkles' | 'minimal' | 'playful';
 	}[] = [
-		{ id: 'modern', labelKey: 'style.modern', icon: 'sparkles' },
-		{ id: 'minimal', labelKey: 'style.minimal', icon: 'minimal' },
-		{ id: 'playful', labelKey: 'style.playful', icon: 'playful' }
+		/*
+		 * Minimal is deliberately absent from this list, not deleted.
+		 *
+		 * Its stylesheet, its tokens and its handling everywhere else are intact, and
+		 * setting the stored value by hand still applies it — it is simply not offered.
+		 * Removing the code would make bringing it back a rewrite instead of a line.
+		 */
+		{ id: 'playful', labelKey: 'style.playful', icon: 'playful' },
+		{ id: 'modern', labelKey: 'style.modern', icon: 'sparkles' }
 	];
 
 	const themes: {

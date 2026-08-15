@@ -202,9 +202,9 @@ export const nl = {
 	// Scrollbar modes, offered on the bar's own right-click menu.
 	'scrollbar.title': 'Schuifbalk',
 	'scrollbar.standard': 'Standaard',
-	'scrollbar.custom': 'Eigen balk',
-	'scrollbar.minimap': 'Schematische minimap',
-	'scrollbar.minimapFull': 'Visuele minimap',
+	'scrollbar.custom': 'Eigen',
+	'scrollbar.minimap': 'Minimap minimaal',
+	'scrollbar.minimapFull': 'Minimap',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Bekijk de volgende',

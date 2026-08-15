@@ -202,9 +202,9 @@ export const en = {
 	// Scrollbar modes, offered on the bar's own right-click menu.
 	'scrollbar.title': 'Scrollbar',
 	'scrollbar.standard': 'Standard',
-	'scrollbar.custom': 'Custom bar',
-	'scrollbar.minimap': 'Schematic minimap',
-	'scrollbar.minimapFull': 'Visual minimap',
+	'scrollbar.custom': "Author's",
+	'scrollbar.minimap': 'Minimal minimap',
+	'scrollbar.minimapFull': 'Minimap',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'See the next one',

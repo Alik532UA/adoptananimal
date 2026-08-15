@@ -53,15 +53,18 @@
 				const LIGHT = 'light-green';
 				const root = document.documentElement;
 
-				let theme = DARK;
-				let style = 'modern';
+				// The owner's choice, not the system's. See settings.svelte.ts for why this
+				// ignores prefers-color-scheme, and keep the two in step: a mismatch here
+				// changes the palette once on hydration, which is the flicker this script
+				// exists to prevent.
+				let theme = LIGHT;
+				let style = 'playful';
 
 				try {
 					const savedTheme = localStorage.getItem('adoptananimal_theme');
 					const savedStyle = localStorage.getItem('adoptananimal_style');
-					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-					theme = THEMES.includes(savedTheme) ? savedTheme : prefersDark ? DARK : LIGHT;
+					theme = THEMES.includes(savedTheme) ? savedTheme : LIGHT;
 					if (STYLES.includes(savedStyle)) style = savedStyle;
 				} catch {
 					// Storage can be unavailable (private mode, blocked cookies). The defaults
@@ -85,7 +88,7 @@
 				// src/lib/services/scrollbar.svelte.ts, which a script in the document head
 				// cannot import. src/lib/services/scrollbar-canon.test.ts fails if they drift.
 				try {
-					const sb = localStorage.getItem('adoptananimal_scrollbarMode') || 'standard';
+					const sb = localStorage.getItem('adoptananimal_scrollbarMode') || 'custom';
 					const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 					const wide = window.matchMedia('(min-width: 1100px)').matches;
 					if (fine && (sb === 'custom' || ((sb === 'minimap' || sb === 'minimap-full') && wide))) {
