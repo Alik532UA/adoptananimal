@@ -278,14 +278,22 @@
 		.footer__aside .footer__aside-label {
 			transition: opacity var(--transition-slow);
 		}
+	}
 
-		/* :has, because the open state lives inside OrgLogos now. Reaching in for one of
-		   its classes would be the footer knowing how that component is built; asking
-		   whether it is showing anything is a question about what is on screen.
-		   :global around the class it asks about, since it is not this component's and
-		   Svelte would otherwise prune the whole rule as unused. */
-		.footer__content:has(:global(.org-logos--revealing)) .footer__aside .footer__aside-link {
-			opacity: 0.3;
-		}
+	/*
+	 * Whenever a logo is showing its accounts, the rest of the footer steps back.
+	 *
+	 * Two selectors for the two states: a tap sets a class on the component, a hover sets
+	 * nothing at all. :global around both, since neither class is this component's and
+	 * Svelte would otherwise prune the rule as unused; :has rather than reaching in for
+	 * the class, because "is that component showing anything" is a question about what is
+	 * on screen, not about how it is built.
+	 *
+	 * Last in the file on purpose: it has the same specificity as the resting weight set
+	 * inside the media block above, so source order is what decides.
+	 */
+	.footer__content:has(:global(.org-logos--revealing)) .footer__aside .footer__aside-link,
+	.footer__content:has(:global(.org-logos__item:hover)) .footer__aside .footer__aside-link {
+		opacity: 0.5;
 	}
 </style>

@@ -61,7 +61,9 @@ function walk(dir: string, out: string[] = []): string[] {
 	return out;
 }
 
-const specFiles = SEARCH_DIRS.flatMap((dir) => walk(join(ROOT, dir))).map((f) => f.slice(ROOT.length + 1));
+const specFiles = SEARCH_DIRS.flatMap((dir) => walk(join(ROOT, dir))).map((f) =>
+	f.slice(ROOT.length + 1)
+);
 
 describe('файли перевірок', () => {
 	it('перевірка жива: файли перевірок узагалі знайдено', () => {
@@ -77,7 +79,9 @@ describe('файли перевірок', () => {
 		for (const file of specFiles) {
 			const source = withoutComments(readFileSync(join(ROOT, file), 'utf8'));
 			const runner = RUNNERS.find((r) =>
-				new RegExp(`from\\s*['"]${r.imports.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}['"]`).test(source)
+				new RegExp(`from\\s*['"]${r.imports.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}['"]`).test(
+					source
+				)
 			);
 
 			if (!runner) {
@@ -95,7 +99,9 @@ describe('файли перевірок', () => {
 			if (runner.dep === '@playwright/test') {
 				const dir = playwrightTestDir();
 				if (dir && !file.startsWith(`${dir}/`)) {
-					orphans.push(`${file}: під Playwright, але поза testDir «${dir}» — раннер його не бачить`);
+					orphans.push(
+						`${file}: під Playwright, але поза testDir «${dir}» — раннер його не бачить`
+					);
 				}
 			}
 		}

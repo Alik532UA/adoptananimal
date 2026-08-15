@@ -173,6 +173,24 @@
 		transform: scale(1.08);
 	}
 
+	/*
+	 * While one is showing its accounts, the other steps back.
+	 *
+	 * Both ways of asking for it, because they are different states: a tap sets a class,
+	 * a hover sets nothing. Dimming the other rather than shrinking the chosen one — the
+	 * panel belongs to the logo it opened from, and shrinking that one read as the press
+	 * pushing it away.
+	 */
+	.org-logos--revealing .org-logos__item:not(.org-logos__item--active) .org-logos__img {
+		opacity: 0.5;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.org-logos:has(.org-logos__item:hover) .org-logos__item:not(:hover) .org-logos__img {
+			opacity: 0.5;
+		}
+	}
+
 	.org-logos__flyout {
 		position: absolute;
 		/* Above its neighbours. In the mobile menu it opens upward over the call to
@@ -322,17 +340,6 @@
 		.org-logos__social {
 			width: 56px;
 			height: 56px;
-		}
-
-		/*
-		 * The pressed logo keeps its size and its neighbour steps back.
-		 *
-		 * Shrinking the one that was tapped read as the press pushing it away, when the
-		 * panel above it is its own. Dimming the other says the same thing the other way
-		 * round, and reads as focus rather than recoil.
-		 */
-		.org-logos--revealing .org-logos__item:not(.org-logos__item--active) .org-logos__img {
-			opacity: 0.3;
 		}
 	}
 </style>
