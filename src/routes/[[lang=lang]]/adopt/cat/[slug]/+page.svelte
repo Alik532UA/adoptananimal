@@ -396,7 +396,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-sm);
-		margin-top: var(--space-lg);
 	}
 
 	/*
