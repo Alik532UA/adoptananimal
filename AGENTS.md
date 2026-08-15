@@ -68,9 +68,14 @@
 - **Доступність (WCAG 2.2 AA):** семантичний HTML, клавіатурна доступність,
   `aria-label` для кнопок-піктограм, підтримка `prefers-reduced-motion`,
   skip-link у `+layout.svelte`. Автоперевірка — `tests/a11y.spec.ts`.
-- **Тести:** Vitest під `src/`, Playwright — сім файлів у `tests/`
-  (`a11y`, `i18n`, `journey`, `scrollbar`, `testids`, `toast`, `ui`).
-  Playwright спершу робить `build`, тобто перевіряє **зібраний** сайт.
+- **Тести:** Vitest під `src/`, Playwright — девʼять файлів у `tests/`
+  (`a11y`, `fluid-sizing`, `i18n`, `journey`, `scrollbar`, `testids`, `toast`,
+  `touch-targets`, `ui`). Playwright спершу робить `build`, тобто перевіряє
+  **зібраний** сайт.
+- **Вердикт `npm run lint` — це код виходу, а не рядок у виводі.** Скрипт це
+  `prettier --check . && eslint .`; коли падає prettier, ESLint не запускається,
+  і звичного `✖ N problems` у виводі немає взагалі. Тиша тут означає «до лінтера
+  не дійшло», а не «чисто».
 
 ## Команди перевірки
 
