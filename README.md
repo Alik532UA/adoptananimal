@@ -58,10 +58,13 @@ npm run dev
 Доступність тримається на рівні WCAG 2.2 AA і перевіряється автоматично
 (`tests/a11y.spec.ts`).
 
-## Деплой
+## Деплой і адреса
 
-GitHub Pages **ще не налаштовано** для цього репозиторію. `base` не хардкодиться:
-`svelte.config.js` читає `process.env.BASE_PATH ?? ''`.
+GitHub Pages **ще не налаштовано** для цього репозиторію — `gh api repos/Alik532UA/adoptananimal/pages` повертає порожній `html_url`. Живої адреси поки немає.
+
+`base` не хардкодиться: `svelte.config.js` читає `process.env.BASE_PATH ?? ''`, тож проєкт готовий і до спільного домену (`alik532ua.github.io/adoptananimal/`, база `/adoptananimal`), і до власного (база порожня).
+
+Це вигідна позиція, і її варто зберегти: у сусідніх проєктах база вписана константою, і саме через це `as5.odesa.ua` після купівлі домену місяцями показувався системними шрифтами. Перш ніж вибирати адресу — [CUSTOM-DOMAIN-v8.md](../sveltekit-canon/selection_criteria/v8/CUSTOM-DOMAIN-v8.md).
 
 ## Стандарти
 
