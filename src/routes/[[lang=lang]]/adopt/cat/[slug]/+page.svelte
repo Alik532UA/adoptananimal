@@ -23,10 +23,20 @@
 	 * fault rather than as the end of something.
 	 */
 	const next = $derived.by(() => {
-		const all = animalService.cats;
-		const here = all.findIndex((a) => a.slug === animal.slug);
-		if (here === -1 || all.length < 2) return null;
-		return all[(here + 1) % all.length];
+		// Only the ones still looking. Offering someone who already has a home is a
+		// dead end dressed up as a suggestion.
+		const waiting = animalService.cats.filter((a) => !a.isAdopted);
+		if (waiting.length === 0) return null;
+
+		const here = waiting.findIndex((a) => a.slug === animal.slug);
+		/*
+		 * Not in the list means this one has been adopted. Then the first who has not
+		 * is the right answer rather than no answer: a page about an animal who is no
+		 * longer available is exactly where someone needs a way on to one who is.
+		 */
+		if (here === -1) return waiting[0];
+		if (waiting.length < 2) return null;
+		return waiting[(here + 1) % waiting.length];
 	});
 
 	/**
