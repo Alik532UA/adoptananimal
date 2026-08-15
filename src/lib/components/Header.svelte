@@ -7,6 +7,8 @@
 	import { splitLocale } from '$lib/i18n/locales';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import type { IconName } from '$lib/components/ui/icons';
+	import { SIDE_PROJECTS } from '$lib/config';
+	import { ORGANIZATIONS } from '$lib/data/organizations';
 	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
 	import { clamp01, SETTLE_DISTANCE, tabShape } from '$lib/utils/tabWave';
 
@@ -347,6 +349,47 @@
 					{/snippet}
 				</DropdownMenu>
 			</div>
+
+			<!--
+				The footer's own contents, repeated at the foot of the open menu.
+
+				Not a duplicate of the markup: the organisations and the side projects each
+				come from the one module the footer reads. On a phone the menu covers the
+				whole screen, and a visitor who opened it to go somewhere had no way to reach
+				either of those without closing it and scrolling to the bottom of the page.
+			-->
+			<div class="header__nav-footer">
+				<div class="header__nav-orgs">
+					{#each ORGANIZATIONS as org (org.id)}
+						<a
+							href={org.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="header__nav-org"
+							onclick={closeMenu}
+							data-testid="nav-org-{org.id}-link"
+						>
+							<img src={withBase(org.logo)} alt={org.name} class="header__nav-org-img" />
+						</a>
+					{/each}
+				</div>
+
+				<div class="header__nav-projects">
+					{#each SIDE_PROJECTS as project (project.id)}
+						<a
+							href={project.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="header__nav-project"
+							onclick={closeMenu}
+							data-testid="nav-{project.id}-link"
+						>
+							<Icon name={project.icon} size="1.2rem" />
+							<span>{t(project.key)}</span>
+						</a>
+					{/each}
+				</div>
+			</div>
 		</nav>
 
 		<button
@@ -623,6 +666,11 @@
 		color: #ffffff;
 	}
 
+	/* Only ever shown inside the open mobile menu — see the media block below. */
+	.header__nav-footer {
+		display: none;
+	}
+
 	.header__controls {
 		display: flex;
 		align-items: center;
@@ -727,6 +775,50 @@
 			align-items: stretch;
 			gap: var(--space-sm);
 		}
+		.header__nav-footer {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: var(--space-md);
+			/* Pushed to the foot of the panel, which is otherwise empty below the links. */
+			margin-top: auto;
+			padding-top: var(--space-xl);
+			border-top: 1px solid var(--color-border);
+		}
+
+		.header__nav-orgs {
+			display: flex;
+			align-items: center;
+			gap: var(--space-xl);
+		}
+
+		.header__nav-org-img {
+			height: 48px;
+			width: auto;
+			object-fit: contain;
+		}
+
+		.header__nav-projects {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: var(--space-sm);
+		}
+
+		.header__nav-project {
+			display: inline-flex;
+			align-items: center;
+			gap: var(--space-sm);
+			/* WCAG 2.5.8, and a comfortable tap target beside its neighbour. */
+			min-height: 44px;
+			padding: 0 var(--space-md);
+			border-radius: var(--radius-full);
+			background: var(--control-surface);
+			color: var(--color-text);
+			font-size: 0.85rem;
+			font-weight: 700;
+		}
+
 		.header__indicator,
 		.header__wave {
 			display: none;

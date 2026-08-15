@@ -3,95 +3,13 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import { t } from '$lib/i18n';
 	import { handleEmailClick } from '$lib/utils/emailAction';
-	import { CONTACT_EMAIL, SIDE_PROJECTS } from '$lib/config';
+	import { SIDE_PROJECTS } from '$lib/config';
+	import { ORGANIZATIONS, SOCIAL_NAMES } from '$lib/data/organizations';
 
 	let activeOrg = $state<string | null>(null);
 
 	// Proper nouns, so no i18n: these are the accessible names of the icon links,
 	// which previously read out as "inst", "fb", "li".
-	const SOCIAL_NAMES: Record<string, string> = {
-		inst: 'Instagram',
-		fb: 'Facebook',
-		tt: 'TikTok',
-		yt: 'YouTube',
-		li: 'LinkedIn',
-		x: 'X',
-		mail: 'Email'
-	};
-
-	const organizations = [
-		{
-			id: 'notpfote',
-			name: 'Notpfote',
-			url: 'https://notpfote.de/',
-			logo: '/images/logo/adoptananimal_logo_Notpfote.webp',
-			socials: [
-				{
-					id: 'inst',
-					url: 'https://www.instagram.com/notpfote/',
-					icon: '/images/social_media/instagram-se-512-50.png'
-				},
-				{
-					id: 'fb',
-					url: 'https://facebook.com/notpfote',
-					icon: '/images/social_media/facebook-se-512-50.png'
-				},
-				{
-					id: 'tt',
-					url: 'https://tiktok.com/@notpfote',
-					icon: '/images/social_media/TikTok-se-512-50.png'
-				},
-				{
-					id: 'yt',
-					url: 'https://www.youtube.com/@notpfote',
-					icon: '/images/social_media/YouTube-se-512px-50q.png'
-				},
-				{
-					id: 'li',
-					url: 'https://www.linkedin.com/company/notpfoten/',
-					icon: '/images/social_media/linkedin-se-320px-q50.png'
-				},
-				{
-					id: 'mail',
-					url: `mailto:${CONTACT_EMAIL.notpfote}`,
-					icon: '/images/social_media/Gmail_Logo_512px-50q.png'
-				}
-			]
-		},
-		{
-			id: 'vetcrew',
-			name: 'Vet Crew',
-			url: 'https://sites.google.com/view/vetcrew',
-			logo: '/images/logo/adoptananimal_logo_VetCrew.webp',
-			socials: [
-				{
-					id: 'inst',
-					url: 'https://www.instagram.com/vet.crew/',
-					icon: '/images/social_media/instagram-se-512-50.png'
-				},
-				{
-					id: 'fb',
-					url: 'https://www.facebook.com/vet.crew/',
-					icon: '/images/social_media/facebook-se-512-50.png'
-				},
-				{
-					id: 'tt',
-					url: 'https://www.tiktok.com/@vet.crew',
-					icon: '/images/social_media/TikTok-se-512-50.png'
-				},
-				{
-					id: 'x',
-					url: 'https://x.com/crew_vet',
-					icon: '/images/social_media/Twitter-SE-512-50q.png'
-				},
-				{
-					id: 'mail',
-					url: `mailto:${CONTACT_EMAIL.vetcrew}`,
-					icon: '/images/social_media/Gmail_Logo_512px-50q.png'
-				}
-			]
-		}
-	];
 
 	function toggleOrg(id: string, e: MouseEvent) {
 		if (window.innerWidth <= 768) {
@@ -102,10 +20,21 @@
 		}
 	}
 
-	// Collapse the mobile flyout on an outside click. Previously this was an onclick
-	// on <footer> itself, which made a landmark element interactive.
+	/*
+	 * Collapse the mobile fly-out on a click outside it.
+	 *
+	 * The target has to be checked. Without that, the very click that opened the panel
+	 * bubbled up to this listener a moment later and closed it again — the fly-out
+	 * appeared and vanished within one frame, which looks exactly like a tap that did
+	 * nothing at all. It also took the social links with it: pressing one closed the
+	 * panel before the press could land.
+	 */
 	$effect(() => {
-		const close = () => (activeOrg = null);
+		const close = (event: MouseEvent) => {
+			const target = event.target;
+			if (target instanceof Element && target.closest('.footer__org-wrapper')) return;
+			activeOrg = null;
+		};
 		window.addEventListener('click', close);
 		return () => window.removeEventListener('click', close);
 	});
@@ -134,7 +63,7 @@
 
 		<div class="container">
 			<div class="footer__logos">
-				{#each organizations as org (org.id)}
+				{#each ORGANIZATIONS as org (org.id)}
 					<!-- Reveal is CSS-only (:hover and :focus-within); activeOrg covers the
 						 mobile tap-to-reveal, where there is no hover to rely on. -->
 					<div
@@ -295,8 +224,26 @@
 	}
 
 	@media (max-width: 700px) {
+		/*
+		 * One at each edge rather than stacked in the corner.
+		 *
+		 * Two 44px targets in a column need 96px of footer to sit beside, which is height
+		 * this footer was spending on nothing else. Side by side they fit in the row the
+		 * logos already occupy.
+		 */
 		.footer__aside {
 			left: var(--space-sm);
+			right: var(--space-sm);
+			flex-direction: row;
+			justify-content: space-between;
+		}
+
+		.footer__content {
+			padding: var(--space-lg) 0;
+		}
+
+		.footer__logos {
+			padding: var(--space-md) 0;
 		}
 	}
 
@@ -417,25 +364,45 @@
 			padding: var(--space-xl) 0;
 		}
 
-		.footer__social-flyout {
+		/*
+		 * Above the logo rather than beside it, and still in a row.
+		 *
+		 * Sideways there is no room: the two logos sit next to each other and the fly-out
+		 * would open across its neighbour or off the edge of the screen.
+		 */
+		.footer__social-flyout,
+		.footer__org-wrapper--left .footer__social-flyout {
+			/* Both selectors, because the mirrored rule for the left-hand organisation is
+			   more specific than this one and would otherwise keep pulling its fly-out out
+			   to the side — where the row ran off the left edge of the screen. */
 			left: 50%;
-			top: 50%;
-			transform: translate(-50%, -50%);
-			padding-left: 0;
-			width: 0;
-			height: 0;
+			right: auto;
+			top: auto;
+			bottom: 100%;
+			transform: translateX(-50%);
+			flex-direction: row;
+			padding: 0 0 var(--space-sm);
+			/*
+			 * A row, not the circle these used to fan out into. The fan put icons above,
+			 * beside and below the logo at a fixed 80px radius, which on a phone reached
+			 * across the other organisation and past the edge of the screen.
+			 */
+			gap: var(--space-sm);
+			background: var(--color-bg-card);
+			border-radius: var(--radius-full);
+			padding: var(--space-sm);
+			margin-bottom: var(--space-sm);
+			box-shadow: var(--shadow-lg);
 		}
 
-		.footer__org-wrapper--active .footer__social-icon-link {
-			position: absolute;
-			left: 50%;
-			top: 50%;
-			margin-left: -20px;
-			margin-top: -20px;
-			/* Circular Fan logic */
-			--r: 80px;
-			--a: calc(var(--index) * (360deg / 6) - 90deg);
-			transform: translate(calc(cos(var(--a)) * var(--r)), calc(sin(var(--a)) * var(--r))) scale(1);
+		.footer__org-wrapper--left .footer__social-icon-link,
+		.footer__social-icon-link {
+			transform: scale(0);
+		}
+
+		.footer__org-wrapper--active .footer__social-icon-link,
+		.footer__org-wrapper--left.footer__org-wrapper--active .footer__social-icon-link {
+			transform: scale(1);
 		}
 
 		.footer__logo-img {
