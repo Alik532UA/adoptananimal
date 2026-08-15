@@ -8,7 +8,7 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import type { IconName } from '$lib/components/ui/icons';
 	import { SIDE_PROJECTS } from '$lib/config';
-	import { ORGANIZATIONS } from '$lib/data/organizations';
+	import OrgLogos from '$lib/components/OrgLogos.svelte';
 	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
 	import { clamp01, SETTLE_DISTANCE, tabShape } from '$lib/utils/tabWave';
 
@@ -359,19 +359,10 @@
 				either of those without closing it and scrolling to the bottom of the page.
 			-->
 			<div class="header__nav-footer">
+				<!-- The same component the footer uses, so a tap here opens the same panel
+					 of accounts rather than jumping straight to the site. -->
 				<div class="header__nav-orgs">
-					{#each ORGANIZATIONS as org (org.id)}
-						<a
-							href={org.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="header__nav-org"
-							onclick={closeMenu}
-							data-testid="nav-org-{org.id}-link"
-						>
-							<img src={withBase(org.logo)} alt={org.name} class="header__nav-org-img" />
-						</a>
-					{/each}
+					<OrgLogos scope="nav" />
 				</div>
 
 				<div class="header__nav-projects">
@@ -787,21 +778,16 @@
 		}
 
 		.header__nav-orgs {
-			display: flex;
-			align-items: center;
-			gap: var(--space-xl);
-		}
-
-		.header__nav-org-img {
-			height: 48px;
-			width: auto;
-			object-fit: contain;
+			--org-logos-size: 68px;
+			--org-logos-gap: var(--space-2xl);
 		}
 
 		.header__nav-projects {
 			display: flex;
-			flex-wrap: wrap;
-			justify-content: center;
+			/* One at each edge rather than side by side in the middle, which is where the
+			   same two sit in the footer. */
+			justify-content: space-between;
+			align-self: stretch;
 			gap: var(--space-sm);
 		}
 

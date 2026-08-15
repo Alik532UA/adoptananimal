@@ -1192,7 +1192,9 @@ test.describe('the mobile menu', () => {
 		await page.setViewportSize(MOBILE);
 		await page.goto('/');
 
-		const logos = await page.$$eval('.footer__logos .footer__logo-img', (imgs) =>
+		// Scoped to the footer: the same component is in the mobile menu now, so an
+		// unscoped selector would find four logos and compare two of them across it.
+		const logos = await page.$$eval('.footer__orgs .org-logos__img', (imgs) =>
 			imgs.map((el) => {
 				const r = el.getBoundingClientRect();
 				return { x: Math.round(r.x), y: Math.round(r.y) };

@@ -1,56 +1,14 @@
 <script lang="ts">
-	import { withBase } from '$lib/utils/withBase';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import OrgLogos from '$lib/components/OrgLogos.svelte';
 	import { t } from '$lib/i18n';
-	import { handleEmailClick } from '$lib/utils/emailAction';
 	import { SIDE_PROJECTS } from '$lib/config';
-	import { ORGANIZATIONS, SOCIAL_NAMES } from '$lib/data/organizations';
-
-	let activeOrg = $state<string | null>(null);
 
 	// Proper nouns, so no i18n: these are the accessible names of the icon links,
 	// which previously read out as "inst", "fb", "li".
-
-	/**
-	 * First tap reveals the socials, second follows the link.
-	 *
-	 * matchMedia, not window.innerWidth. innerWidth counts the classic scrollbar and the
-	 * media query does not, so between the two there is a band about fifteen pixels wide
-	 * where the fly-out was laid out for a phone and the script still thought it was on a
-	 * desktop — the tap fell straight through to the link and opened the site, which is
-	 * exactly what it looked like. The breakpoint is written once, here and in the CSS,
-	 * and this is the form that agrees with the CSS.
-	 */
-	function toggleOrg(id: string, e: MouseEvent) {
-		if (!window.matchMedia('(max-width: 768px)').matches) return;
-		// Never follows the link on a phone: the logo is the way in and out of the panel,
-		// and a second tap that navigated away meant there was no way to close it. Going
-		// to the site is its own button inside the panel.
-		e.preventDefault();
-		activeOrg = activeOrg === id ? null : id;
-	}
-
-	/*
-	 * Collapse the mobile fly-out on a click outside it.
-	 *
-	 * The target has to be checked. Without that, the very click that opened the panel
-	 * bubbled up to this listener a moment later and closed it again — the fly-out
-	 * appeared and vanished within one frame, which looks exactly like a tap that did
-	 * nothing at all. It also took the social links with it: pressing one closed the
-	 * panel before the press could land.
-	 */
-	$effect(() => {
-		const close = (event: MouseEvent) => {
-			const target = event.target;
-			if (target instanceof Element && target.closest('.footer__org-wrapper')) return;
-			activeOrg = null;
-		};
-		window.addEventListener('click', close);
-		return () => window.removeEventListener('click', close);
-	});
 </script>
 
-<footer class="footer" class:footer--revealing={activeOrg !== null}>
+<footer class="footer">
 	<div class="footer__content">
 		<!-- Two links to the shelter's other sites. Icons only, and barely there until
 			 someone comes down here — see .footer__aside in the styles. -->
@@ -72,62 +30,10 @@
 		</div>
 
 		<div class="container">
-			<div class="footer__logos">
-				{#each ORGANIZATIONS as org (org.id)}
-					<!-- Reveal is CSS-only (:hover and :focus-within); activeOrg covers the
-						 mobile tap-to-reveal, where there is no hover to rely on. -->
-					<div
-						class="footer__org-wrapper"
-						class:footer__org-wrapper--active={activeOrg === org.id}
-						class:footer__org-wrapper--left={org.id === 'notpfote'}
-					>
-						<a
-							href={org.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="footer__org-link"
-							onclick={(e) => toggleOrg(org.id, e)}
-							data-testid={`footer-org-${org.id}-link`}
-						>
-							<img src={withBase(org.logo)} alt={org.name} class="footer__logo-img" />
-						</a>
-
-						<div class="footer__social-flyout">
-							<!-- Phone only: with hover there is no panel to be stuck in, and the
-							 logo itself is the link. -->
-							<a
-								href={org.url}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="footer__visit-site"
-								data-testid="footer-org-{org.id}-site-link"
-							>
-								{t('footer.openSite')}
-							</a>
-							{#each org.socials as social, i (social.id)}
-								<a
-									href={social.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="footer__social-icon-link"
-									style="--index: {i}"
-									onclick={(e) =>
-										social.url.startsWith('mailto:')
-											? handleEmailClick(e, social.url.slice('mailto:'.length))
-											: undefined}
-									title="{org.name} — {SOCIAL_NAMES[social.id] ?? social.id}"
-									data-testid="footer-org-{org.id}-{social.id}-link"
-								>
-									<img
-										src={withBase(social.icon)}
-										alt="{org.name} — {SOCIAL_NAMES[social.id] ?? social.id}"
-										class="footer__social-icon"
-									/>
-								</a>
-							{/each}
-						</div>
-					</div>
-				{/each}
+			<!-- The logos are the footer's own size and spacing; the component owns
+				 everything else about them. -->
+			<div class="footer__orgs">
+				<OrgLogos scope="footer" />
 			</div>
 		</div>
 	</div>
@@ -137,6 +43,13 @@
 	.footer {
 		position: relative;
 		margin-top: var(--space-xl);
+	}
+
+	.footer__orgs {
+		--org-logos-size: 80px;
+		--org-logos-gap: var(--space-4xl);
+		min-height: 100px;
+		padding: var(--space-2xl) 0;
 	}
 
 	.footer__content {
@@ -287,227 +200,38 @@
 			padding: var(--space-lg) 0;
 		}
 
-		.footer__logos {
+		.footer__orgs {
+			--org-logos-size: 60px;
+			--org-logos-gap: var(--space-xl);
+			min-height: 0;
 			padding: var(--space-md) 0;
 		}
 	}
 
-	.footer__logos {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: var(--space-4xl);
-		min-height: 100px;
-	}
-
-	.footer__org-wrapper {
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
-
-	.footer__org-link {
-		position: relative;
-		z-index: 2;
-		display: block;
-		transition: transform var(--transition-normal);
-	}
-
-	.footer__logo-img {
-		max-height: 80px;
-		width: auto;
-		filter: brightness(0);
-		opacity: 0.8;
-		transition: all var(--transition-normal);
-	}
-
-	:global([data-theme='dark']) .footer__logo-img {
-		filter: brightness(0) invert(1);
-	}
-
-	.footer__org-wrapper:hover .footer__logo-img,
-	.footer__org-wrapper--active .footer__logo-img {
-		opacity: 1;
-		filter: none !important;
-	}
-
-	.footer__social-flyout {
-		position: absolute;
-		left: 100%;
-		top: 50%;
-		transform: translateY(-50%);
-		display: flex;
-		gap: var(--space-sm);
-		padding-left: var(--space-md);
-		opacity: 0;
-		pointer-events: none;
-		transition: all var(--transition-normal);
-	}
-
-	.footer__org-wrapper:hover .footer__social-flyout,
-	.footer__org-wrapper:focus-within .footer__social-flyout,
-	.footer__org-wrapper--active .footer__social-flyout {
-		opacity: 1;
-		pointer-events: auto;
-	}
-
-	/* Mirrored Direction for Notpfote (Left) */
-	.footer__org-wrapper--left .footer__social-flyout {
-		left: auto;
-		right: 100%;
-		padding-left: 0;
-		padding-right: var(--space-md);
-		flex-direction: row-reverse;
-	}
-
-	.footer__org-wrapper--left .footer__social-icon-link {
-		transform: scale(0) translateX(20px);
-	}
-
-	.footer__org-wrapper--left:hover .footer__social-icon-link,
-	.footer__org-wrapper--left:focus-within .footer__social-icon-link,
-	.footer__org-wrapper--left.footer__org-wrapper--active .footer__social-icon-link {
-		transform: scale(1) translateX(0);
-	}
-
-	.footer__social-icon-link {
-		display: block;
-		width: 32px;
-		height: 32px;
-		transition: all var(--transition-spring);
-		transform: scale(0) translateX(-20px);
-		transition-delay: calc(var(--index) * 0.05s);
-	}
-
-	.footer__org-wrapper:hover .footer__social-icon-link,
-	.footer__org-wrapper:focus-within .footer__social-icon-link,
-	.footer__org-wrapper--active .footer__social-icon-link {
-		transform: scale(1) translateX(0);
-	}
-
-	.footer__social-icon-link:hover {
-		transform: scale(1.15) !important;
-	}
-
-	/* Shown only inside the fly-out on a phone — see the media block below. */
-	.footer__visit-site {
-		display: none;
-	}
-
-	.footer__social-icon {
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-	}
-
-	@media (max-width: 1024px) {
-		.footer__logos {
-			gap: var(--space-2xl);
-		}
-	}
-
 	@media (max-width: 768px) {
-		.footer__logos {
-			/* Side by side, as on every other width. Stacked, the two organisations read as
-			   a list of one thing after another rather than as the pair they are. */
-			gap: var(--space-xl);
-			padding: var(--space-xl) 0;
-		}
-
 		/*
-		 * Above the logo rather than beside it, and still in a row.
+		 * One weight, and one a finger can find.
 		 *
-		 * Sideways there is no room: the two logos sit next to each other and the fly-out
-		 * would open across its neighbour or off the edge of the screen.
-		 */
-		.footer__social-flyout,
-		.footer__org-wrapper--left .footer__social-flyout {
-			/* Both selectors, because the mirrored rule for the left-hand organisation is
-			   more specific than this one and would otherwise keep pulling its fly-out out
-			   to the side — where the row ran off the left edge of the screen. */
-			left: 50%;
-			right: auto;
-			top: auto;
-			bottom: 100%;
-			transform: translateX(-50%);
-			flex-direction: row;
-			padding: 0 0 var(--space-sm);
-			/*
-			 * A row, not the circle these used to fan out into. The fan put icons above,
-			 * beside and below the logo at a fixed 80px radius, which on a phone reached
-			 * across the other organisation and past the edge of the screen.
-			 */
-			gap: var(--space-sm);
-			background: var(--color-bg-card);
-			/* Two rows now, so a pill is the wrong shape. */
-			border-radius: var(--radius-lg);
-			flex-wrap: wrap;
-			justify-content: center;
-			padding: var(--space-sm);
-			margin-bottom: var(--space-sm);
-			box-shadow: var(--shadow-lg);
-		}
-
-		/* A line of its own above the icons: first in the markup, and full width, so the
-		   row of socials wraps underneath it. */
-		.footer__visit-site {
-			display: block;
-			flex-basis: 100%;
-			padding: 8px 14px;
-			border-radius: var(--radius-md);
-			background: var(--color-primary);
-			color: var(--color-text-on-accent);
-			font-size: 0.85rem;
-			font-weight: 700;
-			text-align: center;
-			white-space: nowrap;
-		}
-
-		.footer__org-wrapper--left .footer__social-icon-link,
-		.footer__social-icon-link {
-			transform: scale(0);
-		}
-
-		.footer__org-wrapper--active .footer__social-icon-link,
-		.footer__org-wrapper--left.footer__org-wrapper--active .footer__social-icon-link {
-			transform: scale(1);
-		}
-
-		.footer__logo-img {
-			max-height: 60px;
-		}
-
-		/*
-		 * The pressed logo stays its own size; everything else in the footer steps back.
-		 *
-		 * Shrinking the one that was tapped said the wrong thing — it looked like the
-		 * press had pushed it away, when the panel above it belongs to it. Dimming its
-		 * neighbours says the same thing the other way round, and reads as focus rather
-		 * than as recoil.
-		 */
-		.footer--revealing .footer__org-wrapper:not(.footer__org-wrapper--active) .footer__logo-img,
-		.footer--revealing .footer__aside .footer__aside-link {
-			opacity: 0.3;
-		}
-
-		/*
-		 * And a resting opacity a finger can find.
-		 *
-		 * The ladder these climb — 0.1 on the page, 0.5 in the footer, 1 under the pointer
-		 * — is built on hover, which a phone does not have. Left at 0.1 they were a control
-		 * nobody could reveal, so they sit at a visible weight here and step back to 0.3
-		 * only while a panel is open, which is the whole point of the dimming.
+		 * The ladder these climb — 0.1 on the page, 0.5 in the footer, 0.8 beside the one
+		 * being pointed at, 1 under it — is built entirely on hover, which a phone does
+		 * not have. There it collapsed to the bottom rung and left a control nobody could
+		 * reveal, so on a phone they simply hold 80% and step back only while a panel is
+		 * open.
 		 *
 		 * Written through .footer__aside so it outweighs the hover rules, which are more
 		 * specific than a bare .footer__aside-link.
 		 */
 		.footer__aside .footer__aside-link {
-			opacity: 0.6;
+			opacity: 0.8;
 		}
 
-		.footer__social-icon-link {
-			width: 40px;
-			height: 40px;
+		/* :has, because the open state lives inside OrgLogos now. Reaching in for one of
+		   its classes would be the footer knowing how that component is built; asking
+		   whether it is showing anything is a question about what is on screen.
+		   :global around the class it asks about, since it is not this component's and
+		   Svelte would otherwise prune the whole rule as unused. */
+		.footer__content:has(:global(.org-logos--revealing)) .footer__aside .footer__aside-link {
+			opacity: 0.3;
 		}
 	}
 </style>
