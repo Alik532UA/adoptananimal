@@ -90,14 +90,12 @@
  * purple. The defaults below are the pair each theme already declares for a secondary
  * surface; the blocks after them are where a theme asked for something else.
  *
- * --plate-umber is not from any one palette. It is the amber itself taken down to a
- * text weight, so it sits on the plate as a shade of it rather than beside it — which
- * is what the brand colours could not do there: --color-primary measures 1.20:1 on the
- * amber in Dark and 1.68:1 in Winter, and both read as sharp next to it rather than
- * related to it. 6.45:1.
+ * Where a literal appears it is because the palette had nothing that works here. Each
+ * one is its theme's own hue taken down to a text weight, not a colour borrowed from
+ * somewhere warmer: the brand colours are chosen against the theme's page background
+ * and measure 1.20:1 on the amber in Dark and 1.68:1 in Winter.
  */
 [data-style='playful'] {
-	--plate-umber: #5c2c08;
 	--plate-title: var(--color-text-on-secondary);
 	--plate-title-hover: var(--color-primary);
 }
@@ -112,17 +110,23 @@
 	--plate-title-hover: var(--color-text-on-secondary);
 }
 
-/* Winter reads warm at rest and cools under the pointer, which is the theme's own
-   navy — the foreground the plate would otherwise take. */
+/*
+ * Winter reads as glacier at rest and settles into the theme's own deep navy under the
+ * pointer. The teal is the cold end of this palette carried down far enough to hold on
+ * the amber — 5.31:1 — and far enough from that navy for the change to be plain.
+ */
 [data-theme='winter'][data-style='playful'] {
-	--plate-title: var(--plate-umber);
+	--plate-title: #0f4c5c;
 	--plate-title-hover: var(--color-text-on-secondary);
 }
 
-/* Dark keeps its deep green title; the umber is what the pointer does to it. Warm
-   against cool, so the change is plain without anything getting brighter. */
+/*
+ * Dark keeps its deep forest title and lifts to moss under the pointer: the same green
+ * carried up rather than swapped for another hue, so it reads as the text catching
+ * light. 4.82:1, against 7.4:1 at rest.
+ */
 [data-theme='dark'][data-style='playful'] {
-	--plate-title-hover: var(--plate-umber);
+	--plate-title-hover: #2d5522;
 }
 
 [data-style='playful'] .section__title {
