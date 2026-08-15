@@ -51,6 +51,20 @@ html {
 	-webkit-font-smoothing: antialiased;
 
 	/*
+	 * No grey flash behind a tap.
+	 *
+	 * WebKit and Chromium paint a translucent box over whatever was touched, and on
+	 * anything with rounded corners it is a rectangle over a pill. Declared once here
+	 * because the property inherits, so every control gets it rather than the handful
+	 * someone remembers.
+	 *
+	 * It removes only that flash. Focus rings are a different property and stay, and
+	 * every button here already answers a press with :active — nothing loses its
+	 * feedback, only the rectangle goes.
+	 */
+	-webkit-tap-highlight-color: transparent;
+
+	/*
 	 * SCROLLBAR-v8 § 1: the native bar, repainted. Not replaced.
 	 *
 	 * A custom bar is worth its cost only if the project needs one of three things the
