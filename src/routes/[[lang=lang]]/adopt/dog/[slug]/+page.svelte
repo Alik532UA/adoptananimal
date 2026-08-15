@@ -116,15 +116,55 @@
 						<Icon name="dog" size="10rem" />
 					</div>
 				</div>
-				{#if !animal.isAdopted}
+				<!--
+					Every way off this page, in one place under the photograph.
+					They used to be spread over two: two buttons here and two more below a
+					story long enough that nobody who had read it could still see these.
+				-->
+				<div class="detail__aside-actions">
+					{#if !animal.isAdopted}
+						<a
+							href={localePath(`/apply?animal=${animal.name}`)}
+							class="btn btn--primary btn--lg detail__apply-btn"
+							data-testid="apply-top-link"
+						>
+							{t('detail.applyAdoption')}
+						</a>
+					{/if}
+
 					<a
-						href={localePath(`/apply?animal=${animal.name}`)}
-						class="btn btn--accent btn--lg detail__apply-btn"
-						data-testid="apply-top-link"
+						href={localePath('/adopt/dog')}
+						class="btn btn--secondary"
+						data-testid="back-to-dogs-link"
+						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backDogs')}</a
 					>
-						{t('detail.applyAdoption')}
-					</a>
-				{/if}
+
+					{#if next}
+						<!-- The face is the point: a name alone says nothing about who is next,
+							 and the thumbnail is the reason to press it. -->
+						<a
+							class="detail__next"
+							href={localePath(`/adopt/dog/${next.slug}`)}
+							data-testid="next-animal-link"
+						>
+							<img
+								class="detail__next-thumb"
+								src={withBase(next.image)}
+								alt=""
+								loading="lazy"
+								decoding="async"
+								width="64"
+								height="64"
+								style={next.imagePosition ? `object-position: ${next.imagePosition}` : undefined}
+							/>
+							<span class="detail__next-text">
+								<span class="detail__next-label">{t('detail.nextAnimal')}</span>
+								<span class="detail__next-name">{next.name}</span>
+							</span>
+							<Icon name="arrow-right" size="1.2rem" />
+						</a>
+					{/if}
+				</div>
 			</div>
 
 			<div class="detail__info">
@@ -166,48 +206,6 @@
 						<p class="detail__story-text">{paragraph}</p>
 					{/each}
 				</div>
-
-				<div class="detail__actions">
-					{#if !animal.isAdopted}
-						<a
-							href={localePath(`/apply?animal=${animal.name}`)}
-							class="btn btn--primary btn--lg"
-							data-testid="apply-bottom-link">{t('detail.applyBtn')}</a
-						>
-					{/if}
-					<a
-						href={localePath('/adopt/dog')}
-						class="btn btn--secondary"
-						data-testid="back-to-dogs-link"
-						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backDogs')}</a
-					>
-				</div>
-
-				{#if next}
-					<!-- The face is the point: a name alone says nothing about who is next, and
-						 the thumbnail is the reason to press it. -->
-					<a
-						class="detail__next"
-						href={localePath(`/adopt/dog/${next.slug}`)}
-						data-testid="next-animal-link"
-					>
-						<img
-							class="detail__next-thumb"
-							src={withBase(next.image)}
-							alt=""
-							loading="lazy"
-							decoding="async"
-							width="64"
-							height="64"
-							style={next.imagePosition ? `object-position: ${next.imagePosition}` : undefined}
-						/>
-						<span class="detail__next-text">
-							<span class="detail__next-label">{t('detail.nextAnimal')}</span>
-							<span class="detail__next-name">{next.name}</span>
-						</span>
-						<Icon name="arrow-right" size="1.2rem" />
-					</a>
-				{/if}
 			</div>
 		</div>
 	</div>
@@ -357,11 +355,17 @@
 	 * Its own row under the buttons: it is a different kind of thing from "apply" and
 	 * "back", and lined up beside them it read as a third button of equal weight.
 	 */
-	.detail__next {
-		display: inline-flex;
-		align-items: center;
+	.detail__aside-actions {
+		display: flex;
+		flex-direction: column;
 		gap: var(--space-md);
 		margin-top: var(--space-lg);
+	}
+
+	.detail__next {
+		display: flex;
+		align-items: center;
+		gap: var(--space-md);
 		padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-sm);
 		border-radius: var(--radius-full);
 		background: var(--color-bg-card);
@@ -370,6 +374,11 @@
 		transition:
 			transform var(--transition-spring),
 			box-shadow var(--transition-normal);
+	}
+
+	.detail__next :global(.icon-wrapper) {
+		/* Pushed to the end, so the arrow sits at the edge whatever the name's length. */
+		margin-left: auto;
 	}
 
 	.detail__next:hover,
@@ -402,14 +411,6 @@
 		font-family: var(--font-accent);
 		font-weight: 900;
 		font-size: 1.1rem;
-	}
-
-	.detail__actions {
-		display: flex;
-		gap: var(--space-md);
-		flex-wrap: wrap;
-		padding-top: var(--space-lg);
-		border-top: none;
 	}
 
 	.detail__apply-btn {
