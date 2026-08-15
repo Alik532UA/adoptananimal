@@ -54,7 +54,7 @@ const config = {
 				'script-src': ['self', ...inlineScriptHashes],
 				'style-src': ['self', 'unsafe-inline', 'https://fonts.googleapis.com'],
 				'font-src': ['self', 'https://fonts.gstatic.com'],
-				'img-src': ['self', 'data:', 'https://www.transparenttextures.com'],
+				'img-src': ['self', 'data:'],
 				'connect-src': ['self'],
 				// The embedded application form. Without this the iframe is blocked and the
 				// page shows an empty box with nothing in the console to explain it.
