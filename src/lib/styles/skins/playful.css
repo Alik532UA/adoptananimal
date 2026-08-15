@@ -82,15 +82,53 @@
 	border-color: transparent;
 }
 
+/*
+ * What the plated title is written in, at rest and under the pointer.
+ *
+ * The plate is --color-secondary, and what reads on it is a per-theme answer rather
+ * than one token: three themes make that a light amber and Vibrant makes it a dark
+ * purple. The defaults below are the pair each theme already declares for a secondary
+ * surface; the blocks after them are where a theme asked for something else.
+ *
+ * --plate-umber is not from any one palette. It is the amber itself taken down to a
+ * text weight, so it sits on the plate as a shade of it rather than beside it — which
+ * is what the brand colours could not do there: --color-primary measures 1.20:1 on the
+ * amber in Dark and 1.68:1 in Winter, and both read as sharp next to it rather than
+ * related to it. 6.45:1.
+ */
+[data-style='playful'] {
+	--plate-umber: #5c2c08;
+	--plate-title: var(--color-text-on-secondary);
+	--plate-title-hover: var(--color-primary);
+}
+
+/*
+ * Green wears the two the other way round, on the owner's call: the brand green is the
+ * title and the near-black is what the pointer does to it. It costs contrast — 3.51:1
+ * against the 8.4:1 it replaces — and is recorded in PROJECT-CONTEXT.md § 4.17.
+ */
+[data-theme='light-green'][data-style='playful'] {
+	--plate-title: var(--color-primary);
+	--plate-title-hover: var(--color-text-on-secondary);
+}
+
+/* Winter reads warm at rest and cools under the pointer, which is the theme's own
+   navy — the foreground the plate would otherwise take. */
+[data-theme='winter'][data-style='playful'] {
+	--plate-title: var(--plate-umber);
+	--plate-title-hover: var(--color-text-on-secondary);
+}
+
+/* Dark keeps its deep green title; the umber is what the pointer does to it. Warm
+   against cool, so the change is plain without anything getting brighter. */
+[data-theme='dark'][data-style='playful'] {
+	--plate-title-hover: var(--plate-umber);
+}
+
 [data-style='playful'] .section__title {
 	transform: rotate(-1.5deg);
-	/* The plate is the *secondary*, so the foreground has to be the one chosen for the
-	   secondary. --color-text-on-accent belongs to --color-primary and only looked
-	   right here by luck: three themes make the secondary a light amber and pair the
-	   primary with something dark. Vibrant makes it a dark purple, and the same
-	   foreground came out at 1.71:1 — dark on dark. */
 	background: var(--color-secondary);
-	color: var(--color-text-on-secondary);
+	color: var(--plate-title);
 	display: block;
 	width: fit-content;
 	margin: 0 auto var(--space-xl);

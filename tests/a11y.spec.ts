@@ -56,24 +56,21 @@ const settlePage = (page: import('@playwright/test').Page) =>
 	);
 
 /**
- * The two things the owner has decided to keep at a contrast the audit would reject.
+ * The one thing the owner has decided to keep at a contrast the audit would reject.
  *
  * Cards for animals that already found a home render at 50% opacity — greyscale read
  * as mourning for a happy outcome — and half-transparent text does not reach 4.5:1
- * whatever colours sit underneath. Bounded: they are at most a tenth of the carousel,
- * they are not the path to anything, and hovering or focusing one brings it back to
- * full opacity. PROJECT-CONTEXT.md § 4.11.
+ * whatever colours sit underneath. The trade is deliberate and bounded: they are at
+ * most a tenth of the carousel, they are not the path to anything, and hovering or
+ * focusing one brings it back to full opacity. PROJECT-CONTEXT.md § 4.11.
  *
- * The plated section title carries the brand colour on the amber plate in Green and
- * Winter — 3.51:1 and 1.68:1, where the foregrounds they replaced were 8.4:1 and
- * 7.6:1. Bounded the same way: one heading, on one page, whose words are repeated as
- * prose in the paragraph directly beneath it. PROJECT-CONTEXT.md § 4.17.
- *
- * Both are written as exclusions rather than a loosened threshold, so each is visible
- * in the diff the day the decision behind it changes — and so nothing else drifts out
- * of range unnoticed in the meantime.
+ * It is written as an exclusion rather than a loosened threshold, so it is visible in
+ * the diff the day that decision changes — and so nothing else drifts out of range
+ * unnoticed in the meantime. The plated section title was on this list for one commit
+ * and came off it: the colours it was excluded for have been replaced by ones that
+ * measure.
  */
-const OWNER_EXCEPTIONS = ['.animal-card--adopted', '.about .section__title'];
+const OWNER_EXCEPTIONS = ['.animal-card--adopted'];
 
 /** Someone else's document: axe cannot audit across the origin boundary, and what is
  *  inside is not ours to fix. */

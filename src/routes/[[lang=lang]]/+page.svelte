@@ -221,36 +221,13 @@
 		font-size: clamp(0.8rem, 5.2cqi, 2.5rem);
 	}
 
-	.about .section__title:hover {
-		color: var(--color-primary);
-	}
-
 	/*
-	 * Green and Winter wear the two the other way round: the brand colour is the title,
-	 * and the near-black is what the pointer does to it.
-	 *
-	 * Both on the owner's call, and both cost contrast rather than being free. The plate
-	 * is --color-secondary — a light amber — and the brand colour on it measures 3.51:1
-	 * in Green and 1.68:1 in Winter, against 8.4:1 and 7.6:1 for the foregrounds they
-	 * replace. Winter's is the same number the Vibrant title was reported for, in the
-	 * other direction: light on light instead of dark on dark. Recorded in
-	 * PROJECT-CONTEXT.md § 4.17.
-	 *
-	 * Dark is not on the list, and would be worse still if it were: 1.20:1.
-	 *
-	 * Only the playful skin, because it is the only one that puts the title on a plate
-	 * at all; anywhere else the brand colour would be sitting on the page background.
+	 * On a plate the answer is per-theme and comes from the playful skin, which is the
+	 * only place a plate exists; anywhere else the title sits on the page background and
+	 * the brand colour is right, as it always was.
 	 */
-	:global(:is([data-theme='light-green'], [data-theme='winter'])[data-style='playful'])
-		.about
-		.section__title {
-		color: var(--color-primary);
-	}
-
-	:global(:is([data-theme='light-green'], [data-theme='winter'])[data-style='playful'])
-		.about
-		.section__title:hover {
-		color: var(--color-text-on-secondary);
+	.about .section__title:hover {
+		color: var(--plate-title-hover, var(--color-primary));
 	}
 
 	.about .section__title::after {
