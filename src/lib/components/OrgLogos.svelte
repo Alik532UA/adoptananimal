@@ -332,9 +332,16 @@
 
 		/* A line of its own under the accounts, spanning both columns. */
 		.org-logos__site {
-			display: block;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			grid-column: 1 / -1;
 			width: 100%;
+			/* 10px of padding around a 0.9rem line came to 43px — one pixel under the
+			   44 this project holds itself to on touch (ACCESSIBILITY-v8 § 8). The
+			   floor states the target size instead of leaving it to the sum of the
+			   font metrics, which change with the language. */
+			min-height: 44px;
 			padding: 10px 14px;
 			border-radius: var(--radius-md);
 			background: var(--color-primary);
