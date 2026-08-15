@@ -379,6 +379,12 @@
 	 * The whole section, not a band of fixed height. A band ends in the middle of
 	 * whatever it lands on, and a colour that stops halfway down a row of cards reads as
 	 * a rendering fault. Ending at the section boundary reads as a decision.
+	 *
+	 * No opt-out, and one was tried: the home page was let out of this on the reasoning
+	 * that the band covered the theme's background photograph. It is the band that is
+	 * wanted there. The photograph is still the ground for everything below the carousel,
+	 * and the band is what the tab needs somewhere to land — on the home page most of all,
+	 * because there the active item is the wordmark and the tab is at the far left.
 	 */
 	.main > :global(:first-child) {
 		background-color: var(--cat-hero);

@@ -127,6 +127,7 @@ export const en = {
 	'a11y.toggleTheme': 'Toggle theme',
 	'a11y.toggleStyle': 'Change site style',
 	'a11y.toggleLanguage': 'Select language',
+	'a11y.switchLanguage': 'Switch the site to {language}',
 	'error.generic': 'An unexpected error occurred. Please try again later.',
 	'error.notFound.title': 'Page Not Found',
 	'error.server.title': 'Server Error',

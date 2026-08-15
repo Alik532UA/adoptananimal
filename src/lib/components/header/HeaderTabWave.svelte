@@ -68,6 +68,45 @@
 		window.addEventListener('resize', measureIndicator);
 		return () => window.removeEventListener('resize', measureIndicator);
 	});
+
+	/*
+	 * Measured again on any change to the bar, not only on a change of address.
+	 *
+	 * Which item is active is derived from the pathname *and* the locale — HeaderNavLinks
+	 * compares the URL against `localePath(href)`, and that reads the locale. On a language
+	 * change the two arrive a beat apart: for one render the new `/uk/adopt/cat` is matched
+	 * against the old locale's `/adopt/cat`, nothing is active, and the wave correctly hides
+	 * itself. Then the locale catches up, the active item comes back — and the wave does
+	 * not, because the only thing it was watching had already finished changing. It stayed
+	 * hidden for as long as the page was open, which left the current tab as pale text on
+	 * pale ground.
+	 *
+	 * Watching the bar itself needs no list of the reasons its contents can move: the
+	 * favourites count appearing beside its label widens that tab too, and a webfont
+	 * arriving late rewidths all of them.
+	 */
+	$effect(() => {
+		if (!container) return;
+
+		const observer = new MutationObserver((records) => {
+			// The wave is drawn inside the bar, so its own output is a change to the bar.
+			// Ignoring those keeps the callback from feeding itself.
+			const ownDoing = records.every((record) =>
+				(record.target as Element).parentElement?.closest?.('.header__indicator')
+			);
+			if (!ownDoing) measureIndicator();
+		});
+
+		observer.observe(container, {
+			subtree: true,
+			childList: true,
+			characterData: true,
+			attributes: true,
+			attributeFilter: ['class']
+		});
+
+		return () => observer.disconnect();
+	});
 </script>
 
 {#if indicatorVisible}

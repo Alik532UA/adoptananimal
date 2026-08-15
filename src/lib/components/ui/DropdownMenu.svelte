@@ -155,6 +155,12 @@
 		>
 			{#each items as item (item.id)}
 				{#if item.href}
+					<!--
+						data-sveltekit-noscroll: a menu item changes a setting, and the address
+						it navigates to is an implementation detail of how that setting is
+						stored. Choosing a language halfway down the page used to answer by
+						throwing the reader back to the top of it.
+					-->
 					<a
 						class="dropdown__item"
 						class:dropdown__item--active={item.active}
@@ -162,6 +168,7 @@
 						hreflang={item.hreflang}
 						onclick={() => onselect(item.id)}
 						role="menuitem"
+						data-sveltekit-noscroll
 						data-testid="{testId}-option-{item.id}-link"
 					>
 						{@render itemVisual?.(item)}

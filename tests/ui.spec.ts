@@ -355,6 +355,10 @@ test.describe('the header meets the page', () => {
 
 	// Every page, not only the ones that happen to open with a hero. This is the whole
 	// point of painting the band in the layout: the header draws its tab everywhere.
+	//
+	// The home page is on this list and stays on it. It was taken off once, to let the
+	// theme's background photograph show through the carousel; the band is what is wanted
+	// there, and the photograph is still the ground for the rest of the page.
 	for (const path of ['/', '/favorites', '/adopt/cat', '/adopt/dog', '/apply']) {
 		test(`the active tab lands in a band of its own colour on ${path}`, async ({ page }) => {
 			await page.goto(path);
@@ -366,6 +370,23 @@ test.describe('the header meets the page', () => {
 			expect(wave, `the tab is drawn in ${wave} over a band of ${band}`).toBe(band);
 		});
 	}
+
+	/**
+	 * The photograph the theme is built around is still visible, band or no band.
+	 *
+	 * It is the ground for everything below the opening section, and losing it is the way
+	 * this rule goes wrong: an earlier attempt at that worry took the band off the home
+	 * page altogether, which removed the wrong one of the two.
+	 */
+	test('the page still stands on the theme’s photograph', async ({ page }) => {
+		await page.goto('/');
+		await page.waitForLoadState('networkidle');
+
+		const photograph = await page.evaluate(
+			() => getComputedStyle(document.querySelector('.site-bg')!).backgroundImage
+		);
+		expect(photograph, 'nothing behind the page at all').toContain('.webp');
+	});
 
 	test('the colour runs to the end of the section, not to a fixed depth', async ({ page }) => {
 		await page.goto('/');
@@ -660,20 +681,31 @@ test.describe('surfaces that should not hide the page', () => {
 });
 
 test.describe('animals and their photographs', () => {
-	/** Every card, paired with the file its <img> actually points at. */
+	/**
+	 * Every card, paired with the file its <img> actually points at.
+	 *
+	 * `data-src` first: imageQueue.ts holds photos to three downloads at a time and takes
+	 * `src` off the ones still waiting, parking the served value there. It is read in
+	 * preference to `src` rather than as a fallback, because it is the URL the document
+	 * arrived with — which is the one this test is about. The queue writes `src` from the
+	 * component's own props, so a card that hydration had paired with the wrong photo
+	 * would have that quietly corrected underneath it and the bug would go unseen.
+	 */
 	const cards = (page: import('@playwright/test').Page) =>
 		page.$$eval('.animal-card', (els) =>
-			els.map((el) => ({
-				slug: el.id.replace('card-', ''),
-				file:
-					el
-						.querySelector('.animal-card__photo')
-						?.getAttribute('src')
-						?.split('/')
-						.pop()
-						?.replace(/^(cat|dog)_/, '')
-						.replace(/\.\w+$/, '') ?? null
-			}))
+			els.map((el) => {
+				const photo = el.querySelector('.animal-card__photo');
+				const source = photo?.getAttribute('data-src') ?? photo?.getAttribute('src');
+				return {
+					slug: el.id.replace('card-', ''),
+					file:
+						source
+							?.split('/')
+							.pop()
+							?.replace(/^(cat|dog)_/, '')
+							.replace(/\.\w+$/, '') ?? null
+				};
+			})
 		);
 
 	/*

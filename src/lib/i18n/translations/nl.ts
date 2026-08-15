@@ -127,6 +127,7 @@ export const nl = {
 	'a11y.toggleTheme': 'Thema omschakelen',
 	'a11y.toggleStyle': 'Websitestijl wijzigen',
 	'a11y.toggleLanguage': 'Taal selecteren',
+	'a11y.switchLanguage': 'Schakel de site over naar {language}',
 	'error.generic': 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.',
 	'error.notFound.title': 'Pagina niet gevonden',
 	'error.server.title': 'Serverfout',

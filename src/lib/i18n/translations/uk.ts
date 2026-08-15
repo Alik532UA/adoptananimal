@@ -127,6 +127,7 @@ export const uk = {
 	'a11y.toggleTheme': 'Змінити тему',
 	'a11y.toggleStyle': 'Змінити стиль сайту',
 	'a11y.toggleLanguage': 'Вибрати мову',
+	'a11y.switchLanguage': 'Перемкнути сайт на {language}',
 	'error.generic': 'Сталася неочікувана помилка. Спробуйте пізніше.',
 	'error.notFound.title': 'Сторінку не знайдено',
 	'error.server.title': 'Помилка сервера',

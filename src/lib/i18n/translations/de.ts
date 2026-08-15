@@ -130,6 +130,7 @@ export const de = {
 	'a11y.toggleTheme': 'Thema umschalten',
 	'a11y.toggleStyle': 'Webseitenstil ändern',
 	'a11y.toggleLanguage': 'Sprache auswählen',
+	'a11y.switchLanguage': 'Website auf {language} umstellen',
 	'error.generic':
 		'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später noch einmal.',
 	'error.notFound.title': 'Seite nicht gefunden',

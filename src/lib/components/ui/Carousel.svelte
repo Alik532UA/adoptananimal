@@ -337,6 +337,41 @@
 		width: 100%;
 		display: flex;
 		align-items: center;
+
+		/*
+		 * How much room the cards' shadows get inside the scroller, above and below.
+		 *
+		 * `overflow-x: auto` cannot be paired with `overflow-y: visible` — the spec
+		 * resolves the visible one to `auto` — so the track clips top and bottom whether
+		 * it wants to or not, and the only room a shadow has is the padding around the
+		 * cards. Sixteen pixels of it, and the shadow ended in a straight line across
+		 * every card.
+		 *
+		 * These numbers are measured, not derived, and the derivation is why: a shadow's
+		 * declared reach — offset plus blur plus spread — is not how far it paints. The
+		 * blur is a Gaussian with a deviation of half the radius, so it keeps fading for
+		 * about half the radius again beyond that. The hover shadow is `0 25px 50px -12px`
+		 * and computes to 63px of reach; on screen, with a ruler against it, it is still
+		 * visible at 90. A first attempt at this reserved 64 and looked fixed until you
+		 * hovered a card.
+		 *
+		 * Uneven because the shadow falls downwards: below is where it needs the room.
+		 */
+		--shadow-room-top: 56px;
+		--shadow-room-bottom: 96px;
+
+		/*
+		 * How far the scroller is allowed to stick out past the box that pauses the drift.
+		 *
+		 * The room above is bought with a negative margin, and a negative margin does not
+		 * shrink the element — it only hides the growth from the layout. Whatever sticks
+		 * out is still the scroller, still a descendant of the box whose mouseenter stops
+		 * the carousel, so it is also dead space that stops the carousel for a pointer
+		 * nowhere near a card. Taking back less than was reserved leaves the difference as
+		 * ordinary spacing, which is the honest way to pay for the rest.
+		 */
+		--overhang-top: 24px;
+		--overhang-bottom: 48px;
 	}
 
 	.carousel-viewport {
@@ -348,6 +383,9 @@
 		/* Priority to horizontal scroll for touch */
 		touch-action: pan-x;
 		scroll-behavior: auto; /* Managed by JS for auto, smooth for buttons */
+		/* Part of the room is taken back out of the layout; the rest stays as the gap
+		   between the cards and what sits above and below them. See --overhang-* above. */
+		margin-block: calc(var(--overhang-top) * -1) calc(var(--overhang-bottom) * -1);
 	}
 
 	.carousel-viewport::-webkit-scrollbar {
@@ -362,7 +400,7 @@
 	.carousel-content {
 		display: flex;
 		gap: var(--space-lg);
-		padding: var(--space-md) var(--space-lg);
+		padding: var(--shadow-room-top) var(--space-lg) var(--shadow-room-bottom);
 	}
 
 	.nav-btn {
@@ -409,7 +447,8 @@
 		}
 		.carousel-content {
 			gap: var(--space-md);
-			padding: var(--space-md) 0;
+			/* Only the sides go: the room above and below is what the shadows live in. */
+			padding-inline: 0;
 		}
 	}
 

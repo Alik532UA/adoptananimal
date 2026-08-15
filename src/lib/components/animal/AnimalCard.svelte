@@ -3,6 +3,7 @@
 	import type { Animal } from '$lib/data/animals';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
+	import { queuedPhoto } from '$lib/services/imageQueue';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
 	interface Props {
@@ -14,6 +15,9 @@
 	let { animal, priority = false }: Props = $props();
 
 	let imageFailed = $state(false);
+	/** Whole and decoded, which is when the fade below is allowed to start. */
+	let imageLoaded = $state(false);
+	let photo = $derived(withBase(animal.image));
 	let typeUrl = $derived(animal.type === 'cat' ? 'cat' : 'dog');
 </script>
 
@@ -35,17 +39,31 @@
 			</div>
 		{/if}
 		{#if !imageFailed}
+			<!--
+				`src` is written into the prerendered HTML and then taken away again on the
+				client, rather than being withheld until a script asks for it: a crawler and a
+				scripting-free visitor read the markup as it was served, and only a browser
+				running this component ever hands the loading over to the queue.
+			-->
 			<img
-				src={withBase(animal.image)}
+				src={photo}
 				alt="{t('a11y.animalPhoto')} {animal.name}"
 				class="animal-card__photo"
+				class:animal-card__photo--loaded={imageLoaded}
 				style={animal.imagePosition ? `object-position: ${animal.imagePosition}` : undefined}
-				onerror={() => (imageFailed = true)}
+				onerror={(event) => {
+					// The queue takes `src` away while a photo waits its turn. A browser that
+					// reports that as an error is not reporting a broken picture, and swapping
+					// in the fallback glyph there would be permanent.
+					if (!event.currentTarget.getAttribute('src')) return;
+					imageFailed = true;
+				}}
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}
 				decoding={priority ? 'sync' : 'async'}
 				width="400"
 				height="400"
+				{@attach queuedPhoto(photo, priority, () => (imageLoaded = true))}
 			/>
 		{/if}
 		<div class="animal-card__emoji" style={imageFailed ? '' : 'display: none;'} aria-hidden="true">
@@ -129,13 +147,24 @@
 </a>
 
 <style>
+	/*
+	 * No backdrop-filter here, and it is not an oversight.
+	 *
+	 * --color-bg-card is an opaque hex in all four themes (#ffffff, #2a2a2a, #261742,
+	 * #ffffff), and the card's own background paints over the whole border-box on top
+	 * of whatever the filter produced. The blur was therefore invisible in every theme
+	 * — while still costing an effect node per card, and the featured carousel holds
+	 * seventy-four of them because the track is cloned for the seamless wrap.
+	 *
+	 * The one skin that gives the card a translucent background, `minimal`, declares
+	 * its own blur alongside it in skins/minimal.css. That is where the rule belongs:
+	 * with the background that makes it visible.
+	 */
 	.animal-card {
 		display: flex;
 		flex-direction: column;
 		background: var(--color-bg-card);
 		opacity: 1;
-		-webkit-backdrop-filter: blur(var(--glass-blur));
-		backdrop-filter: blur(var(--glass-blur));
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		box-shadow: var(--shadow-md);
@@ -386,7 +415,30 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+		transition:
+			transform 0.8s cubic-bezier(0.2, 1, 0.3, 1),
+			opacity 2s ease-out;
+	}
+
+	/*
+	 * Nothing until the whole photograph is there, then two seconds of fade.
+	 *
+	 * A card that fills in line by line, or snaps from empty to complete, is what a
+	 * carousel of ten simultaneous downloads looked like. imageQueue.ts holds the
+	 * downloads to three at a time and reveals each one only once it has decoded; this
+	 * is the other half of that — the gradient behind the photo stands in until then.
+	 *
+	 * Behind [data-js], the attribute app.html sets before the first paint, because
+	 * without a script nothing would ever add the class that brings the photo back and
+	 * the page would be a grid of empty cards. Reduced motion is already handled: the
+	 * global rule in app.css cuts every transition to nothing.
+	 */
+	:global([data-js]) .animal-card__photo {
+		opacity: 0;
+	}
+
+	:global([data-js]) .animal-card__photo--loaded {
+		opacity: 1;
 	}
 
 	.animal-card:hover .animal-card__photo {

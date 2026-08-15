@@ -4,10 +4,34 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Carousel from '$lib/components/ui/Carousel.svelte';
-	import { t } from '$lib/i18n';
+	import { t, tFormat, type TranslationKey } from '$lib/i18n';
+	import { settings, type Locale } from '$lib/services/settings.svelte';
 	import { interleaveByType, limitAdopted } from '$lib/utils/interleave';
 
 	let { data } = $props();
+
+	/**
+	 * The countries an animal can be sent to, and the language each flag switches into.
+	 *
+	 * The flags illustrate the sentence above them, so they are ordered by that sentence
+	 * rather than by language. Austria has no locale of its own: `de` owns both flags,
+	 * which is the same pairing the header's language menu already makes — see the
+	 * `locales` list in HeaderControls.svelte, and keep the two in step.
+	 *
+	 * The native name, not a translated one. A language offers itself in its own words;
+	 * a reader who cannot read the current language is exactly who this is for.
+	 */
+	const countries: {
+		flag: string;
+		nameKey: TranslationKey;
+		locale: Locale;
+		language: string;
+	}[] = [
+		{ flag: 'uk', nameKey: 'country.ua', locale: 'uk', language: 'Українська' },
+		{ flag: 'de', nameKey: 'country.de', locale: 'de', language: 'Deutsch' },
+		{ flag: 'at', nameKey: 'country.at', locale: 'de', language: 'Deutsch' },
+		{ flag: 'nl', nameKey: 'country.nl', locale: 'nl', language: 'Nederlands' }
+	];
 
 	/**
 	 * The order the build produced, reshuffled once this is running in a browser.
@@ -111,19 +135,37 @@
 
 		<div class="about__note glass-card">
 			<div class="about__note-visual">
+				<!--
+					Links, not decoration. A visitor who recognises their flag reaches for it
+					before they find the picker in the header, and until now nothing happened.
+
+					A real href rather than a click handler, for the same reason the header's
+					language menu uses one: it can be opened in a new tab, a crawler can follow
+					it, and it works before hydration. `setLocale` on top of the navigation
+					records the choice, which is what makes the site keep offering that
+					language on the next visit.
+
+					The accessible name states the action, because that is what a link
+					announces; the country the flag depicts stays in the image's alt.
+				-->
 				<div class="about__flags">
-					<div class="about__flag-wrapper">
-						<img src={withBase('/images/flags/uk.svg')} alt={t('country.ua')} class="about__flag" />
-					</div>
-					<div class="about__flag-wrapper">
-						<img src={withBase('/images/flags/de.svg')} alt={t('country.de')} class="about__flag" />
-					</div>
-					<div class="about__flag-wrapper">
-						<img src={withBase('/images/flags/at.svg')} alt={t('country.at')} class="about__flag" />
-					</div>
-					<div class="about__flag-wrapper">
-						<img src={withBase('/images/flags/nl.svg')} alt={t('country.nl')} class="about__flag" />
-					</div>
+					{#each countries as country (country.flag)}
+						<a
+							class="about__flag-wrapper"
+							href={localePath('/', country.locale)}
+							hreflang={country.locale}
+							aria-label={tFormat('a11y.switchLanguage', { language: country.language })}
+							onclick={() => settings.setLocale(country.locale)}
+							data-sveltekit-noscroll
+							data-testid="about-flag-{country.flag}-link"
+						>
+							<img
+								src={withBase(`/images/flags/${country.flag}.svg`)}
+								alt={t(country.nameKey)}
+								class="about__flag"
+							/>
+						</a>
+					{/each}
 				</div>
 			</div>
 			<div class="about__note-content">
@@ -296,7 +338,10 @@
 		width: 110px;
 	}
 
+	/* `display: block` because this is an anchor now: left inline, the image would sit on
+	   a text baseline and leave a strip of descender space inside the rounded corners. */
 	.about__flag-wrapper {
+		display: block;
 		overflow: hidden;
 		border-radius: 4px;
 		box-shadow: var(--shadow-sm);
@@ -383,9 +428,26 @@
 		}
 	}
 
+	/*
+	 * The section gives up exactly as much padding as the carousel took for its shadows.
+	 *
+	 * The scroller reserves room inside itself for the cards' shadows and only takes part
+	 * of it back with a negative margin — see --shadow-room-* and --overhang-* in
+	 * Carousel.svelte. What is left over is real spacing, and it landed on top of the
+	 * spacing that was already here: the gap above the cards went from 64px to 80 and the
+	 * gap below from 64 to 96. Both are back to 64, and the section is the height it was
+	 * before the shadows had anywhere to go.
+	 *
+	 * So these two numbers are not free to change on their own. They are the other half of
+	 * a sum, and the first half lives in Carousel.svelte.
+	 */
+	.featured {
+		padding-top: var(--space-xl);
+	}
+
 	.featured__footer {
 		text-align: center;
-		margin-top: var(--space-2xl);
+		margin-top: var(--space-md);
 		display: flex;
 		justify-content: center;
 		gap: var(--space-lg);
