@@ -45,8 +45,9 @@
 		labelKey: TranslationKey;
 		icon: 'moon' | 'sun' | 'idea' | 'winter';
 	}[] = [
-		{ id: 'dark', labelKey: 'theme.dark', icon: 'moon' },
+		// The one the site opens in leads the list; the rest are alternatives to it.
 		{ id: 'light-green', labelKey: 'theme.light-green', icon: 'sun' },
+		{ id: 'dark', labelKey: 'theme.dark', icon: 'moon' },
 		{ id: 'orange-purple', labelKey: 'theme.orange-purple', icon: 'idea' },
 		{ id: 'winter', labelKey: 'theme.winter', icon: 'winter' }
 	];

@@ -56,23 +56,33 @@ const settlePage = (page: import('@playwright/test').Page) =>
 	);
 
 /**
- * Cards for animals that already found a home are excluded from the contrast audit.
+ * The two things the owner has decided to keep at a contrast the audit would reject.
  *
- * They render at 50% opacity by the owner's decision — greyscale read as mourning
- * for a happy outcome — and half-transparent text does not reach 4.5:1 whatever
- * colours sit underneath. The trade is deliberate and bounded: they are at most a
- * tenth of the carousel, they are not the path to anything, and hovering or focusing
- * one brings it back to full opacity. Recorded in PROJECT-CONTEXT.md § 4.11.
+ * Cards for animals that already found a home render at 50% opacity — greyscale read
+ * as mourning for a happy outcome — and half-transparent text does not reach 4.5:1
+ * whatever colours sit underneath. Bounded: they are at most a tenth of the carousel,
+ * they are not the path to anything, and hovering or focusing one brings it back to
+ * full opacity. PROJECT-CONTEXT.md § 4.11.
  *
- * The exclusion is written here rather than the check being loosened, so it is
- * visible in the diff the day someone changes that decision.
+ * The plated section title carries the brand colour on the amber plate in Green and
+ * Winter — 3.51:1 and 1.68:1, where the foregrounds they replaced were 8.4:1 and
+ * 7.6:1. Bounded the same way: one heading, on one page, whose words are repeated as
+ * prose in the paragraph directly beneath it. PROJECT-CONTEXT.md § 4.17.
+ *
+ * Both are written as exclusions rather than a loosened threshold, so each is visible
+ * in the diff the day the decision behind it changes — and so nothing else drifts out
+ * of range unnoticed in the meantime.
  */
+const OWNER_EXCEPTIONS = ['.animal-card--adopted', '.about .section__title'];
+
+/** Someone else's document: axe cannot audit across the origin boundary, and what is
+ *  inside is not ours to fix. */
+const NOT_OURS = 'iframe';
+
 const audit = (page: import('@playwright/test').Page) =>
 	new AxeBuilder({ page })
-		.exclude('.animal-card--adopted')
-		// Someone else's document: axe cannot audit across the origin boundary, and
-		// what is inside is not ours to fix.
-		.exclude('iframe')
+		.exclude(OWNER_EXCEPTIONS)
+		.exclude(NOT_OURS)
 		.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
 		.analyze();
 
@@ -110,8 +120,8 @@ for (const theme of THEMES) {
 			expect(await page.getAttribute('html', 'data-theme')).toBe(theme);
 
 			const results = await new AxeBuilder({ page })
-				.exclude('.animal-card--adopted')
-				.exclude('iframe')
+				.exclude(OWNER_EXCEPTIONS)
+				.exclude(NOT_OURS)
 				.withTags(['wcag2aa'])
 				.analyze();
 			const contrast = results.violations.filter((v) => v.id === 'color-contrast');
@@ -160,8 +170,8 @@ for (const style of STYLES) {
 			expect(await page.getAttribute('html', 'data-theme')).toBe(theme);
 
 			const results = await new AxeBuilder({ page })
-				.exclude('.animal-card--adopted')
-				.exclude('iframe')
+				.exclude(OWNER_EXCEPTIONS)
+				.exclude(NOT_OURS)
 				.withTags(['wcag2aa'])
 				.analyze();
 
@@ -234,11 +244,12 @@ test('a dropdown can be operated and left with the keyboard alone', async ({ pag
 	await page.goto('/adopt/cat');
 
 	await page.getByTestId('theme-toggle-btn').click();
-	// Focus moves into the menu, so the arrow keys have somewhere to start.
-	await expect(page.getByTestId('theme-option-dark-btn')).toBeFocused();
+	// Focus moves into the menu, so the arrow keys have somewhere to start. First in the
+	// list is the theme the site opens in.
+	await expect(page.getByTestId('theme-option-light-green-btn')).toBeFocused();
 
 	await page.keyboard.press('ArrowDown');
-	await expect(page.getByTestId('theme-option-light-green-btn')).toBeFocused();
+	await expect(page.getByTestId('theme-option-dark-btn')).toBeFocused();
 
 	await page.keyboard.press('End');
 	await expect(page.getByTestId('theme-option-winter-btn')).toBeFocused();
