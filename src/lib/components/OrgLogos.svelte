@@ -283,7 +283,17 @@
 			gap: var(--space-lg);
 			padding: var(--space-lg);
 			margin-bottom: var(--space-sm);
-			background: var(--color-bg-card);
+			/*
+			 * A step away from the card colour, not the card colour itself.
+			 *
+			 * This panel opens over surfaces that are already --color-bg-card — the footer's
+			 * own glass, the mobile menu — so painting it the same made it legible and
+			 * impossible to see as a separate thing. --control-surface-hover is the card
+			 * stepped toward the text by a fixed amount, so the separation is identical in
+			 * all four themes and the hue cannot drift.
+			 */
+			background: var(--control-surface-hover);
+			border: 1px solid var(--color-border);
 			/* Two rows now, so a pill is the wrong shape. */
 			border-radius: var(--radius-lg);
 			box-shadow: var(--shadow-lg);

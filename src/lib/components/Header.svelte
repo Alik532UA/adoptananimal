@@ -801,17 +801,19 @@
 		/*
 		 * Panels that open inside the menu get a surface of their own.
 		 *
-		 * The menu is --color-bg-card and so were both of them, so a dropdown or the
-		 * accounts panel appearing over it was the same colour as what it opened over —
-		 * legible, and impossible to see as a separate thing. --control-surface-hover is
-		 * the card colour stepped toward the text by a fixed amount, so the separation is
-		 * the same in all four themes and can only ever be the same hue.
+		 * The menu is --color-bg-card and so was the dropdown, so one opening over it was
+		 * the same colour as what it opened over — legible, and impossible to see as a
+		 * separate thing. --control-surface-hover is the card colour stepped toward the
+		 * text by a fixed amount, so the separation is the same in all four themes and can
+		 * only ever be the same hue.
 		 *
-		 * :global, because both classes belong to child components; scoped to .header__nav
-		 * so it changes nothing where those panels open over the page instead.
+		 * Only the dropdown. The accounts panel carries the same surface itself now, since
+		 * it opens over a card-coloured background in the footer as well.
+		 *
+		 * :global, because the class belongs to a child component; scoped to .header__nav
+		 * so it changes nothing where that dropdown opens over the page instead.
 		 */
-		.header__nav :global(.dropdown__menu),
-		.header__nav :global(.org-logos__flyout) {
+		.header__nav :global(.dropdown__menu) {
 			background: var(--control-surface-hover);
 			border: 1px solid var(--color-border);
 		}
