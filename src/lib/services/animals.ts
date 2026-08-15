@@ -74,13 +74,6 @@ class AnimalService {
 	}
 
 	/**
-	 * Resets service state (not strictly needed for this read-only service but follows v6 standard).
-	 */
-	reset() {
-		// Nothing to reset for now as allAnimals is static
-	}
-
-	/**
 	 * Returns summaries of all animals marked as favorite.
 	 */
 	getFavorites(): AnimalSummary[] {

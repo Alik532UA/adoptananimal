@@ -160,17 +160,6 @@ class Settings {
 		}
 	}
 
-	/**
-	 * Resets all settings to their initial values.
-	 */
-	reset() {
-		this.theme = 'dark';
-		this.locale = DEFAULT_LOCALE;
-		this.preferredLocale = null;
-		this.style = 'playful';
-		this.favorites = [];
-	}
-
 	isFavorite(slug: string) {
 		return this.favorites.includes(slug);
 	}

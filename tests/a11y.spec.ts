@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { baselineFor, knownFor } from './a11y-baseline';
 
 /**
  * axe over the built site. Contrast in particular cannot be checked by reading CSS:
@@ -90,7 +91,28 @@ for (const path of PAGES) {
 		await settlePage(page);
 
 		const results = await audit(page);
-		expect(results.violations.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
+
+		/*
+		 * Two assertions, not one, and the order matters.
+		 *
+		 * The ids first: a violation type we have never seen fails the run even if
+		 * the total is still under the limit. A bare count would swallow it — one
+		 * old violation fixed and one new one introduced nets to zero.
+		 *
+		 * Then the count, as a ceiling that only ever comes down. See
+		 * ./a11y-baseline.ts for why this is not `toEqual([])`.
+		 */
+		const report = results.violations.map((v) => `${v.id}: ${v.nodes.length} node(s)`).join('\n');
+
+		const ids = [...new Set(results.violations.map((v) => v.id))].sort();
+		expect(ids, `${path}: violation type that is not in the baseline\n${report}`).toEqual(
+			knownFor(path)
+		);
+
+		expect(
+			results.violations.length,
+			`${path}: more violations than the baseline allows\n${report}`
+		).toBeLessThanOrEqual(baselineFor(path));
 	});
 }
 
