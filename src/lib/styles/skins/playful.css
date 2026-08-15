@@ -84,8 +84,13 @@
 
 [data-style='playful'] .section__title {
 	transform: rotate(-1.5deg);
+	/* The plate is the *secondary*, so the foreground has to be the one chosen for the
+	   secondary. --color-text-on-accent belongs to --color-primary and only looked
+	   right here by luck: three themes make the secondary a light amber and pair the
+	   primary with something dark. Vibrant makes it a dark purple, and the same
+	   foreground came out at 1.71:1 — dark on dark. */
 	background: var(--color-secondary);
-	color: var(--color-text-on-accent);
+	color: var(--color-text-on-secondary);
 	display: block;
 	width: fit-content;
 	margin: 0 auto var(--space-xl);

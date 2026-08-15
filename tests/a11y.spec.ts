@@ -8,6 +8,7 @@ import { expect, test } from '@playwright/test';
  */
 
 const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'] as const;
+const STYLES = ['modern', 'minimal', 'playful'] as const;
 const PAGES = ['/', '/adopt/cat', '/adopt/cat/basti', '/apply', '/apply/form', '/favorites'];
 
 /**
@@ -119,6 +120,57 @@ for (const theme of THEMES) {
 				contrast.flatMap((v) =>
 					v.nodes.map((n) => `${theme} ${path}: ${n.target} — ${n.failureSummary}`)
 				)
+			).toEqual([]);
+		});
+	}
+}
+
+/*
+ * Every skin as well, not only every theme.
+ *
+ * The same blind spot one step along. The sweep above varies the theme and leaves the
+ * skin wherever it was, so a rule that exists in one skin alone was never measured at
+ * all: playful puts the section title on a plate of --color-secondary and took the
+ * foreground meant for --color-primary. That reads as deliberate in the three themes
+ * whose secondary is a light amber, and it came out at 1.71:1 — dark purple on dark
+ * purple — in the one whose secondary is not.
+ *
+ * The home page alone, because it carries both of the things a skin repaints, the
+ * plated title and the badges on the cards; three skins over six pages is a sweep
+ * nobody would keep waiting for.
+ */
+for (const style of STYLES) {
+	for (const theme of THEMES) {
+		test(`style ${style} keeps contrast within WCAG AA in theme ${theme}`, async ({ page }) => {
+			await page.goto('/');
+			await page.evaluate(
+				([s, t]) => {
+					localStorage.setItem('adoptananimal_style', s);
+					localStorage.setItem('adoptananimal_theme', t);
+				},
+				[style, theme] as const
+			);
+			await page.reload();
+			await page.waitForLoadState('networkidle');
+			await settlePage(page);
+
+			// Both, because a skin that failed to apply would leave the default one in
+			// place and the audit would quietly pass on a page it never tested.
+			expect(await page.getAttribute('html', 'data-style')).toBe(style);
+			expect(await page.getAttribute('html', 'data-theme')).toBe(theme);
+
+			const results = await new AxeBuilder({ page })
+				.exclude('.animal-card--adopted')
+				.exclude('iframe')
+				.withTags(['wcag2aa'])
+				.analyze();
+
+			expect(
+				results.violations
+					.filter((v) => v.id === 'color-contrast')
+					.flatMap((v) =>
+						v.nodes.map((n) => `${style}/${theme}: ${n.target} — ${n.failureSummary}`)
+					)
 			).toEqual([]);
 		});
 	}

@@ -223,9 +223,12 @@
 	color: var(--color-text-on-accent);
 }
 
+/* The same pairing as .btn--accent above, for the same reason: a secondary surface
+   takes the secondary's own foreground. With the accent one this was 1.79:1 on the
+   default theme's amber and 1.71:1 on Vibrant's purple. */
 .badge--dog {
 	background: var(--color-secondary);
-	color: var(--color-text-on-accent);
+	color: var(--color-text-on-secondary);
 }
 
 .text-danger {
