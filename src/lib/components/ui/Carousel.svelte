@@ -140,6 +140,9 @@
 	function handleMouseDown(e: MouseEvent) {
 		if (!viewport) return;
 		isDragging = true;
+		// Cleared here as well as on release, so a value left behind by a gesture that
+		// never ended cannot outlive the next press.
+		isMoved = false;
 		startX = e.pageX - viewport.offsetLeft;
 		startScrollLeft = viewport.scrollLeft;
 		startInteraction();
@@ -160,6 +163,7 @@
 	}
 
 	function handleMouseUp() {
+		if (!isDragging) return;
 		isDragging = false;
 		if (viewport) viewport.style.cursor = 'grab';
 		stopInteraction();
@@ -242,6 +246,23 @@
 	});
 </script>
 
+<!--
+	The release is heard on the window, not on the track.
+
+	Press a card and drag, and the browser starts its own drag of the link or the image
+	inside it — at which point mousemove and mouseup stop arriving here entirely. The
+	track was told the gesture had begun and never told it had ended: isDragging stayed
+	true, and isMoved with it, and isMoved is what the click handler below uses to swallow
+	the click that ends a drag. So every click inside the carousel was cancelled from then
+	on, for as long as the page was open. On the home page the carousel is most of the
+	first screen, so the whole page looked frozen.
+
+	Two fixes, because either alone leaves a hole: the window ends the gesture wherever the
+	button is released, and dragstart is refused so the browser's own drag never takes the
+	events away in the first place.
+-->
+<svelte:window onmouseup={handleMouseUp} onblur={handleMouseUp} />
+
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <!-- Pointer and focus handlers pause auto-scroll (WCAG 2.2.2 Pause, Stop, Hide).
 	 Arrow keys are handled here because keydown bubbles up from the nav buttons,
@@ -283,7 +304,7 @@
 		onmousedown={handleMouseDown}
 		onmousemove={handleMouseMove}
 		onmouseup={handleMouseUp}
-		onmouseleave={handleMouseUp}
+		ondragstart={(e) => e.preventDefault()}
 	>
 		<div class="carousel-track" bind:this={content}>
 			<div class="carousel-content">

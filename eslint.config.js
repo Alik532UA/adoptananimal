@@ -149,9 +149,23 @@ export default defineConfig(
 		}
 	},
 	{
-		// Сам фасад і міграція — єдині місця, де прямий доступ є реалізацією,
-		// а не обходом (STORAGE-NAMESPACE-v8, Кроки 3 і 4).
-		files: ['src/lib/services/storage.ts'],
+		// Три категорії, і кожна законна за самим каноном:
+		//   1. Фасад — тут прямий доступ Є реалізацією (Крок 3).
+		//   2. Модуль міграції — читає ключі БЕЗ префікса, і це єдине легальне
+		//      місце, де так можна (Крок 4). Лежить у services/ або utils/
+		//      залежно від проєкту, тому шаблон без шляху.
+		//   3. Тести фасаду й e2e — вони мусять читати й засівати сирі ключі,
+		//      інакше нічим довести, що префікс справді додається.
+		files: [
+			'src/lib/services/storage.ts',
+			'src/lib/services/storage/**',
+			'src/lib/config/storage.ts',
+			'**/storageMigration.ts',
+			'**/storage.test.ts',
+			'**/storage.spec.ts',
+			'tests/**',
+			'e2e/**'
+		],
 		rules: {
 			'no-restricted-globals': 'off',
 			'no-restricted-properties': 'off'
