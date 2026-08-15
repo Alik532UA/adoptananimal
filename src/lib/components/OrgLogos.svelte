@@ -79,17 +79,6 @@
 			</a>
 
 			<div class="org-logos__flyout">
-				<!-- Phone only: with hover there is no panel to be stuck in, and the logo
-					 itself is the link. -->
-				<a
-					href={org.url}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="org-logos__site"
-					data-testid="{scope}-org-{org.id}-site-link"
-				>
-					{t('footer.openSite')}
-				</a>
 				{#each org.socials as social (social.id)}
 					<a
 						href={social.url}
@@ -110,6 +99,19 @@
 						/>
 					</a>
 				{/each}
+
+				<!-- Last, and last in the markup too, so what a screen reader reads is the
+					 order the panel is in. Phone only: with hover there is no panel to be
+					 stuck in, and the logo itself is the link. -->
+				<a
+					href={org.url}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="org-logos__site"
+					data-testid="{scope}-org-{org.id}-site-link"
+				>
+					{t('footer.openSite')}
+				</a>
 			</div>
 		</div>
 	{/each}
@@ -236,11 +238,20 @@
 			top: auto;
 			bottom: 100%;
 			transform: translateX(-50%);
-			flex-direction: row;
-			flex-wrap: wrap;
-			justify-content: center;
-			/* Room enough to aim at. A phone is pressed with a fingertip, and these used to
-			   be 40px circles eight pixels apart — three of them inside one press. */
+			/*
+			 * A grid, not a wrapping row.
+			 *
+			 * As flex, the panel's width was decided by its own widest child and the
+			 * accounts came out in a single column — a strip taller than the screen. Two
+			 * columns are stated here instead of being left to the browser to infer.
+			 *
+			 * Room enough to aim at, too: a phone is pressed with a fingertip, and these
+			 * used to be 40px circles eight pixels apart — three of them inside one press.
+			 */
+			display: grid;
+			grid-template-columns: repeat(2, auto);
+			justify-items: center;
+			align-items: center;
 			gap: var(--space-lg);
 			padding: var(--space-lg);
 			margin-bottom: var(--space-sm);
@@ -250,11 +261,11 @@
 			box-shadow: var(--shadow-lg);
 		}
 
-		/* A line of its own above the accounts: first in the markup, and full width, so
-		   the row of icons wraps underneath it. */
+		/* A line of its own under the accounts, spanning both columns. */
 		.org-logos__site {
 			display: block;
-			flex-basis: 100%;
+			grid-column: 1 / -1;
+			width: 100%;
 			padding: 10px 14px;
 			border-radius: var(--radius-md);
 			background: var(--color-primary);
