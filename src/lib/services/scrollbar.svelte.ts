@@ -29,18 +29,15 @@ const MODES: ScrollbarMode[] = ['standard', 'custom', 'minimap', 'minimap-full']
 
 class ScrollbarState {
 	/**
-	 * The stored choice.
+	 * The stored choice. `custom` is what SCROLLBAR-v8 § 2.2 prescribes once the file is
+	 * applied at all.
 	 *
-	 * The owner's call, and a deliberate departure from SCROLLBAR-v8 § 1, which says the
-	 * native bar is better than any custom one unless the project needs one of three
-	 * things it cannot do — and this project needs none of them. The canon prescribes no
-	 * default at all; its reference implementation happens to ship `custom` because in
-	 * that project the native bar's width was visibly jumping a modal.
-	 *
-	 * So this is taste rather than necessity, which is fine as long as it is written down
-	 * as taste: PROJECT-CONTEXT.md § 4.13. Everything that makes the retreat safe is
-	 * still here — a touch device or a narrow window still gets the native bar, and the
-	 * visitor can choose it from the bar's own menu.
+	 * Applying it here is the owner's call rather than the canon's: § 1 asks which of
+	 * three things the project needs that the native bar cannot do, and the answer is
+	 * none of them. That departure — and only that one — is recorded in
+	 * PROJECT-CONTEXT.md § 4.13. Everything that makes the retreat safe is untouched: a
+	 * touch device or a narrow window still gets the native bar, and the visitor can
+	 * choose it from the bar's own menu.
 	 */
 	mode = $state<ScrollbarMode>('custom');
 
