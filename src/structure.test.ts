@@ -44,7 +44,6 @@ const LIMITS: Array<[RegExp, number]> = [
  * do not go in.
  */
 const ALLOWED_OVER_LIMIT = new Set([
-	'src/lib/components/Header.svelte',
 	'src/lib/components/ui/Minimap.svelte',
 	'src/lib/components/ui/Carousel.svelte',
 	'src/lib/components/ui/PageScrollbar.svelte',
