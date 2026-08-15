@@ -73,7 +73,7 @@ export const en = {
 	'detail.backDogs': 'Back to Dogs',
 	'detail.alreadyAdopted': 'This animal has already found a home!',
 	'detail.viewProfile': 'View Profile',
-	'detail.applyAdoption': 'Apply to Adopt',
+	'detail.applyAdoption': 'Apply to adopt {name}',
 	'apply.title': 'Adoption Application',
 	'apply.subtitle': 'Tell us more about yourself and the home you can provide.',
 	'apply.process.title': 'Adoption Process',

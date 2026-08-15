@@ -76,7 +76,7 @@ export const de = {
 	'detail.backDogs': 'Zurück zu Hunden',
 	'detail.alreadyAdopted': 'Dieses Tier wurde bereits adoptiert!',
 	'detail.viewProfile': 'Profil ansehen',
-	'detail.applyAdoption': 'Adoption beantragen',
+	'detail.applyAdoption': '{name} adoptieren',
 	'apply.title': 'Adoptionsantrag',
 	'apply.subtitle': 'Erzählen Sie uns mehr über sich und das Zuhause, das Sie bieten können.',
 	'apply.process.title': 'Wie der Adoptionsprozess funktioniert',

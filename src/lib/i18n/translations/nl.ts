@@ -74,7 +74,7 @@ export const nl = {
 	'detail.backDogs': 'Terug naar honden',
 	'detail.alreadyAdopted': 'Dit dier is al geadopteerd!',
 	'detail.viewProfile': 'Bekijk profiel',
-	'detail.applyAdoption': 'Adoptie aanvragen',
+	'detail.applyAdoption': '{name} adopteren',
 	'apply.title': 'Adoptieaanvraag',
 	'apply.subtitle': 'Vertel ons meer over uzelf en het huis dat u kunt bieden.',
 	'apply.process.title': 'Hoe het adoptieproces werkt',

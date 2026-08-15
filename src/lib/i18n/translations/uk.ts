@@ -74,7 +74,7 @@ export const uk = {
 	'detail.backDogs': 'Назад до собак',
 	'detail.alreadyAdopted': "Ця тваринка вже знайшла свою сім'ю!",
 	'detail.viewProfile': 'Переглянути профіль',
-	'detail.applyAdoption': 'Подати заявку на адопцію',
+	'detail.applyAdoption': 'Подати заявку на адопцію {name}',
 	'apply.title': 'Подати заявку',
 	'apply.subtitle': 'Зробіть перший крок до того, щоб подарувати тварині люблячий дім',
 	'apply.process.title': 'Як працює процес адопції',

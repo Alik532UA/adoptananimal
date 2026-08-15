@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { localePath, withBase } from '$lib/utils/withBase';
 	import type { PageData } from './$types';
-	import { t } from '$lib/i18n';
+	import { t, tFormat } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
@@ -170,7 +170,10 @@
 							class="btn btn--primary btn--lg detail__apply-btn"
 							data-testid="apply-top-link"
 						>
-							{t('detail.applyAdoption')}
+							<!-- The name is inside the string, not appended to it: German and Dutch
+								 want it in front, and a button that says who it is about is worth
+								 more than one that could be about anyone. -->
+							{tFormat('detail.applyAdoption', { name: animal.name })}
 						</a>
 					{/if}
 
@@ -480,6 +483,11 @@
 	.detail__apply-btn {
 		width: 100%;
 		text-align: center;
+		/* 32px clear of what follows. The three below it are ways to look at other
+		   animals; this one is the reason the page exists, and standing eight pixels off
+		   them it read as the first of four rather than as its own thing.
+		   Written against the row gap so the total stays 32 if that gap ever changes. */
+		margin-bottom: calc(var(--space-xl) - var(--space-sm));
 	}
 
 	@media (max-width: 768px) {
