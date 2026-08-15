@@ -770,7 +770,9 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: var(--space-md);
+			/* Wider than the rest, so the logos sit clear of the buttons rather than just
+			   above them. */
+			gap: var(--space-xl);
 			/* Pushed to the foot of the panel, which is otherwise empty below the links. */
 			margin-top: auto;
 			padding-top: var(--space-xl);
@@ -796,23 +798,42 @@
 			transition: opacity var(--transition-normal);
 		}
 
+		/*
+		 * Panels that open inside the menu get a surface of their own.
+		 *
+		 * The menu is --color-bg-card and so were both of them, so a dropdown or the
+		 * accounts panel appearing over it was the same colour as what it opened over —
+		 * legible, and impossible to see as a separate thing. --control-surface-hover is
+		 * the card colour stepped toward the text by a fixed amount, so the separation is
+		 * the same in all four themes and can only ever be the same hue.
+		 *
+		 * :global, because both classes belong to child components; scoped to .header__nav
+		 * so it changes nothing where those panels open over the page instead.
+		 */
+		.header__nav :global(.dropdown__menu),
+		.header__nav :global(.org-logos__flyout) {
+			background: var(--control-surface-hover);
+			border: 1px solid var(--color-border);
+		}
+
 		.header__nav-orgs {
 			--org-logos-size: 68px;
 			--org-logos-gap: var(--space-2xl);
 		}
 
+		/* Stacked, full width. Side by side they were two short pills adrift in a wide
+		   panel; one under the other they are the same shape as the links above them. */
 		.header__nav-projects {
 			display: flex;
-			/* One at each edge rather than side by side in the middle, which is where the
-			   same two sit in the footer. */
-			justify-content: space-between;
+			flex-direction: column;
 			align-self: stretch;
 			gap: var(--space-sm);
 		}
 
 		.header__nav-project {
-			display: inline-flex;
+			display: flex;
 			align-items: center;
+			justify-content: center;
 			gap: var(--space-sm);
 			/* WCAG 2.5.8, and a comfortable tap target beside its neighbour. */
 			min-height: 44px;
