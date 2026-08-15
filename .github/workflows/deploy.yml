@@ -51,7 +51,12 @@ jobs:
           BASE_PATH: ${{ steps.base.outputs.path }}
           SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
 
+      # The same base the build used. The checker turns sitemap and canonical URLs
+      # back into file paths, and the build directory IS the base — without this it
+      # measures against the wrong root and every page looks missing at once.
       - run: npm run check:build
+        env:
+          BASE_PATH: ${{ steps.base.outputs.path }}
 
       # Without this step Playwright fails with "Executable doesn't exist".
       - run: npx playwright install --with-deps chromium

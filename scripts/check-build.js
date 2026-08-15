@@ -17,6 +17,32 @@ const BUILD_DIR = process.argv[2] ?? 'build';
 const failures = [];
 const fail = (message) => failures.push(message);
 
+/**
+ * The site is served from https://host/<base>/, but the build directory IS the base:
+ * `build/uk.html` answers `/<base>/uk`. So every path this script derives from a URL —
+ * sitemap entry, canonical, alternate — has to have the base taken off first.
+ *
+ * It arrives by environment because only the workflow knows the repository name. When
+ * it is missing, nothing looks broken here: paths just resolve against the wrong root,
+ * and the run reports hundreds of failures that are all one misconfiguration. Guarded
+ * at the bottom of the sitemap section.
+ */
+const BASE_PATH = (process.env.BASE_PATH ?? '').replace(/\/$/, '');
+
+/** A URL (absolute or relative) as a path relative to the build root, base removed. */
+const buildPath = (url, base = BASE_PATH) => {
+	let pathname;
+	try {
+		pathname = new URL(url, 'https://example.invalid').pathname;
+	} catch {
+		return '';
+	}
+	if (base && (pathname === base || pathname.startsWith(`${base}/`))) {
+		pathname = pathname.slice(base.length);
+	}
+	return pathname.replace(/^\/+/, '').replace(/\/$/, '');
+};
+
 if (!existsSync(BUILD_DIR)) {
 	console.error(`No build directory at "${BUILD_DIR}" — run npm run build first.`);
 	process.exit(1);
@@ -113,17 +139,31 @@ if (!existsSync(sitemapPath)) {
 		)
 	);
 
-	// Sitemap URLs carry the base path; the build directory *is* the base, so the
-	// prefix has to come off before comparing against generated files.
-	const BASE_PATH = (process.env.BASE_PATH ?? '').replace(/\/$/, '');
+	const keyOf = (loc, base) => buildPath(loc, base) || 'index';
+
+	// A base the script was not told about makes every URL-derived path wrong at the
+	// same time — 388 lines that are one misconfiguration. This is not a guess: it
+	// counts how many sitemap entries resolve with the base taken off versus left on,
+	// and only speaks up when removing it is measurably the explanation.
+	if (!BASE_PATH && locs.length > 0) {
+		const resolved = (base) => locs.filter((loc) => generated.has(keyOf(loc, base))).length;
+		const segments = [...new Set(locs.map((loc) => new URL(loc).pathname.split('/')[1] ?? ''))];
+		const candidate = segments.length === 1 && segments[0] ? `/${segments[0]}` : '';
+
+		if (candidate && resolved(candidate) > resolved('')) {
+			console.error(
+				`Every sitemap URL sits under "${candidate}", and ${resolved(candidate)} of ${locs.length} ` +
+					`entries resolve once that prefix comes off — against ${resolved('')} with it left on.\n` +
+					`The site is served from a base path and BASE_PATH was not passed to this script, so ` +
+					`every path it derives from a URL is measured against the wrong root.\n` +
+					`Pass the same BASE_PATH the build used.`
+			);
+			process.exit(1);
+		}
+	}
 
 	for (const loc of locs) {
-		let pathname = new URL(loc).pathname;
-		if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
-			pathname = pathname.slice(BASE_PATH.length);
-		}
-		const path = pathname.replace(/^\/+/, '').replace(/\/$/, '');
-		const key = path === '' ? 'index' : path;
+		const key = keyOf(loc, BASE_PATH);
 		// Case-sensitive: a slug whose case differs from the file is a 404 on Linux.
 		if (!generated.has(key)) {
 			fail(`sitemap lists ${loc}, but ${key}.html was not generated`);
@@ -163,10 +203,10 @@ for (const file of htmlFiles) {
 	}
 
 	// The canonical must name this page's own language, not a neighbour's.
+	// Through buildPath, or the base segment reads as the language segment: every
+	// prefixed page then looks English. Same misconfiguration, second half.
 	const canonical = html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/)?.[1] ?? '';
-	const canonicalLocale = localeOfPath(
-		new URL(canonical, 'https://example.com').pathname.replace(/^\/+/, '')
-	);
+	const canonicalLocale = localeOfPath(buildPath(canonical));
 	if (canonicalLocale !== expected) {
 		fail(`${rel}: canonical points at the "${canonicalLocale}" version, expected "${expected}"`);
 	}
