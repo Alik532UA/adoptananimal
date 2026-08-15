@@ -37,6 +37,18 @@
 	let bgHeight = $state(0);
 	let bgShift = $state(0);
 
+	/**
+	 * How far the back-to-top button has to rise to stay off the footer.
+	 *
+	 * Of the three ways out of the collision, this is the only one that leaves a working
+	 * button. Putting the footer above it in z-order hides it and takes its clicks with
+	 * it — a control that is present, focusable and dead. Fading it out at the bottom
+	 * removes it exactly where it is most wanted, since the bottom of the page is the
+	 * whole reason someone reaches for it. So it stops at the footer and waits there,
+	 * which is what a floating button is supposed to do.
+	 */
+	let footerLift = $state(0);
+
 	$effect(() => {
 		if (!browser) return;
 
@@ -46,6 +58,10 @@
 			const maxScroll = Math.max(document.documentElement.scrollHeight - viewport, 0);
 			bgHeight = viewport + maxScroll / PARALLAX_DIVISOR;
 			bgShift = window.scrollY / PARALLAX_DIVISOR;
+
+			// However much of the footer has come into view is how far the button rises.
+			const footer = document.querySelector('footer');
+			footerLift = footer ? Math.max(0, viewport - footer.getBoundingClientRect().top) : 0;
 		};
 
 		// One read per frame. Without this the handler runs on every scroll event, and
@@ -225,6 +241,7 @@
 <button
 	class="back-to-top"
 	class:back-to-top--visible={showBackToTop}
+	style="--footer-lift: {footerLift}px;"
 	onclick={scrollToTop}
 	aria-label={t('a11y.backToTop')}
 >
@@ -300,7 +317,11 @@
 
 	.back-to-top {
 		position: fixed;
-		bottom: var(--space-xl);
+		/* The default the inline style above replaces on every frame. Declared rather than
+		   written as a var() fallback, which would keep working the day the inline style
+		   stops being set and leave the button back on top of the footer. */
+		--footer-lift: 0px;
+		bottom: calc(var(--space-xl) + var(--footer-lift));
 		right: var(--space-xl);
 		width: 50px;
 		height: 50px;
@@ -331,17 +352,12 @@
 		box-shadow: var(--shadow-xl);
 	}
 
-	/*
-	 * Clear of the footer's right-hand button on a phone.
-	 *
-	 * It sits in the same corner, and at 32px in from the edge the two overlapped once
-	 * the footer's buttons moved out to the edges. Lifted rather than moved sideways,
-	 * because the right-hand corner is where a back-to-top belongs.
-	 */
 	@media (max-width: 700px) {
 		.back-to-top {
+			/* Only the inset. The vertical clearance is --footer-lift, which measures the
+			   footer rather than guessing at the height of one button inside it. */
 			right: var(--space-md);
-			bottom: calc(var(--space-md) + 56px);
+			bottom: calc(var(--space-md) + var(--footer-lift));
 		}
 	}
 

@@ -11,13 +11,21 @@
 	// Proper nouns, so no i18n: these are the accessible names of the icon links,
 	// which previously read out as "inst", "fb", "li".
 
+	/**
+	 * First tap reveals the socials, second follows the link.
+	 *
+	 * matchMedia, not window.innerWidth. innerWidth counts the classic scrollbar and the
+	 * media query does not, so between the two there is a band about fifteen pixels wide
+	 * where the fly-out was laid out for a phone and the script still thought it was on a
+	 * desktop — the tap fell straight through to the link and opened the site, which is
+	 * exactly what it looked like. The breakpoint is written once, here and in the CSS,
+	 * and this is the form that agrees with the CSS.
+	 */
 	function toggleOrg(id: string, e: MouseEvent) {
-		if (window.innerWidth <= 768) {
-			if (activeOrg !== id) {
-				e.preventDefault();
-				activeOrg = id;
-			}
-		}
+		if (!window.matchMedia('(max-width: 768px)').matches) return;
+		if (activeOrg === id) return;
+		e.preventDefault();
+		activeOrg = id;
 	}
 
 	/*
