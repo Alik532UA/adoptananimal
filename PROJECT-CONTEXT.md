@@ -285,7 +285,7 @@ E2E є (Playwright, 29 сценаріїв над **зібраним** сайто
   SCROLLBAR-v8. Перебирати його означає розходитися з каноном, який його й дав.
 - `Carousel.svelte` (424), `AnimalCard.svelte` (397), `ApplyForm.svelte` (405),
   `OrgLogos.svelte` (346) — кожен одна відповідальність, просто велика; переважно CSS.
-- `+layout.svelte` (410), `[[lang]]/+page.svelte` (425) — секції ще не винесені.
+- `+layout.svelte` (410), `[[lang]]/+page.svelte` (445) — секції ще не винесені.
 
 Зі списку вже вийшли двоє. Детальні сторінки тварин: були двома копіями по 506 рядків,
 стали `AnimalProfile` + `AnimalActions` + `AnimalSpecs` + `AnimalStory`.

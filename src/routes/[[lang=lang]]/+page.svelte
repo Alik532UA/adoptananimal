@@ -225,6 +225,27 @@
 		color: var(--color-primary);
 	}
 
+	/*
+	 * Green wears the two the other way round: the brand green is the title, and the
+	 * near-black is what the pointer does to it.
+	 *
+	 * Only this theme, and that is not taste — it is what the palettes allow. The plate
+	 * is --color-secondary, and --color-primary on it measures 1.20:1 in Dark and
+	 * 1.68:1 in Winter, which is the same dark-on-dark this rule's neighbour was fixed
+	 * for. Green is the one theme where the swap is legible: 3.51:1, enough for the
+	 * title at the size a desktop gives it and not at the 0.8rem floor of the clamp.
+	 *
+	 * Only the playful skin, because it is the only one that puts the title on a plate
+	 * at all; anywhere else the green would be sitting on the page background.
+	 */
+	:global([data-theme='light-green'][data-style='playful']) .about .section__title {
+		color: var(--color-primary);
+	}
+
+	:global([data-theme='light-green'][data-style='playful']) .about .section__title:hover {
+		color: var(--color-text-on-secondary);
+	}
+
 	.about .section__title::after {
 		content: '';
 		position: absolute;
