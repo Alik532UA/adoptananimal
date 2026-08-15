@@ -13,6 +13,7 @@ export type IconName =
 	| 'heart'
 	| 'heart-filled'
 	| 'list'
+	| 'menu'
 	| 'email'
 	| 'globe'
 	| 'idea'

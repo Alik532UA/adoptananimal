@@ -5,6 +5,7 @@
 		Dog,
 		Heart,
 		List,
+		Menu,
 		Mail,
 		Globe,
 		Lightbulb,
@@ -66,6 +67,8 @@
 			<Heart {size} class={className} {strokeWidth} fill="currentColor" />
 		{:else if name === 'list'}
 			<List {size} class={className} {strokeWidth} />
+		{:else if name === 'menu'}
+			<Menu {size} class={className} {strokeWidth} />
 		{:else if name === 'email'}
 			<Mail {size} class={className} {strokeWidth} />
 		{:else if name === 'globe'}

@@ -72,9 +72,7 @@
 			aria-expanded={mobileMenuOpen}
 			data-testid="mobile-menu-burger-btn"
 		>
-			<span class="header__burger-line" class:open={mobileMenuOpen}></span>
-			<span class="header__burger-line" class:open={mobileMenuOpen}></span>
-			<span class="header__burger-line" class:open={mobileMenuOpen}></span>
+			<Icon name="menu" size="1.5rem" />
 		</button>
 	</div>
 </header>
@@ -179,19 +177,27 @@
 		transform: scale(1.2) rotate(15deg);
 	}
 
+	/*
+	 * One glyph, not three drawn bars.
+	 *
+	 * The bars carried an `open` class that no rule ever acted on, so the promise of
+	 * folding into a cross was in the markup and nowhere else — and three spans with
+	 * a five-pixel gap sit at whatever weight the gap happens to give them, next to
+	 * a row of icons drawn at a stroke width of two.
+	 *
+	 * 44px square: the button is the only way into the menu on a phone, and it is
+	 * pressed with a fingertip.
+	 */
 	.header__burger {
 		display: none;
-		flex-direction: column;
-		gap: 5px;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
 		background: none;
 		border: none;
-	}
-
-	.header__burger-line {
-		width: 24px;
-		height: 2px;
-		background: var(--color-text);
-		transition: all 0.3s;
+		color: var(--color-text);
+		cursor: pointer;
 	}
 
 	@media (max-width: 768px) {
