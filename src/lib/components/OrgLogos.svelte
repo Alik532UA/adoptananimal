@@ -153,19 +153,24 @@
 	.org-logos__img {
 		max-height: var(--org-logos-size);
 		width: auto;
-		filter: brightness(0);
-		opacity: 0.8;
-		transition: all var(--transition-normal);
-	}
-
-	:global([data-theme='dark']) .org-logos__img {
-		filter: brightness(0) invert(1);
+		/*
+		 * Their own colours, always.
+		 *
+		 * They used to be flattened to a silhouette — black, or white in the dark theme —
+		 * and only came back to life under the pointer. These are two charities' marks;
+		 * showing them as a stencil until someone happens to hover is not a treatment they
+		 * asked for, and on a phone there is no hover to give them back.
+		 */
+		transition:
+			transform var(--transition-normal),
+			opacity var(--transition-normal);
 	}
 
 	.org-logos__item:hover .org-logos__img,
 	.org-logos__item--active .org-logos__img {
-		opacity: 1;
-		filter: none !important;
+		/* Small on purpose. The logos sit side by side and a bigger jump would have one
+		   reaching over its neighbour. */
+		transform: scale(1.08);
 	}
 
 	.org-logos__flyout {
