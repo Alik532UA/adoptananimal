@@ -3,7 +3,6 @@
 	import { afterNavigate } from '$app/navigation';
 	import { Spring } from 'svelte/motion';
 	import { MediaQuery } from 'svelte/reactivity';
-	import { t } from '$lib/i18n';
 	import { scrollbar } from '$lib/services/scrollbar.svelte';
 	import { HoldScroll } from '$lib/utils/holdScroll.svelte';
 
@@ -278,7 +277,19 @@
 <!-- Mounted on `enabled`, not `visible`: a bar that left the DOM on a page with nothing
 	 to scroll would have nothing left to animate away. -->
 {#if enabled}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!--
+		Says nothing, deliberately.
+
+		It carried aria-label, which is prohibited on a bare div and which axe reports:
+		an element with no role has nothing for a label to name. role="scrollbar" would
+		be worse than the warning — that role owes a screen reader aria-controls and a
+		live aria-valuenow, and what it would announce is a control nobody using one can
+		reach, since there is nothing here to focus. The bar is a pointer convenience
+		over scrolling, which works without it and stays on the keyboard either way.
+
+		aria-hidden also settles what used to need a svelte-ignore here: a div nobody
+		can see does not owe the compiler a role for its pointer handlers.
+	-->
 	<div
 		class="page-scrollbar"
 		class:dragging
@@ -286,7 +297,7 @@
 		class:page-scrollbar--hidden={presence.current < 0.01}
 		style="width: {width}px; opacity: {presence.current};
 			transform: translateX({(1 - presence.current) * width}px);"
-		aria-label={t('scrollbar.title')}
+		aria-hidden="true"
 		data-testid="page-scrollbar-container"
 		onpointerenter={onTrackPointerEnter}
 		onpointerleave={() => hold.stop()}

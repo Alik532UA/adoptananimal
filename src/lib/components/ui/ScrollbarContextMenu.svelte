@@ -9,7 +9,16 @@
 	const ITEM_HEIGHT = 38;
 	const PADDING = 12;
 
-	const height = $derived(SCROLLBAR_MODES.length * ITEM_HEIGHT + PADDING * 2 + 24);
+	/**
+	 * Measured once it is on screen; the sum is only what the first frame goes on.
+	 *
+	 * Predicting it did not survive contact: an item is 38px of padding and a line box,
+	 * and the line box is whatever the current skin's font makes it. When the default
+	 * skin changed the real menu grew past the guess, and a menu opened at the bottom
+	 * edge hung off the screen by the difference — which the arithmetic here had no way
+	 * of knowing.
+	 */
+	let height = $state(SCROLLBAR_MODES.length * ITEM_HEIGHT + PADDING * 2 + 24);
 
 	/**
 	 * Opens next to the cursor, but wholly inside the window.
@@ -74,6 +83,7 @@
 	></div>
 
 	<div
+		bind:offsetHeight={height}
 		class="scrollbar-menu"
 		style="left: {position.left}px; top: {position.top}px; width: {WIDTH}px;"
 		role="menu"

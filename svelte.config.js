@@ -13,10 +13,22 @@ const base = process.env.BASE_PATH ?? '';
  * longer applying — on the visitor's machine, not the developer's.
  *
  * SvelteKit hashes the scripts it injects itself; this covers ours.
+ *
+ * Line endings are normalised first, and that is not tidiness. The HTML parser turns
+ * every CRLF in the input stream into a single LF before the script's text exists, so
+ * the browser hashes LF whatever the file holds. Checked out on Windows with
+ * core.autocrlf=true this file has CRLF, the hash came out over CRLF, and the two
+ * never met: the script was blocked on every page, the first frame lost data-theme
+ * and data-style, and the page rendered with no palette and every corner square until
+ * hydration caught up. It works in CI, which checks out LF — which is the worst way
+ * for it to be broken.
  */
 const inlineScriptHashes = [
 	...readFileSync('src/app.html', 'utf-8').matchAll(/<script>([\s\S]*?)<\/script>/g)
-].map((match) => `sha256-${createHash('sha256').update(match[1]).digest('base64')}`);
+].map(
+	(match) =>
+		`sha256-${createHash('sha256').update(match[1].replace(/\r\n/g, '\n')).digest('base64')}`
+);
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

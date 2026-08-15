@@ -127,10 +127,14 @@
 				</div>
 			</div>
 			<div class="about__note-content">
-				<h4 class="about__note-title">
+				<!-- h3, not h4: this names a part of the section the h2 above opens, and there
+					 is no h3 between them. Lighthouse scores the skip, and a screen reader
+					 announcing "heading level four" invites its listener to look for the
+					 level three that was never there. The look comes from the class. -->
+				<h3 class="about__note-title">
 					<Icon name="globe" size="1.2rem" />
 					{t('about.note.title')}
-				</h4>
+				</h3>
 				<p class="about__countries-main">{t('about.countries.text')}</p>
 				<p class="about__note-text">{t('about.countries.expanding')}</p>
 				<div class="about__thanks-wrapper">
@@ -222,12 +226,11 @@
 	}
 
 	/*
-	 * On a plate the answer is per-theme and comes from the playful skin, which is the
-	 * only place a plate exists; anywhere else the title sits on the page background and
-	 * the brand colour is right, as it always was.
+	 * Declared at the root as the brand colour, which is what a title standing on the
+	 * page wants; the playful skin puts it on a plate and lets a theme answer otherwise.
 	 */
 	.about .section__title:hover {
-		color: var(--plate-title-hover, var(--color-primary));
+		color: var(--plate-title-hover);
 	}
 
 	.about .section__title::after {
@@ -422,8 +425,10 @@
 	@media (max-width: 400px) {
 		.about__card {
 			/* 64px of padding on a 272px card is a third of it, and the one-line title
-			   above has to fit in what is left. */
-			padding: var(--space-lg);
+			   above has to fit in what is left — with, in the playful skin, a plate of its
+			   own around it. 24px each side was still too much for the German title once
+			   that plate arrived. */
+			padding: var(--space-md);
 		}
 	}
 </style>

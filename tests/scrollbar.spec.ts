@@ -220,12 +220,14 @@ test.describe('the scrollbar menu', () => {
 			await expect(page.getByTestId(`scrollbar-menu-${mode}-btn`)).toBeVisible();
 		}
 
-		// Mutually exclusive options, so a screen reader has to be told which is on.
-		await expect(page.getByTestId('scrollbar-menu-custom-btn')).toHaveAttribute(
+		// Mutually exclusive options, so a screen reader has to be told which is on. The
+		// one that is on here is standard: this case only exists over the native bar, and
+		// the beforeEach above asks for it by name.
+		await expect(page.getByTestId('scrollbar-menu-standard-btn')).toHaveAttribute(
 			'aria-checked',
 			'true'
 		);
-		await expect(page.getByTestId('scrollbar-menu-standard-btn')).toHaveAttribute(
+		await expect(page.getByTestId('scrollbar-menu-custom-btn')).toHaveAttribute(
 			'aria-checked',
 			'false'
 		);

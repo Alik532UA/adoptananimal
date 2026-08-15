@@ -87,18 +87,15 @@
  *
  * The plate is --color-secondary, and what reads on it is a per-theme answer rather
  * than one token: three themes make that a light amber and Vibrant makes it a dark
- * purple. The defaults below are the pair each theme already declares for a secondary
- * surface; the blocks after them are where a theme asked for something else.
+ * purple. The pair is declared in base.css — the values there are the ones a title
+ * standing on the page wants, and Vibrant happens to want them on the plate too. The
+ * blocks below are the themes that asked for something else.
  *
  * Where a literal appears it is because the palette had nothing that works here. Each
  * one is its theme's own hue taken down to a text weight, not a colour borrowed from
  * somewhere warmer: the brand colours are chosen against the theme's page background
  * and measure 1.20:1 on the amber in Dark and 1.68:1 in Winter.
  */
-[data-style='playful'] {
-	--plate-title: var(--color-text-on-secondary);
-	--plate-title-hover: var(--color-primary);
-}
 
 /*
  * Green wears the two the other way round, on the owner's call: the brand green is the
@@ -140,6 +137,28 @@
 	padding: 8px 32px;
 	border-radius: 16px;
 	box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.1);
+}
+
+/*
+ * The plate gives its side padding back as the screen narrows.
+ *
+ * 32px each side is 64px of an element that has to hold the longest translation on one
+ * line and never wrap — a rule with a comment of its own where the title lives. On a
+ * 320px screen the card has 240px inside it and the German title is 211 of them, so the
+ * full plate does not fit and the words run out past their own background. Measured in
+ * all four languages at six widths; German at 320 is the case that binds, and every
+ * other one has room to spare.
+ */
+@media (max-width: 560px) {
+	[data-style='playful'] .section__title {
+		padding: 6px 14px;
+	}
+}
+
+@media (max-width: 400px) {
+	[data-style='playful'] .section__title {
+		padding: 6px 10px;
+	}
 }
 
 [data-style='playful'] .badge {

@@ -35,6 +35,14 @@
 	--glass-border: transparent;
 	--glass-blur: 16px;
 	--active-tab-bg: var(--color-primary);
+
+	/* What the section title is written in. These are the values for a title standing on
+	   the page; the playful skin puts it on a coloured plate, and skins/playful.css is
+	   where the themes that need another answer there give one. Declared at the root
+	   rather than only under that skin, so the rule that reads them never has to carry a
+	   var() fallback — which would hide the day one of them stops being declared. */
+	--plate-title: var(--color-text-on-secondary);
+	--plate-title-hover: var(--color-primary);
 }
 
 *,

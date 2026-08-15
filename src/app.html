@@ -5,6 +5,15 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
 		<meta name="color-scheme" content="light dark" />
+		<!--
+			Stated rather than left to the browser's guess.
+
+			With no icon declared, every page asked the server for /favicon.ico and got a
+			404 — visible in the console, counted against the build by Lighthouse, and a
+			blank square in the tab. %sveltekit.assets% because a project site lives under
+			/<repo>/ and a bare /favicon.svg would look for it at the domain root.
+		-->
+		<link rel="icon" type="image/svg+xml" href="%sveltekit.assets%/favicon.svg" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link

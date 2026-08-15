@@ -430,8 +430,21 @@ test.describe('the carousel', () => {
 });
 
 test.describe('the page scrollbar', () => {
-	test('is the native one, themed, with its width always reserved', async ({ page }) => {
+	test('the native one is themed and reserves its width wherever it is what shows', async ({
+		page
+	}) => {
 		await page.goto('/');
+		/*
+		 * Asked for by name, because it is no longer what a first visit gets.
+		 *
+		 * The default is the custom bar (PROJECT-CONTEXT.md § 4.13), which hides the
+		 * native one — so reading these three properties off a default page now says
+		 * nothing about the native bar at all. It still has to be right: it is what a
+		 * visitor who picks it from the menu gets, and it is the only bar there is on a
+		 * touch screen or in a window too narrow for anything else.
+		 */
+		await page.evaluate(() => localStorage.setItem('adoptananimal_scrollbarMode', 'standard'));
+		await page.reload();
 
 		const style = await page.evaluate(() => {
 			const cs = getComputedStyle(document.documentElement);
