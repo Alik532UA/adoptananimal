@@ -24,17 +24,17 @@ npm run dev
 
 ## Команди
 
-| Команда | Що робить |
-|---|---|
-| `npm run dev` | dev-сервер |
-| `npm run check` | `svelte-check` — має бути 0 помилок |
-| `npm run lint` | `prettier --check` + ESLint |
-| `npm run format` | форматування |
-| `npm test` | юніт-інваріанти (Vitest) |
-| `npm run check:i18n` | паритет ключів у чотирьох мовах |
-| `npm run build` | збірка в `build/` |
-| `npm run check:build` | гейт над зібраним виводом |
-| `npm run test:e2e` | Playwright проти **зібраного** сайту |
+| Команда               | Що робить                            |
+| --------------------- | ------------------------------------ |
+| `npm run dev`         | dev-сервер                           |
+| `npm run check`       | `svelte-check` — має бути 0 помилок  |
+| `npm run lint`        | `prettier --check` + ESLint          |
+| `npm run format`      | форматування                         |
+| `npm test`            | юніт-інваріанти (Vitest)             |
+| `npm run check:i18n`  | паритет ключів у чотирьох мовах      |
+| `npm run build`       | збірка в `build/`                    |
+| `npm run check:build` | гейт над зібраним виводом            |
+| `npm run test:e2e`    | Playwright проти **зібраного** сайту |
 
 ## Як усе влаштоване
 

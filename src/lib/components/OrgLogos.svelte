@@ -24,14 +24,23 @@
 
 	let activeOrg = $state<string | null>(null);
 
+	/** True where a pointer can hover, which is the only place hovering can reveal anything. */
+	const CAN_HOVER = '(hover: hover) and (pointer: fine)';
+
 	function toggleOrg(id: string, e: MouseEvent) {
 		/*
-		 * matchMedia, not window.innerWidth. innerWidth counts the classic scrollbar and
-		 * the media query does not, so between them there is a band about fifteen pixels
-		 * wide where the panel was laid out for a phone and this still thought it was a
-		 * desktop — the tap fell through to the link and opened the site.
+		 * Keyed on whether hovering exists, not on how wide the window is.
+		 *
+		 * Those are different questions and only one of them decides this. Width decides
+		 * where the panel opens; hover decides who opens it. Narrow a desktop window and
+		 * the panel moves above the logo, but the pointer is still a pointer, so hovering
+		 * reveals and a click should go to the site — as it always did there.
+		 *
+		 * (It also sidesteps what the width test got wrong before: innerWidth counts the
+		 * classic scrollbar and a media query does not, so there was a band about fifteen
+		 * pixels wide where the two disagreed about which mode was in force.)
 		 */
-		if (!window.matchMedia('(max-width: 768px)').matches) return;
+		if (window.matchMedia(CAN_HOVER).matches) return;
 		// Never follows the link on a phone: the logo is the way in and out of the panel,
 		// and a second tap that navigated left no way to close it. Going to the site is
 		// its own button inside the panel.
@@ -176,11 +185,25 @@
 		transition: all var(--transition-normal);
 	}
 
-	.org-logos__item:hover .org-logos__flyout,
-	.org-logos__item:focus-within .org-logos__flyout,
 	.org-logos__item--active .org-logos__flyout {
 		opacity: 1;
 		pointer-events: auto;
+	}
+
+	/*
+	 * Hover and focus reveal it only where a pointer can hover.
+	 *
+	 * On a touch screen the tap focuses the link, and :focus-within then held the panel
+	 * open no matter what the state said — so the second tap flipped the state, the CSS
+	 * ignored it, and the panel would not close. Sticky :hover does the same thing on
+	 * some browsers. Neither belongs on a device that cannot hover in the first place.
+	 */
+	@media (hover: hover) and (pointer: fine) {
+		.org-logos__item:hover .org-logos__flyout,
+		.org-logos__item:focus-within .org-logos__flyout {
+			opacity: 1;
+			pointer-events: auto;
+		}
 	}
 
 	/* Mirrored for the first organisation, which sits on the left. */
@@ -201,10 +224,15 @@
 		transition: transform var(--transition-spring);
 	}
 
-	.org-logos__item:hover .org-logos__social,
-	.org-logos__item:focus-within .org-logos__social,
 	.org-logos__item--active .org-logos__social {
 		transform: scale(1);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.org-logos__item:hover .org-logos__social,
+		.org-logos__item:focus-within .org-logos__social {
+			transform: scale(1);
+		}
 	}
 
 	.org-logos__social:hover {
