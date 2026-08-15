@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 
 /**
  * Structural invariants from PROJECT-STRUCTURE-v8 §§ 4 and 7.
@@ -53,6 +53,54 @@ const ALLOWED_OVER_LIMIT = new Set([
 	'src/routes/+layout.svelte',
 	'src/routes/[[lang=lang]]/+page.svelte'
 ]);
+
+describe('§ 4.3 — a file that exists reads as work that was done', () => {
+	// The most expensive rule in the canon, and the one this file was missing. A
+	// component nobody imports still gets read, edited and cited: a fully written
+	// SEO.svelte, imported from nowhere, once earned a project an SEO score it did
+	// not have. Nothing about it looks wrong — that is the whole problem.
+	const all = sources();
+
+	it('the scan finds components at all — the check is alive', () => {
+		const components = all.filter((path) => path.includes('/lib/') && path.endsWith('.svelte'));
+		expect(
+			components.length,
+			'no components found — the walker is looking in the wrong place'
+		).toBeGreaterThan(10);
+	});
+
+	it('every component under lib/ is imported from somewhere', () => {
+		const contents = new Map(all.map((path) => [path, read(path)]));
+		const components = all.filter((path) => path.includes('/lib/') && path.endsWith('.svelte'));
+
+		// Deliberately crude: it looks for the file name in the text of every other
+		// source. That misses a dynamic import built from a variable, which is why
+		// the canon says such cases go in an explicit allowlist here rather than
+		// loosening the rule. There are none today.
+		const orphans = components.filter((path) => {
+			const name = basename(path);
+			return ![...contents].some(([other, text]) => other !== path && text.includes(name));
+		});
+
+		expect(
+			orphans,
+			`imported from nowhere — wire it up or delete it:\n${orphans.join('\n')}`
+		).toEqual([]);
+	});
+
+	it('runes live only in .svelte and .svelte.ts', () => {
+		// The compiler does not process runes outside those two extensions. It does
+		// not complain either: `$state(0)` in a plain .ts is an undefined function
+		// call that fails at runtime, in the browser, on whichever path reaches it
+		// first. Renaming the file is the whole fix, which is why this is worth a
+		// gate rather than a habit.
+		const wrong = all
+			.filter((path) => path.endsWith('.ts') && !path.endsWith('.svelte.ts'))
+			.filter((path) => /\$state[({<]|\$derived[({<]|\$effect[({.]/.test(read(path)));
+
+		expect(wrong, `runes in a plain .ts — rename to .svelte.ts:\n${wrong.join('\n')}`).toEqual([]);
+	});
+});
 
 describe('§ 7 — file size', () => {
 	const measured = sources().map((path) => {
