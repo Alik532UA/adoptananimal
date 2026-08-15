@@ -121,7 +121,6 @@
 		data-testid={back ? 'prev-animal-link' : 'next-animal-link'}
 	>
 		<Icon name={back ? 'arrow-left' : 'arrow-right'} size="1.2rem" />
-		<span class="detail__sibling-name">{target.name}</span>
 		<img
 			class="detail__sibling-thumb"
 			src={withBase(target.image)}
@@ -132,6 +131,7 @@
 			height="48"
 			style={target.imagePosition ? `object-position: ${target.imagePosition}` : undefined}
 		/>
+		<span class="detail__sibling-name">{target.name}</span>
 	</a>
 {/snippet}
 
@@ -441,8 +441,8 @@
 	.detail__sibling {
 		flex: 1;
 		min-width: 0;
-		/* Written for the backward one — arrow, name, face — and reversed for the forward
-		   one, so each points away from this page and the two mirror each other. */
+		/* Written for the backward one — arrow, face, name — and reversed for the forward
+		   one, so the arrows sit on the outside and the two mirror each other. */
 		flex-direction: row-reverse;
 		padding: var(--space-sm);
 	}
@@ -463,7 +463,10 @@
 		font-family: var(--font-accent);
 		font-weight: 900;
 		font-size: 1rem;
-		/* A long name shortens rather than pushing the face out of its own button. */
+		/* A long name shortens rather than pushing the face out of its own button.
+		   min-width: 0 because a flex child will not shrink below its content otherwise,
+		   and the ellipsis would never come. */
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;

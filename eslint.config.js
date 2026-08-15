@@ -113,5 +113,42 @@ export default defineConfig(
 			'svelte/prefer-svelte-reactivity': 'error',
 			'@typescript-eslint/ban-ts-comment': 'error'
 		}
+	},
+
+	/**
+	 * STORAGE-NAMESPACE-v8, Крок 3: прямий доступ до Web Storage заборонений.
+	 *
+	 * Origin спільний із сусідніми проєктами, тож ключ без префікса — це не
+	 * дрібниця, а чужі дані. Доти заборона трималася лише на рядку в AGENTS.md,
+	 * і три проєкти з восьми вже її порушували, чого не помітив ніхто.
+	 *
+	 * Правил два, і друге не зайве: `no-restricted-globals` НЕ ловить
+	 * `window.localStorage`. Канон у Кроці 3 наводить лише його — а саме ця
+	 * форма й трапилася в DigitalWorkshop, тричі поспіль.
+	 */
+	{
+		rules: {
+			'no-restricted-globals': [
+				'error',
+				{ name: 'localStorage', message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.' },
+				{ name: 'sessionStorage', message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.' }
+			],
+			'no-restricted-properties': [
+				'error',
+				{ object: 'window', property: 'localStorage', message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.' },
+				{ object: 'window', property: 'sessionStorage', message: 'STORAGE-NAMESPACE-v8: лише через фасад storage.' }
+			]
+		}
+	},
+	{
+		// Сам фасад і міграція — єдині місця, де прямий доступ є реалізацією,
+		// а не обходом (STORAGE-NAMESPACE-v8, Кроки 3 і 4).
+		files: [
+			'src/lib/services/storage.ts'
+		],
+		rules: {
+			'no-restricted-globals': 'off',
+			'no-restricted-properties': 'off'
+		}
 	}
 );
