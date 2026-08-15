@@ -84,7 +84,15 @@
 				onclick={(e) => toggleOrg(org.id, e)}
 				data-testid="{scope}-org-{org.id}-link"
 			>
-				<img src={withBase(org.logo)} alt={org.name} class="org-logos__img" />
+				<img
+					src={withBase(org.logo)}
+					alt={org.name}
+					class="org-logos__img"
+					width={org.logoWidth}
+					height={org.logoHeight}
+					loading="lazy"
+					decoding="async"
+				/>
 			</a>
 
 			<div class="org-logos__flyout">

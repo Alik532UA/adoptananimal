@@ -26,11 +26,21 @@
 		nameKey: TranslationKey;
 		locale: Locale;
 		language: string;
+		/**
+		 * The flag's own proportions, taken from the `viewBox` of its SVG.
+		 *
+		 * The CSS gives these images a width and no height, so until the file arrives
+		 * the browser cannot know how tall the row is and the section below it moves
+		 * once it does. Per flag rather than one shared pair, because they are not all
+		 * the same shape: uk, at and nl are 3:2, de is 5:3.
+		 */
+		width: number;
+		height: number;
 	}[] = [
-		{ flag: 'uk', nameKey: 'country.ua', locale: 'uk', language: 'Українська' },
-		{ flag: 'de', nameKey: 'country.de', locale: 'de', language: 'Deutsch' },
-		{ flag: 'at', nameKey: 'country.at', locale: 'de', language: 'Deutsch' },
-		{ flag: 'nl', nameKey: 'country.nl', locale: 'nl', language: 'Nederlands' }
+		{ flag: 'uk', nameKey: 'country.ua', locale: 'uk', language: 'Українська', width: 3, height: 2 },
+		{ flag: 'de', nameKey: 'country.de', locale: 'de', language: 'Deutsch', width: 5, height: 3 },
+		{ flag: 'at', nameKey: 'country.at', locale: 'de', language: 'Deutsch', width: 3, height: 2 },
+		{ flag: 'nl', nameKey: 'country.nl', locale: 'nl', language: 'Nederlands', width: 3, height: 2 }
 	];
 
 	/**
@@ -163,6 +173,10 @@
 								src={withBase(`/images/flags/${country.flag}.svg`)}
 								alt={t(country.nameKey)}
 								class="about__flag"
+								width={country.width}
+								height={country.height}
+								loading="lazy"
+								decoding="async"
 							/>
 						</a>
 					{/each}
@@ -354,6 +368,16 @@
 
 	.about__flag {
 		width: 100%;
+		/*
+		 * `auto` is what turns the width/height attributes on the tag into an aspect
+		 * ratio rather than a size.
+		 *
+		 * Without it those attributes are presentational: `height="2"` maps straight to
+		 * the height property, `width: 100%` above overrides only the width, and the
+		 * flag renders 51×6 — a stripe. Measured, not guessed: it is exactly what
+		 * happened when the attributes were added and the rule left alone.
+		 */
+		height: auto;
 		display: block;
 	}
 

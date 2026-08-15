@@ -23,6 +23,13 @@ export const ORGANIZATIONS = [
 		name: 'Notpfote',
 		url: 'https://notpfote.de/',
 		logo: '/images/logo/adoptananimal_logo_Notpfote.webp',
+		// Intrinsic size of the file, so the browser can reserve the right box before
+		// it arrives. CSS gives the logo `max-height` and `width: auto`, which means the
+		// width it will occupy is decided by the image's own aspect ratio — unknowable
+		// until it loads, and the footer jumped once it did. Per organisation rather
+		// than one shared pair: the two files are not the same shape.
+		logoWidth: 1120,
+		logoHeight: 1144,
 		socials: [
 			{
 				id: 'inst',
@@ -61,6 +68,8 @@ export const ORGANIZATIONS = [
 		name: 'Vet Crew',
 		url: 'https://sites.google.com/view/vetcrew',
 		logo: '/images/logo/adoptananimal_logo_VetCrew.webp',
+		logoWidth: 529,
+		logoHeight: 541,
 		socials: [
 			{
 				id: 'inst',

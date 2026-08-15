@@ -9,6 +9,18 @@
 	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
 
 	/**
+	 * The box a flag occupies, stated on the element as well as in CSS.
+	 *
+	 * The same two numbers as `.header__flag` below, and they have to be: the attributes
+	 * reserve the space before any stylesheet arrives, the CSS keeps it once one has.
+	 * Without them the row reflows on first paint — small, but it is the header, so it
+	 * happens on every page. The flags are SVGs of differing natural size, hence a fixed
+	 * pair rather than the file's own dimensions: `object-fit: cover` crops to this box.
+	 */
+	const FLAG_WIDTH = 20;
+	const FLAG_HEIGHT = 14;
+
+	/**
 	 * Theme, style and language — the three things the header lets a visitor change.
 	 *
 	 * Together in one component because they are one row and one behaviour: only one of
@@ -150,6 +162,8 @@
 						src={withBase(locales.find((l) => l.id === settings.locale)!.flags[0])}
 						alt=""
 						class="header__flag"
+						width={FLAG_WIDTH}
+						height={FLAG_HEIGHT}
 					/>
 				{/if}
 				<span class="header__lang-code">{settings.locale.toUpperCase()}</span>
@@ -158,7 +172,13 @@
 		{#snippet itemVisual(item)}
 			<span class="header__flags">
 				{#each locales.find((l) => l.id === item.id)?.flags ?? [] as flag (flag)}
-					<img src={withBase(flag)} alt="" class="header__flag" />
+					<img
+						src={withBase(flag)}
+						alt=""
+						class="header__flag"
+						width={FLAG_WIDTH}
+						height={FLAG_HEIGHT}
+					/>
 				{/each}
 			</span>
 		{/snippet}
