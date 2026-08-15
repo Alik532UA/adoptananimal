@@ -62,7 +62,7 @@ describe('CI', () => {
 		if (!/playwright test|test:e2e/.test(all)) return;
 		expect(
 			/playwright install/.test(all),
-			'без install крок падає з «Executable doesn\'t exist»'
+			"без install крок падає з «Executable doesn't exist»"
 		).toBe(true);
 	});
 
@@ -70,10 +70,9 @@ describe('CI', () => {
 		// Єдина машинна перевірка правила «артефакт збірки не комітиться»
 		// (VERSIONING-v8 § 1.4). Без цього кроку згенерований файл із часом
 		// збірки роками їздить у комітах як шум.
-		expect(
-			/git diff --exit-code/.test(all),
-			'після npm run build немає git diff --exit-code'
-		).toBe(true);
+		expect(/git diff --exit-code/.test(all), 'після npm run build немає git diff --exit-code').toBe(
+			true
+		);
 	});
 
 	it('деплой іде через OIDC, а не стороннім екшеном із доступом на запис (§ 1.1)', () => {
@@ -103,8 +102,9 @@ describe('CI', () => {
 		expect(called.length, 'жодного npm run у workflow — сканер шукає не там').toBeGreaterThan(0);
 
 		const missing = [...new Set(called)].filter((name) => !(pkg.scripts ?? {})[name]);
-		expect(missing, `workflow кличе скрипти, яких немає в package.json: ${missing.join(', ')}`).toEqual(
-			[]
-		);
+		expect(
+			missing,
+			`workflow кличе скрипти, яких немає в package.json: ${missing.join(', ')}`
+		).toEqual([]);
 	});
 });

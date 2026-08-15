@@ -32,7 +32,12 @@ const BASELINE = [
 	'svelte/no-at-html-tags',
 	'svelte/require-each-key',
 	'svelte/valid-compile',
-	'svelte/prefer-svelte-reactivity'
+	'svelte/prefer-svelte-reactivity',
+	// DEBUGGING-v8 § 4. Not in the canon's own baseline list, added here because
+	// the failure mode is the same one that list is about: a console call still
+	// prints, so nothing looks broken, and the event is simply missing from every
+	// report a visitor could send. Off would be indistinguishable from clean.
+	'no-console'
 ] as const;
 
 /**

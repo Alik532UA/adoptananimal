@@ -45,7 +45,9 @@ describe('залежності', () => {
 
 	it('немає плаваючих версій (§ 2.3)', () => {
 		const all = { ...pkg.dependencies, ...pkg.devDependencies };
-		expect(Object.keys(all).length, 'залежностей не знайдено — перевірка мертва').toBeGreaterThan(0);
+		expect(Object.keys(all).length, 'залежностей не знайдено — перевірка мертва').toBeGreaterThan(
+			0
+		);
 
 		const floating = Object.entries(all)
 			.filter(([, range]) => range === '*' || range === 'latest' || range.startsWith('http'))

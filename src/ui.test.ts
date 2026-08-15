@@ -107,7 +107,8 @@ describe('UI-конвенції', () => {
 					...lines.slice(index + 1, index + 2)
 				].map((l) => l.trim());
 
-				const explained = inline.length > 0 || near.some((l) => l.startsWith('<!--') || l.endsWith('-->'));
+				const explained =
+					inline.length > 0 || near.some((l) => l.startsWith('<!--') || l.endsWith('-->'));
 				if (!explained) bad.push(`${file}:${index + 1}: ${match[1]} без причини`);
 			});
 		}

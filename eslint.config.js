@@ -111,8 +111,29 @@ export default defineConfig(
 			// preset change cannot drop them silently — that is how gates disappear.
 			'svelte/no-at-html-tags': 'error',
 			'svelte/prefer-svelte-reactivity': 'error',
-			'@typescript-eslint/ban-ts-comment': 'error'
+			'@typescript-eslint/ban-ts-comment': 'error',
+
+			// DEBUGGING-v8 § 4. A console call is not a smaller version of logging —
+			// it is a different destination. Anything written this way is absent from
+			// the ring buffer, and therefore absent from the report a visitor copies
+			// out, which is the only way a log ever reaches us from someone else's
+			// device. The rule is what makes logService the single door rather than
+			// the preferred one. Exceptions are listed below, each with a reason.
+			'no-console': 'error'
 		}
+	},
+
+	/**
+	 * The three places console output is the point rather than a slip.
+	 *
+	 * logService owns the console: it is the module the rule above exists to funnel
+	 * everything into, and it has to be able to print. The other two never run in a
+	 * browser at all — they are command-line gates whose entire output is meant for
+	 * a terminal and for the CI log.
+	 */
+	{
+		files: ['src/lib/services/logService.svelte.ts', 'src/lib/i18n/validator.ts', 'scripts/**'],
+		rules: { 'no-console': 'off' }
 	},
 
 	/**

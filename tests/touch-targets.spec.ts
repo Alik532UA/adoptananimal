@@ -139,7 +139,8 @@ test('the known-shortfall list holds nothing that has since been given room', as
 	}
 
 	const settled = [...BELOW_PROJECT_STANDARD].filter((id) => !stillShort.has(id));
-	expect(settled, `now ${PROJECT_STANDARD}px or larger — remove from the list:\n${settled.join('\n')}`).toEqual(
-		[]
-	);
+	expect(
+		settled,
+		`now ${PROJECT_STANDARD}px or larger — remove from the list:\n${settled.join('\n')}`
+	).toEqual([]);
 });

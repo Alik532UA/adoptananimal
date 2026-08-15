@@ -37,7 +37,14 @@
 		width: number;
 		height: number;
 	}[] = [
-		{ flag: 'uk', nameKey: 'country.ua', locale: 'uk', language: 'Українська', width: 3, height: 2 },
+		{
+			flag: 'uk',
+			nameKey: 'country.ua',
+			locale: 'uk',
+			language: 'Українська',
+			width: 3,
+			height: 2
+		},
 		{ flag: 'de', nameKey: 'country.de', locale: 'de', language: 'Deutsch', width: 5, height: 3 },
 		{ flag: 'at', nameKey: 'country.at', locale: 'de', language: 'Deutsch', width: 3, height: 2 },
 		{ flag: 'nl', nameKey: 'country.nl', locale: 'nl', language: 'Nederlands', width: 3, height: 2 }

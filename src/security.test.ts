@@ -89,9 +89,10 @@ describe('безпека — CSP', () => {
 	);
 
 	it('перевірка жива: у політиці є хоч один зовнішній хост', () => {
-		expect(allowedHosts.length, 'директиви не розібралися — змінився формат конфігу').toBeGreaterThan(
-			0
-		);
+		expect(
+			allowedHosts.length,
+			'директиви не розібралися — змінився формат конфігу'
+		).toBeGreaterThan(0);
 	});
 
 	it("script-src не має 'unsafe-inline' (§ 6.1)", () => {
