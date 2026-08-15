@@ -132,11 +132,14 @@
 						</a>
 					{/if}
 
+					<!-- The same words the home page and the favourites page already use for
+						 this destination. A third phrase for one place is how a site starts
+						 feeling like several. -->
 					<a
 						href={localePath('/adopt/dog')}
 						class="btn btn--secondary"
 						data-testid="back-to-dogs-link"
-						><Icon name="arrow-left" size="1.1rem" /> {t('detail.backDogs')}</a
+						><Icon name="arrow-left" size="1.1rem" /> {t('featured.browseDogs')}</a
 					>
 
 					{#if next}
@@ -402,16 +405,9 @@
 		color: var(--color-text);
 	}
 
-	.detail__next {
-		/* The photograph sits inside the same inset as the labels beside it, so all three
-		   start on one vertical line. */
-		justify-content: flex-start;
-	}
-
-	.detail__next :global(.icon-wrapper) {
-		/* Pushed to the end, so the arrow sits at the edge whatever the name's length. */
-		margin-left: auto;
-	}
+	/* Centred like the other two. Left-aligned it was the only one of the three whose
+	   contents started somewhere else, and the photograph made that the first thing you
+	   noticed about the set. */
 
 	.detail__next-thumb {
 		width: 48px;

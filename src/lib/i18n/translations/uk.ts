@@ -209,7 +209,7 @@ export const uk = {
 	'scrollbar.minimapFull': 'Візуальна мінімапа',
 
 	// The two quiet links in the footer's corner.
-	'detail.nextAnimal': 'Подивитися наступного',
+	'detail.nextAnimal': 'Дивитися наступного',
 	'footer.openSite': 'Відкрити сайт',
 	'footer.play': 'Грати',
 	'footer.orderSite': 'Замовити сайт'
