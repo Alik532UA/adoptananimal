@@ -333,7 +333,7 @@ UI-UX-v8 каже, що перший візит іде за `prefers-color-schem
 | тема | у спокої | при наведенні |
 | --- | --- | --- |
 | Vibrant | `--color-text-on-secondary` 8.9:1 | `--color-primary` 4.59:1 |
-| Dark | `--color-text-on-secondary` 7.4:1 | мох `#2d5522` 4.82:1 |
+| Dark | мох `#2d5522` 4.82:1 | `--color-text-on-secondary` 7.4:1 |
 | Winter | льодовиковий `#0f4c5c` 5.31:1 | `--color-text-on-secondary` 7.6:1 |
 | Green | `--color-primary` **3.51:1** | `--color-text-on-secondary` 8.4:1 |
 

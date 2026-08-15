@@ -36,7 +36,7 @@ export const summary: AnimalSummary = {
 		nl: 'grijze cyper'
 	},
 	image: '/images/animals/cat_martin.jpg',
-	imagePosition: '30% 50%'
+	imagePosition: '0% 50%'
 };
 
 export const description: Translations = {

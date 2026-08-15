@@ -36,7 +36,7 @@ export const summary: AnimalSummary = {
 		nl: 'red'
 	},
 	image: '/images/animals/cat_cherry.jpg',
-	imagePosition: '30% 50%'
+	imagePosition: '0% 50%'
 };
 
 export const description: Translations = {

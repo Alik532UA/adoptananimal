@@ -121,12 +121,13 @@
 }
 
 /*
- * Dark keeps its deep forest title and lifts to moss under the pointer: the same green
- * carried up rather than swapped for another hue, so it reads as the text catching
- * light. 4.82:1, against 7.4:1 at rest.
+ * Dark reads as moss at rest and settles into its own deep forest under the pointer —
+ * the same green either way, so the change is the text sinking rather than a jump to
+ * another hue. 4.82:1 and 7.4:1.
  */
 [data-theme='dark'][data-style='playful'] {
-	--plate-title-hover: #2d5522;
+	--plate-title: #2d5522;
+	--plate-title-hover: var(--color-text-on-secondary);
 }
 
 [data-style='playful'] .section__title {
