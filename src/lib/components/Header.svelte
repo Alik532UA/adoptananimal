@@ -777,6 +777,25 @@
 			border-top: 1px solid var(--color-border);
 		}
 
+		/*
+		 * While the accounts panel is open, the rest of the menu steps back.
+		 *
+		 * The panel opens over a screen full of links and controls, and everything
+		 * competed with it for attention. Dimming rather than blurring: a backdrop would
+		 * have to be a fixed element, and .header carries a backdrop-filter, which makes
+		 * it the containing block for anything fixed inside — the overlay would cover the
+		 * header and nothing else.
+		 *
+		 * :global around the class it asks about, since it belongs to OrgLogos and Svelte
+		 * would otherwise prune the rule as unused.
+		 */
+		.header__nav:has(:global(.org-logos--revealing)) .header__link,
+		.header__nav:has(:global(.org-logos--revealing)) .header__controls,
+		.header__nav:has(:global(.org-logos--revealing)) .header__nav-projects {
+			opacity: 0.5;
+			transition: opacity var(--transition-normal);
+		}
+
 		.header__nav-orgs {
 			--org-logos-size: 68px;
 			--org-logos-gap: var(--space-2xl);

@@ -159,6 +159,10 @@
 
 	.org-logos__flyout {
 		position: absolute;
+		/* Above its neighbours. In the mobile menu it opens upward over the call to
+		   action, which is a positioned element with a z-index of its own and was drawing
+		   straight through the panel. */
+		z-index: 5;
 		left: 100%;
 		top: 50%;
 		transform: translateY(-50%);
@@ -189,8 +193,8 @@
 	.org-logos__social {
 		width: 44px;
 		height: 44px;
-		border-radius: 50%;
-		overflow: hidden;
+		/* No radius and nothing to clip: each of these images is already drawn as a
+		   rounded square, and a circle over it cut the corners off the artwork. */
 		transform: scale(0);
 		transition: transform var(--transition-spring);
 	}
@@ -237,8 +241,8 @@
 			justify-content: center;
 			/* Room enough to aim at. A phone is pressed with a fingertip, and these used to
 			   be 40px circles eight pixels apart — three of them inside one press. */
-			gap: var(--space-md);
-			padding: var(--space-md);
+			gap: var(--space-lg);
+			padding: var(--space-lg);
 			margin-bottom: var(--space-sm);
 			background: var(--color-bg-card);
 			/* Two rows now, so a pill is the wrong shape. */
