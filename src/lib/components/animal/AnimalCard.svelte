@@ -177,7 +177,21 @@
 
 	/* No outline, on any state: the shadow already separates the card from the page, and
 	   an edge on top of it was one line too many. The hover reads through the lift and
-	   the deeper shadow instead. */
+	   the deeper shadow instead.
+
+	   THIS IS THE BASE, AND TWO SKINS REPLACE IT — `modern` and `playful` both set
+	   their own transform on `:root[data-style=…] .animal-card:hover`. The `:root`
+	   there is what makes them win, and it is not stylistic: Svelte compiles the
+	   selector below to `.animal-card.svelte-HASH:hover`, and that scoping class —
+	   invisible in this file — brings it to (0,3,0), the same specificity a plain
+	   `[data-style=…] .animal-card:hover` has. A tie is broken by source order, and
+	   the order differs between environments: in dev Vite injects component CSS as
+	   <style> after app.css, in a build it ships as a separate <link> the global
+	   bundle precedes. So the skins won in `npm run dev` and lost everywhere else.
+	   Measured, both ways, before this was written.
+
+	   If you change the transform here, check what the skins expect — and if you add a
+	   third skin that overrides it, keep the `:root`. */
 	.animal-card:hover {
 		transform: translateY(-8px) scale(1.02);
 		box-shadow: var(--shadow-xl);

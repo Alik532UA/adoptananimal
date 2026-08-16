@@ -77,7 +77,18 @@
 	transform: scale(0.98);
 }
 
-[data-style='playful'] .animal-card:hover {
+/*
+ * `:root` is load-bearing, not decoration — see the note above .animal-card:hover in
+ * AnimalCard.svelte for the whole story.
+ *
+ * Short version: a skin is an override layer, so it has to outrank the component's own
+ * hover. Without `:root` the two are both (0,3,0) — Svelte's scoping class quietly
+ * makes the component's selector as specific as this one — and the winner is then
+ * decided by whichever stylesheet the bundler happened to emit last. That differs
+ * between dev and build, which is exactly how this rule worked in `npm run dev` and
+ * silently did nothing on the deployed site.
+ */
+:root[data-style='playful'] .animal-card:hover {
 	transform: scale(1.05) rotate(1.5deg);
 	border-color: transparent;
 }

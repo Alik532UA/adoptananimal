@@ -22,7 +22,10 @@
 	font-size: 4rem;
 }
 
-[data-style='modern'] .animal-card:hover {
+/* `:root` for the same reason as in playful.css: without it this ties with the
+   component's own hover at (0,3,0) and loses in the build, so the card picked up the
+   component's `scale(1.02)` on top of this lift. */
+:root[data-style='modern'] .animal-card:hover {
 	transform: translateY(-8px);
 	box-shadow: var(--shadow-lg);
 }
