@@ -29,12 +29,46 @@
 	let { slug }: Props = $props();
 
 	const saved = $derived(settings.isFavorite(slug));
+
+	/**
+	 * Which side the label opens on, decided by measuring rather than by a breakpoint.
+	 *
+	 * Neither side works everywhere, and that is not a guess — it is what the two of them
+	 * measure at, with the longest name in the data:
+	 *
+	 *   right  runs past the window at 320–400px, and again at 900px, where the
+	 *          two-column layout starts the text column at x=766
+	 *   left   fits at every width, and covers the animal's name while it is up
+	 *
+	 * So the rule is the one FLUID-SIZING § 5 gives for anything anchored to a trigger:
+	 * prefer the side that reads first, then pull it back into the window when that side
+	 * has no room. Right when there is space for it, left when there is not — and the
+	 * name is only covered on the narrow screens where nothing else would fit.
+	 *
+	 * Measured on hover and focus rather than once, because the answer changes with the
+	 * window and this is the moment it is needed.
+	 */
+	let flipped = $state(false);
+	let button = $state<HTMLButtonElement | undefined>();
+	let label = $state<HTMLElement | undefined>();
+
+	function chooseSide() {
+		if (!button || !label) return;
+		const box = button.getBoundingClientRect();
+		// offsetWidth, not the rect: the rect is affected by the scale on :hover.
+		const needed = label.offsetWidth + 8;
+		flipped = box.right + needed > window.innerWidth;
+	}
 </script>
 
 <button
 	type="button"
 	class="detail__fav"
 	class:detail__fav--saved={saved}
+	class:detail__fav--flipped={flipped}
+	bind:this={button}
+	onpointerenter={chooseSide}
+	onfocus={chooseSide}
 	aria-pressed={saved}
 	onclick={(event) => {
 		const adding = !saved;
@@ -45,7 +79,9 @@
 	}}
 	data-testid="detail-favorite-btn"
 >
-	<span class="detail__fav-label">{t(saved ? 'detail.inFavorites' : 'detail.addFavorite')}</span>
+	<span class="detail__fav-label" bind:this={label}
+		>{t(saved ? 'detail.inFavorites' : 'detail.addFavorite')}</span
+	>
 	<Icon name={saved ? 'heart-filled' : 'heart'} size="1.4rem" class={saved ? 'text-danger' : ''} />
 </button>
 
@@ -77,11 +113,12 @@
 
 	.detail__fav-label {
 		position: absolute;
-		/* Below rather than beside: the heading is as wide as its column, so there is no
-		   room to the right, and above would cover the name this belongs to. */
-		top: calc(100% + 6px);
-		left: 50%;
-		translate: -50% 0;
+		/* Beside the glyph, not beneath it — underneath put the label over the first row
+		   of specifications, where it read as a label for those. Right by default; the
+		   script above flips it when the window has no room on that side. */
+		left: calc(100% + var(--space-sm));
+		top: 50%;
+		translate: 0 -50%;
 		padding: 4px 10px;
 		border-radius: var(--radius-sm);
 		background: var(--color-bg-card);
@@ -94,6 +131,11 @@
 		pointer-events: none;
 		transition: opacity var(--transition-fast);
 		z-index: 3;
+	}
+
+	.detail__fav--flipped .detail__fav-label {
+		left: auto;
+		right: calc(100% + var(--space-sm));
 	}
 
 	.detail__fav:hover .detail__fav-label,

@@ -93,6 +93,39 @@ test.describe("an animal's own page", () => {
 		await expect(label).toHaveCSS('opacity', '1');
 	});
 
+	test('the label opens to whichever side has room, never below', async ({ page }) => {
+		/*
+		 * Both sides fail somewhere, which is why the side is measured rather than fixed.
+		 * Right runs past the window at 320–400px and again at 900px, where the
+		 * two-column layout starts the text column at x=766; left always fits but covers
+		 * the name. So the assertion is not "it is on the right" — it is "it is beside
+		 * the glyph and inside the window", at widths chosen from both failure ranges.
+		 */
+		for (const width of [320, 480, 900, 1280]) {
+			await page.setViewportSize({ width, height: 900 });
+			await page.goto('/adopt/cat/cucumber');
+
+			const button = page.locator('.detail__fav');
+			await button.hover();
+
+			const placed = await page.evaluate(() => {
+				const glyph = document.querySelector('.detail__fav')!.getBoundingClientRect();
+				const label = document.querySelector('.detail__fav-label')!.getBoundingClientRect();
+				return {
+					beside: label.right <= glyph.left + 1 || label.left >= glyph.right - 1,
+					sameRow: Math.abs(label.top + label.height / 2 - (glyph.top + glyph.height / 2)) < 3,
+					inside: label.left >= 0 && label.right <= window.innerWidth
+				};
+			});
+
+			expect(placed.beside, `at ${width}px the label is not to either side of the glyph`).toBe(
+				true
+			);
+			expect(placed.sameRow, `at ${width}px the label is above or below, not beside`).toBe(true);
+			expect(placed.inside, `at ${width}px the label runs outside the window`).toBe(true);
+		}
+	});
+
 	test('the choice survives a reload', async ({ page }) => {
 		await page.goto('/adopt/cat/berry');
 		await page.getByTestId('detail-favorite-btn').click();
@@ -152,6 +185,58 @@ test.describe('the hearts that fly to the counter', () => {
 
 		// It appends itself to <body>; left behind, one layer per click accumulates.
 		await expect(layer).not.toBeAttached({ timeout: 5000 });
+	});
+
+	test('are the theme colour, and readable over whatever they cross', async ({ page }) => {
+		await page.goto('/adopt/cat/basti');
+		await page.getByTestId('detail-favorite-btn').click();
+
+		const heart = await page
+			.locator('.fly-to-favorites__heart')
+			.first()
+			.evaluate((el) => {
+				const style = getComputedStyle(el);
+				const accent = getComputedStyle(document.documentElement)
+					.getPropertyValue('--color-primary')
+					.trim();
+				const probe = document.createElement('span');
+				probe.style.color = accent;
+				document.body.append(probe);
+				const resolved = getComputedStyle(probe).color;
+				probe.remove();
+				return {
+					colour: style.color,
+					accent: resolved,
+					shadow: style.textShadow,
+					size: style.fontSize
+				};
+			});
+
+		// The accent, not a fixed red: red belonged to no palette but the green one.
+		expect(heart.colour, 'the hearts are not the theme colour').toBe(heart.accent);
+
+		/*
+		 * And a halo, which is not decoration. In the default theme --cat-hero is the
+		 * same #3f6b28 as --color-primary, so without an outline the hearts vanish
+		 * completely while crossing the hero band — measured at 1.00:1.
+		 */
+		expect(heart.shadow, 'nothing separates the hearts from a ground of the same colour').not.toBe(
+			'none'
+		);
+		expect(parseFloat(heart.size), 'the hearts are back to a speck').toBeGreaterThanOrEqual(24);
+	});
+
+	test('take long enough to be followed', async ({ page }) => {
+		await page.goto('/adopt/cat/basti');
+		await page.getByTestId('detail-favorite-btn').click();
+
+		const timing = await page
+			.locator('.fly-to-favorites__heart')
+			.first()
+			.evaluate((el) => el.getAnimations()[0].effect!.getTiming().duration);
+		// 620ms crossed the screen faster than the eye follows: something happened, but
+		// not visibly a journey from here to there, which is the only thing this is for.
+		expect(Number(timing), 'the flight is too quick to read').toBeGreaterThanOrEqual(800);
 	});
 
 	test('do not fly on the way out — that would point the wrong way', async ({ page }) => {

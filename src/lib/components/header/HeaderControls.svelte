@@ -210,6 +210,25 @@
 		background: var(--control-surface-hover);
 	}
 
+	/*
+	 * And the panel that opens from them, for the same reason and in the same place.
+	 *
+	 * DropdownMenu paints itself --color-bg-card, which IS the header's colour on a wide
+	 * screen: the menu opened over the bar and read as part of it rather than as a thing
+	 * on top. In the mobile panel it had the same problem against the same value, and
+	 * carried a fix of its own in HeaderNav — two rules for one intent, which is how the
+	 * two places drift apart. There is exactly one dropdown in this project, and it lives
+	 * here, so the rule lives here too.
+	 *
+	 * --control-surface-hover is the card colour stepped toward the text by a fixed
+	 * amount, so the separation is identical in all four themes and can only ever be the
+	 * same hue.
+	 */
+	.header__controls :global(.dropdown__menu) {
+		background: var(--control-surface-hover);
+		border: 1px solid var(--color-border);
+	}
+
 	.header__controls {
 		display: flex;
 		align-items: center;

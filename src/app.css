@@ -266,10 +266,33 @@
 	/* The transform positions it from its own centre rather than its corner, so the
 	   first frame starts on the button and the last lands on the counter. */
 	margin: -0.5em 0 0 -0.5em;
-	font-size: 1.15rem;
+	/* Big enough to be a shape rather than a speck at arm's length from the screen. */
+	font-size: 1.7rem;
 	line-height: 1;
-	color: var(--color-error);
-	text-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+	/*
+	 * The theme's own accent, not a fixed red.
+	 *
+	 * --color-error is the colour of the filled heart on a card, and borrowing it here
+	 * put a red trail across the winter and orange-purple palettes that belonged to
+	 * neither. The accent is what "this site" looks like in whichever theme is on, and
+	 * it is also the colour of the counter the hearts are flying to.
+	 */
+	color: var(--color-primary);
+	/*
+	 * A halo, because the accent is not guaranteed to differ from what it flies over.
+	 *
+	 * In the default theme --cat-hero IS --color-primary — the same #3f6b28 — so hearts
+	 * crossing the hero band disappeared into it completely. Measured against each
+	 * theme's hero: 1.00 here, 5.49 dark, 4.59 vibrant, 3.17 winter. Only one of the four
+	 * needed it, and one is enough.
+	 *
+	 * Light ring first, soft dark drop under it: the accent is a mid-tone in every theme,
+	 * so a pale outline separates it from a dark ground and the shadow does the rest on a
+	 * light one. Red used to make this a non-question and is what the theme colour cost.
+	 */
+	text-shadow:
+		0 0 4px rgb(255 255 255 / 0.85),
+		0 1px 5px rgb(0 0 0 / 0.3);
 	will-change: transform, opacity;
 }
 

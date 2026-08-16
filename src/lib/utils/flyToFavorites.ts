@@ -22,9 +22,15 @@
 /** Enough to read as a handful; more looks like confetti and costs frames. */
 const PARTICLE_COUNT = 7;
 
-const DURATION_MS = 620;
+/**
+ * Slower than it was. At 620ms the hearts crossed the screen faster than the eye
+ * follows: the counter changed and something had happened, but not visibly a journey
+ * from here to there, which is the only thing this is for.
+ */
+const DURATION_MS = 950;
+
 /** Each one leaves slightly after the last, so the group reads as a stream. */
-const STAGGER_MS = 45;
+const STAGGER_MS = 55;
 
 /**
  * The link the hearts fly to. Its locator is generated in HeaderNavLinks.svelte from
@@ -86,10 +92,15 @@ export function flyToFavorites(origin: Element): void {
 		 * pushed sideways by a spread that alternates left and right and grows with the
 		 * index, and lifted above the straight line — so they leave together, fan out,
 		 * and come back together at the counter.
+		 *
+		 * The numbers are half what they were. The last heart used to swing 96px wide and
+		 * 88px above the line, which is not a flourish on a journey, it is a loop: the
+		 * outer ones read as going somewhere else entirely and only turned back at the
+		 * end. Enough curve to be a curve.
 		 */
-		const spread = (i % 2 === 0 ? 1 : -1) * (12 + i * 14);
+		const spread = (i % 2 === 0 ? 1 : -1) * (8 + i * 7);
 		const midX = (from.x + to.x) / 2 + spread;
-		const midY = Math.min(from.y, to.y) - 40 - i * 8;
+		const midY = Math.min(from.y, to.y) - 20 - i * 4;
 
 		const animation = particle.animate(
 			[
