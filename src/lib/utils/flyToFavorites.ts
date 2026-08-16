@@ -23,14 +23,21 @@
 const PARTICLE_COUNT = 7;
 
 /**
- * Slower than it was. At 620ms the hearts crossed the screen faster than the eye
- * follows: the counter changed and something had happened, but not visibly a journey
- * from here to there, which is the only thing this is for.
+ * How long one heart takes to cross, and it has been slowed twice.
+ *
+ * 620ms was quicker than the eye follows: the counter changed and something had
+ * happened, but not visibly a journey from here to there, which is the only thing this
+ * is for. 950 was better and still hurried. At 1400 the trip is something you watch
+ * rather than something you notice afterwards.
+ *
+ * Everything else here is expressed as a fraction of it — the colour turn, the pulse at
+ * the far end — so changing this number moves them together and none of them has to be
+ * re-tuned.
  */
-const DURATION_MS = 950;
+const DURATION_MS = 1400;
 
 /** Each one leaves slightly after the last, so the group reads as a stream. */
-const STAGGER_MS = 55;
+const STAGGER_MS = 70;
 
 /**
  * The link the hearts fly to. Its locator is generated in HeaderNavLinks.svelte from

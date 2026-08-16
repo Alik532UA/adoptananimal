@@ -220,21 +220,29 @@ test.describe('the hearts that fly to the counter', () => {
 		 * inside the page uses the browser's own clock, which is the one the animation
 		 * uses too.
 		 */
-		const trace = await page.evaluate(async () => {
+		const { frames: trace, duration } = await page.evaluate(async () => {
 			(document.querySelector('[data-testid="detail-favorite-btn"]') as HTMLElement).click();
 			const frames: { ms: number; colour: string }[] = [];
 			const started = performance.now();
-			return await new Promise<typeof frames>((resolve) => {
+			// Read from the animation rather than repeated here: a copy of the duration in
+			// the test is a second source of truth, and the share below is measured against
+			// it — so the day the flight is retimed this check would quietly be comparing
+			// against a number that no longer exists in the code.
+			let duration = 0;
+			return await new Promise<{ frames: typeof frames; duration: number }>((resolve) => {
 				const tick = () => {
 					const heart = document.querySelector('.fly-to-favorites__heart');
 					const elapsed = performance.now() - started;
-					if (!heart || elapsed > 1200) return resolve(frames);
+					if (!heart || elapsed > 2500) return resolve({ frames, duration });
+					duration ||= Number(heart.getAnimations()[0]?.effect?.getTiming().duration ?? 0);
 					frames.push({ ms: elapsed, colour: getComputedStyle(heart).color });
 					requestAnimationFrame(tick);
 				};
 				requestAnimationFrame(tick);
 			});
 		});
+
+		expect(duration, 'could not read the flight duration from the animation').toBeGreaterThan(0);
 
 		expect(trace.length, 'the flight was over before it could be traced').toBeGreaterThan(10);
 
@@ -261,7 +269,7 @@ test.describe('the hearts that fly to the counter', () => {
 		 * its own way.
 		 */
 		const settled = trace.find((f) => f.colour === tokens.accent)!;
-		const share = settled.ms / 950;
+		const share = settled.ms / duration;
 		expect(
 			share,
 			`the turn completes at ${Math.round(share * 100)}% of the flight, not near a quarter`
