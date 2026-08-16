@@ -36,6 +36,29 @@
 	--glass-blur: 16px;
 	--active-tab-bg: var(--color-primary);
 
+	/*
+	 * ── THE DIAL FOR HOW ROUND A CONTROL'S CORNERS ARE ──────────────────────────
+	 *
+	 * Change this one number and every round-ish button follows: the header's three
+	 * pickers, the two side links, the favourites hearts, the back-to-top, the carousel
+	 * arrows. Nothing else needs touching.
+	 *
+	 *   1     a circle — the corner is a plain arc, the roundest it goes
+	 *   1.4   here: gentler than a squircle, clearly not a circle
+	 *   2     `squircle` — flatter sides, and the corner turns more abruptly
+	 *   4+    heading for a square
+	 *   <1    heading the other way, toward a cut-off corner (bevel at 0)
+	 *
+	 * Those are not from the spec text, they are what the browser reports back:
+	 * `superellipse(1)` computes to `round` and `superellipse(2)` to `squircle`, so
+	 * bigger means squarer and smaller means rounder. Was 2, which read as too sharp.
+	 *
+	 * Only Chromium draws this so far. Everywhere else the corner is whatever
+	 * --radius-control gives it, which is a generously rounded square either way — so
+	 * this dial changes the character of the curve, not whether there is one.
+	 */
+	--corner-superellipse: 1.4;
+
 	/* What the section title is written in. These are the values for a title standing on
 	   the page; the playful skin puts it on a coloured plate, and skins/playful.css is
 	   where the themes that need another answer there give one. Declared at the root

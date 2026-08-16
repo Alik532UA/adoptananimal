@@ -63,7 +63,7 @@
 
 <button
 	type="button"
-	class="detail__fav"
+	class="detail__fav control-shape"
 	class:detail__fav--saved={saved}
 	class:detail__fav--flipped={flipped}
 	bind:this={button}
@@ -95,7 +95,6 @@
 		/* WCAG 2.5.8: the target stays 44 even though the glyph is 1.4rem. */
 		width: 44px;
 		height: 44px;
-		border-radius: 50%;
 		border: none;
 		background: var(--control-surface);
 		color: var(--color-text);

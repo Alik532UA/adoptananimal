@@ -1265,8 +1265,11 @@ test.describe('the shape of a control', () => {
 	 * of the four is edited. The point of the class is that there is nowhere to drift to.
 	 */
 	test('the pickers, the side links and the bar favourite share one shape', async ({ page }) => {
+		// The home page at a phone width with the menu open is the one place all seven
+		// exist together: the carousel arrows live only here, the two project buttons and
+		// the bar favourite only on a phone. Checked, not assumed.
 		await page.setViewportSize({ width: 480, height: 900 });
-		await page.goto('/adopt/cat');
+		await page.goto('/');
 		await page.locator('button[data-testid$="-favorite-btn"]').first().click();
 		await page.locator('.header__burger').click();
 
@@ -1274,11 +1277,16 @@ test.describe('the shape of a control', () => {
 			const token = getComputedStyle(document.documentElement)
 				.getPropertyValue('--radius-control')
 				.trim();
+			// Every round-ish button on the site. The list is the check: a new one that
+			// draws its own circle is the failure this is here to catch.
 			const wanted = [
 				'.dropdown__trigger',
 				'.header__nav-project',
 				'.header__bar-fav',
-				'.footer__aside-link'
+				'.footer__aside-link',
+				'.animal-card__fav',
+				'.back-to-top',
+				'.nav-btn'
 			];
 			return wanted.map((selector) => {
 				const el = document.querySelector(selector);
@@ -1304,6 +1312,46 @@ test.describe('the shape of a control', () => {
 			.filter((s) => s.radius === '50%' || parseFloat(s.radius) > 100)
 			.map((s) => `${s.selector}: ${s.radius}`);
 		expect(circles, `still round rather than a superellipse`).toEqual([]);
+	});
+
+	test('one number governs the curve, and every button reads it', async ({ page }) => {
+		/*
+		 * The dial exists so the shape can be tuned in one place. A button that has been
+		 * given its own corner-shape, or its own radius on top of the class, would look
+		 * right today and stop following tomorrow — which is precisely what the single
+		 * variable is for.
+		 */
+		await page.goto('/');
+
+		const result = await page.evaluate(() => {
+			const dial = getComputedStyle(document.documentElement)
+				.getPropertyValue('--corner-superellipse')
+				.trim();
+			// Read through getPropertyValue rather than the camelCase property: TypeScript's
+			// DOM library has no `cornerShape` yet, the CSS itself is fine, and reaching for
+			// the typed accessor keeps `npm run check` honest instead of silenced.
+			const shapeOf = (el: Element) => getComputedStyle(el).getPropertyValue('corner-shape');
+
+			// The browser normalises some values to keywords: superellipse(1) reports as
+			// `round`, superellipse(2) as `squircle`. Compare against what it makes of the
+			// dial rather than against the text of it.
+			const probe = document.createElement('div');
+			probe.style.setProperty('corner-shape', `superellipse(${dial})`);
+			document.body.append(probe);
+			const expected = shapeOf(probe);
+			probe.remove();
+
+			const off = [...document.querySelectorAll('.control-shape')]
+				.map((el) => ({ el, shape: shapeOf(el) }))
+				.filter((x) => x.shape !== expected)
+				.map((x) => `${x.el.className}: ${x.shape}`);
+
+			return { dial, expected, off, count: document.querySelectorAll('.control-shape').length };
+		});
+
+		expect(result.dial, 'the dial is not declared').not.toBe('');
+		expect(result.count, 'nothing carries the shared shape — the check is dead').toBeGreaterThan(3);
+		expect(result.off, `not following --corner-superellipse (${result.expected})`).toEqual([]);
 	});
 
 	test('a skin that means square corners still gets them', async ({ page }) => {

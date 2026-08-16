@@ -281,7 +281,7 @@
 	onclickcapture={handleClickCapture}
 >
 	<button
-		class="nav-btn nav-btn--prev"
+		class="nav-btn nav-btn--prev control-shape"
 		onclick={() => scrollBy(-1)}
 		aria-label={t('carousel.prev')}
 		data-testid={`${testId}-prev-btn`}
@@ -322,7 +322,7 @@
 	</div>
 
 	<button
-		class="nav-btn nav-btn--next"
+		class="nav-btn nav-btn--next control-shape"
 		onclick={() => scrollBy(1)}
 		aria-label={t('carousel.next')}
 		data-testid={`${testId}-next-btn`}
@@ -413,7 +413,6 @@
 		border: none;
 		width: 44px;
 		height: 44px;
-		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;

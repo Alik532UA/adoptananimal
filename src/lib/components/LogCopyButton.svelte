@@ -19,7 +19,7 @@
 
 {#if isVisible}
 	<button
-		class="log-fab"
+		class="log-fab control-shape"
 		class:log-fab--copied={copied}
 		onclick={copyReport}
 		oncontextmenu={(e) => {
@@ -50,7 +50,6 @@
 		left: 16px;
 		width: 48px;
 		height: 48px;
-		border-radius: 50%;
 		background: #ef4444;
 		color: white;
 		border: none;

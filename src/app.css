@@ -312,7 +312,9 @@
  */
 .control-shape {
 	border-radius: var(--radius-control);
-	corner-shape: squircle;
+	/* The curve itself is one number, and it lives in base.css so it can be found and
+	   turned. See the block named THE DIAL there. */
+	corner-shape: superellipse(var(--corner-superellipse));
 }
 
 /* Accessibility: Skip Link */

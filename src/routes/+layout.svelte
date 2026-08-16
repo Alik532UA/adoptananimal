@@ -335,7 +335,7 @@
 </div>
 
 <button
-	class="back-to-top"
+	class="back-to-top control-shape"
 	class:back-to-top--visible={showBackToTop}
 	style="--footer-lift: {footerLift}px;"
 	onclick={scrollToTop}
@@ -440,7 +440,6 @@
 		right: var(--space-xl);
 		width: 50px;
 		height: 50px;
-		border-radius: 50%;
 		background: color-mix(in srgb, var(--color-primary) 50%, transparent);
 		-webkit-backdrop-filter: blur(var(--glass-blur));
 		backdrop-filter: blur(var(--glass-blur));

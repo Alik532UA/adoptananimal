@@ -76,7 +76,7 @@
 			>
 		</div>
 		<button
-			class="animal-card__fav"
+			class="animal-card__fav control-shape"
 			class:animal-card__fav--active={settings.isFavorite(animal.slug)}
 			onclick={(e) => {
 				e.preventDefault();
@@ -335,7 +335,6 @@
 		right: 12px;
 		width: 44px;
 		height: 44px;
-		border-radius: 50%;
 		background: var(--glass-bg);
 		-webkit-backdrop-filter: blur(var(--glass-blur));
 		backdrop-filter: blur(var(--glass-blur));
