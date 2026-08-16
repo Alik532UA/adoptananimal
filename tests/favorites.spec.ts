@@ -57,10 +57,28 @@ test.describe("an animal's own page", () => {
 		const nameBox = await page.locator('.detail__name').boundingBox();
 		const buttonBox = await button.boundingBox();
 		expect(buttonBox!.x, 'the button is not after the name').toBeGreaterThan(nameBox!.x);
+
+		/*
+		 * Level with the LETTERS, not merely on the same line.
+		 *
+		 * This used to allow 60px of slack between the two boxes, which is most of the
+		 * heading — it passed happily while the button floated 6px above the name,
+		 * pinned to the top of a line box taller than itself. Measured against the ink
+		 * (a Range over the text) rather than the h1's box, because the box includes the
+		 * line-height leading and centring against that is not the same thing.
+		 */
+		const offset = await page.evaluate(() => {
+			const heading = document.querySelector('.detail__name')!;
+			const range = document.createRange();
+			range.selectNodeContents(heading);
+			const ink = range.getBoundingClientRect();
+			const glyph = document.querySelector('.detail__fav')!.getBoundingClientRect();
+			return Math.abs(glyph.top + glyph.height / 2 - (ink.top + ink.height / 2));
+		});
 		expect(
-			Math.abs(buttonBox!.y - nameBox!.y),
-			'the button is not on the same line as the name'
-		).toBeLessThan(60);
+			offset,
+			`the button sits ${Math.round(offset)}px off the middle of the name`
+		).toBeLessThanOrEqual(2);
 
 		expect(
 			await page.locator('.detail__aside-actions [data-testid="detail-favorite-btn"]').count()

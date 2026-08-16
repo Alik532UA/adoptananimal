@@ -215,11 +215,19 @@
 		gap: var(--space-xl);
 	}
 
-	/* The name takes the room it needs and the button sits after it, top-aligned so a
-	   name that wraps to two lines does not drag the glyph down with it. */
+	/*
+	 * Centred against the name, not pinned to the top of its line box.
+	 *
+	 * `flex-start` put the 44px button at the top of a 58px line box, so its middle
+	 * landed 6px above the middle of the letters and it read as floating. It was there
+	 * to stop a name that wrapped from dragging the glyph down the block — a case that
+	 * cannot arise: the longest name in the data is CUCUMBER, eight characters, which
+	 * fits beside the button at 2rem on the narrowest screen. Guarding against it cost a
+	 * visible misalignment on every page that exists.
+	 */
 	.detail__heading {
 		display: flex;
-		align-items: flex-start;
+		align-items: center;
 		gap: var(--space-sm);
 	}
 
