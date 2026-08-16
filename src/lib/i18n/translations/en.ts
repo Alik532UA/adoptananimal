@@ -74,6 +74,8 @@ export const en = {
 	'detail.alreadyAdopted': 'This animal has already found a home!',
 	'detail.viewProfile': 'View Profile',
 	'detail.applyAdoption': 'Apply to adopt {name}',
+	'detail.addFavorite': 'Save to favourites',
+	'detail.inFavorites': 'Saved to favourites',
 	'apply.title': 'Adoption Application',
 	'apply.subtitle': 'Tell us more about yourself and the home you can provide.',
 	'apply.process.title': 'Adoption Process',

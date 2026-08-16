@@ -245,6 +245,34 @@
 	color: var(--color-error) !important;
 }
 
+/*
+ * The hearts that fly to the favourites counter (src/lib/utils/flyToFavorites.ts).
+ *
+ * Global because the layer is appended to <body> by a plain function, so no component's
+ * scope reaches it. Fixed and pointer-events: none so it can neither move the page nor
+ * take a click; the particles carry their own transform, hence top/left at zero.
+ */
+.fly-to-favorites {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	pointer-events: none;
+}
+
+.fly-to-favorites__heart {
+	position: fixed;
+	top: 0;
+	left: 0;
+	/* The transform positions it from its own centre rather than its corner, so the
+	   first frame starts on the button and the last lands on the counter. */
+	margin: -0.5em 0 0 -0.5em;
+	font-size: 1.15rem;
+	line-height: 1;
+	color: var(--color-error);
+	text-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+	will-change: transform, opacity;
+}
+
 /* Accessibility: Skip Link */
 .skip-link {
 	position: absolute;

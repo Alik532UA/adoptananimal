@@ -3,6 +3,7 @@
 	import type { Animal } from '$lib/data/animals';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
+	import { flyToFavorites } from '$lib/utils/flyToFavorites';
 	import { queuedPhoto } from '$lib/services/imageQueue';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
@@ -80,7 +81,10 @@
 			onclick={(e) => {
 				e.preventDefault();
 				e.stopPropagation();
+				const adding = !settings.isFavorite(animal.slug);
 				settings.toggleFavorite(animal.slug);
+				// Only on the way in — see the note in AnimalActions.svelte.
+				if (adding) flyToFavorites(e.currentTarget);
 			}}
 			aria-label="{t('a11y.toggleFavorite')} {animal.name}"
 			data-testid="animal-card-{animal.slug}-favorite-btn"

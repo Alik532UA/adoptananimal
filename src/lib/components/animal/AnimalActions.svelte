@@ -3,6 +3,8 @@
 	import { t, tFormat } from '$lib/i18n';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import { animalService } from '$lib/services/animals';
+	import { settings } from '$lib/services/settings.svelte';
+	import { flyToFavorites } from '$lib/utils/flyToFavorites';
 	import type { AnimalSummary } from '$lib/data/types';
 
 	/**
@@ -21,6 +23,7 @@
 	let { animal, kind }: Props = $props();
 
 	const listPath = $derived(`/adopt/${kind}`);
+	const saved = $derived(settings.isFavorite(animal.slug));
 	const browseAll = $derived(kind === 'cat' ? t('featured.browseCats') : t('featured.browseDogs'));
 
 	/**
@@ -85,6 +88,39 @@
 			{tFormat('detail.applyAdoption', { name: animal.name })}
 		</a>
 	{/if}
+
+	<!--
+		A second way to keep an animal, on the page where someone decides to.
+
+		The card in a list has one, and until now the page you open FROM that card did
+		not — so the moment a visitor was most likely to want it was the one moment it
+		was missing, and the only way back to it was to leave the page.
+
+		A `-btn` and not a `-link`: it changes something here rather than going anywhere.
+		The label says the state rather than the action, because the icon beside it is
+		already filled or not — a button reading "Save" while showing a full heart is
+		two answers to one question.
+	-->
+	<button
+		type="button"
+		class="btn btn--secondary"
+		aria-pressed={saved}
+		onclick={(event) => {
+			const adding = !saved;
+			settings.toggleFavorite(animal.slug);
+			// Only on the way in. Sending something to a place a thing has just left
+			// would be telling the visitor the opposite of what happened.
+			if (adding) flyToFavorites(event.currentTarget);
+		}}
+		data-testid="detail-favorite-btn"
+	>
+		<Icon
+			name={saved ? 'heart-filled' : 'heart'}
+			size="1.2rem"
+			class={saved ? 'text-danger' : ''}
+		/>
+		{t(saved ? 'detail.inFavorites' : 'detail.addFavorite')}
+	</button>
 
 	{#if siblings}
 		<!-- No wording: the arrows say which way, and the face says who. The

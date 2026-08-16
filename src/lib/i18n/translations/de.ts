@@ -77,6 +77,8 @@ export const de = {
 	'detail.alreadyAdopted': 'Dieses Tier wurde bereits adoptiert!',
 	'detail.viewProfile': 'Profil ansehen',
 	'detail.applyAdoption': '{name} adoptieren',
+	'detail.addFavorite': 'Zu Favoriten hinzufügen',
+	'detail.inFavorites': 'In den Favoriten',
 	'apply.title': 'Adoptionsantrag',
 	'apply.subtitle': 'Erzählen Sie uns mehr über sich und das Zuhause, das Sie bieten können.',
 	'apply.process.title': 'Wie der Adoptionsprozess funktioniert',

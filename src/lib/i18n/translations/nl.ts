@@ -75,6 +75,8 @@ export const nl = {
 	'detail.alreadyAdopted': 'Dit dier is al geadopteerd!',
 	'detail.viewProfile': 'Bekijk profiel',
 	'detail.applyAdoption': '{name} adopteren',
+	'detail.addFavorite': 'Aan favorieten toevoegen',
+	'detail.inFavorites': 'In favorieten',
 	'apply.title': 'Adoptieaanvraag',
 	'apply.subtitle': 'Vertel ons meer over uzelf en het huis dat u kunt bieden.',
 	'apply.process.title': 'Hoe het adoptieproces werkt',

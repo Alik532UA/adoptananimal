@@ -75,6 +75,8 @@ export const uk = {
 	'detail.alreadyAdopted': "Ця тваринка вже знайшла свою сім'ю!",
 	'detail.viewProfile': 'Переглянути профіль',
 	'detail.applyAdoption': 'Подати заявку на адопцію {name}',
+	'detail.addFavorite': 'Додати в обране',
+	'detail.inFavorites': 'В обраному',
 	'apply.title': 'Подати заявку',
 	'apply.subtitle': 'Зробіть перший крок до того, щоб подарувати тварині люблячий дім',
 	'apply.process.title': 'Як працює процес адопції',

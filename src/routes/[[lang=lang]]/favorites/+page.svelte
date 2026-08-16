@@ -7,10 +7,52 @@
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import { flip } from 'svelte/animate';
+	import { MediaQuery } from 'svelte/reactivity';
 
 	let favoriteAnimals = $derived(
 		(allAnimals as Animal[]).filter((a) => settings.favorites.includes(a.slug))
 	);
+
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+
+	/** Long enough to follow, short enough that removing three in a row is not a wait. */
+	const LEAVE_MS = 260;
+	const SETTLE_MS = 340;
+
+	const leaveDuration = $derived(reducedMotion.current ? 0 : LEAVE_MS);
+	const settleDuration = $derived(reducedMotion.current ? 0 : SETTLE_MS);
+
+	/**
+	 * The card being un-favourited: fades and shrinks, and — the part that matters —
+	 * leaves the grid's flow on the first frame.
+	 *
+	 * Without that it keeps its cell for the whole transition, so nothing else can move
+	 * until it is gone: the remaining cards wait, then jump. Pinning it at the position
+	 * it already occupies takes it out of the layout immediately, which is what lets
+	 * `animate:flip` below carry the others to their new places while this one is still
+	 * on screen. The two overlap, and that overlap is the whole effect.
+	 *
+	 * Measured from `offsetParent`, which is the grid — it is given `position: relative`
+	 * in the styles below precisely so that this is true.
+	 */
+	function leave(node: HTMLElement, { duration }: { duration: number }) {
+		const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = node;
+		return {
+			duration,
+			css: (t: number) => `
+				position: absolute;
+				left: ${offsetLeft}px;
+				top: ${offsetTop}px;
+				width: ${offsetWidth}px;
+				height: ${offsetHeight}px;
+				margin: 0;
+				pointer-events: none;
+				opacity: ${t};
+				transform: scale(${0.92 + 0.08 * t});
+			`
+		};
+	}
 </script>
 
 <svelte:head>
@@ -29,9 +71,18 @@
 <section class="animal-list section">
 	<div class="container">
 		{#if favoriteAnimals.length > 0}
-			<div class="grid grid--4">
+			<div class="grid grid--4 favs-grid">
 				{#each favoriteAnimals as animal (animal.slug)}
-					<AnimalCard {animal} />
+					<!-- The wrapper exists so there is an ELEMENT to animate: `animate:` and
+						 `out:` attach to elements, not to components. It is the grid item now,
+						 hence the stretch below — the card measures itself against it. -->
+					<div
+						class="favs-grid__cell"
+						out:leave={{ duration: leaveDuration }}
+						animate:flip={{ duration: settleDuration }}
+					>
+						<AnimalCard {animal} />
+					</div>
 				{/each}
 			</div>
 		{:else}
@@ -82,6 +133,22 @@
 	.favs-hero__subtitle {
 		font-size: 1.25rem;
 		opacity: 0.9;
+	}
+
+	/* `relative` is load-bearing: the leaving card pins itself with offsets measured
+	   from its offsetParent, and this is what makes that the grid rather than the page. */
+	.favs-grid {
+		position: relative;
+	}
+
+	/* The card sets `height: 100%`, so the cell it is now inside has to stretch or every
+	   row collapses to its own content and the grid stops lining up. */
+	.favs-grid__cell {
+		display: flex;
+	}
+
+	.favs-grid__cell > :global(.animal-card) {
+		width: 100%;
 	}
 
 	.animal-list {
