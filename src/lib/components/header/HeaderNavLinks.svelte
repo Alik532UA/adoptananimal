@@ -57,6 +57,7 @@
 	class="header__link header__logo header__logo--nav"
 	class:header__link--active={isHomeActive}
 	class:header__logo--active={isHomeActive}
+	aria-current={isHomeActive ? 'page' : undefined}
 	onclick={onNavigate}
 	data-testid="header-logo-link"
 >
@@ -70,6 +71,7 @@
 		href={localePath(item.href)}
 		class="header__link"
 		class:header__link--active={active}
+		aria-current={active ? 'page' : undefined}
 		onclick={onNavigate}
 		data-testid="nav-{item.href.replaceAll('/', '-').replace(/^-|-$/g, '') || 'home'}-link"
 	>
@@ -89,6 +91,7 @@
 	class="header__link header__cta"
 	class:header__link--active={isApplyActive}
 	class:header__cta--active={isApplyActive}
+	aria-current={isApplyActive ? 'page' : undefined}
 	onclick={onNavigate}
 	data-testid="nav-apply-now-link"
 >
@@ -238,32 +241,78 @@
 		color: #ffffff;
 	}
 
+	/*
+	 * THE OPEN MENU NEEDS THREE LOOKS, NOT TWO: a link, the current page, the call to
+	 * action. It had two — the current tab and the call to action were both filled with
+	 * --color-primary, one green rectangle meaning two different things, while every
+	 * other row had no edge at all.
+	 *
+	 * Each colour below was measured, and the measurements are why parts of it look
+	 * roundabout: the four ratios, and what each ruled out, are in PROJECT-CONTEXT.md
+	 * § 4.19.
+	 */
 	@media (max-width: 768px) {
 		/* The bar keeps a wordmark of its own out here; this one goes with the nav. */
 		.header__logo--nav {
 			display: none;
 		}
+
 		.header__link {
 			height: auto;
 			padding: 12px 20px;
+			border-radius: var(--radius-md);
+			background: var(--control-surface);
+			/* Not the bar's muted colour: that is 4.42:1 here in the dark theme. */
+			color: var(--color-text);
 		}
+
+		/* `color` repeated on purpose: the white declared for this class further up ties
+		   on specificity with `.header__link`, which now sets one and comes later. */
 		.header__link--active {
 			height: auto;
 			align-self: auto;
 			border-radius: var(--radius-md);
 			background: var(--active-tab-bg);
+			color: #ffffff;
 			padding: 12px 20px;
 		}
+
+		/* The marker that survives greyscale — in two themes the current fill and a plain
+		   row are the same lightness. An element, not an inset shadow: the pill's radius
+		   clips a shadow into a crescent that reads as a rendering fault. */
+		.header__link--active::after {
+			content: '';
+			position: absolute;
+			left: 10px;
+			top: 50%;
+			width: 4px;
+			height: 18px;
+			border-radius: var(--radius-full);
+			background: rgb(255 255 255 / 0.9);
+			transform: translateY(-50%);
+			z-index: 2;
+		}
+
 		.header__cta {
 			border-radius: var(--radius-md);
 			padding: 12px 20px;
-			background: var(--color-primary);
+			background: transparent;
+			/* The accent draws the edge but not the words: 3:1 is the bar for a boundary,
+			   4.5 for a 15px label, and it clears the first only. */
+			border: 2px solid var(--color-primary);
+			color: var(--color-text);
 		}
+
 		.header__cta::before {
 			display: none;
 		}
+
+		/* On its own page it is the current tab, so it takes that fill and drops the
+		   outline rather than tracing a second edge around a solid shape. */
 		.header__cta--active {
 			background: var(--active-tab-bg);
+			border-color: transparent;
+			color: #ffffff;
 		}
 	}
 </style>

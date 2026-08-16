@@ -129,5 +129,27 @@
 			background: var(--control-surface-hover);
 			border: 1px solid var(--color-border);
 		}
+
+		/*
+		 * The three controls get the same fill as everything else in the panel.
+		 *
+		 * Their trigger is --glass-bg, which is translucent: over the header's blurred
+		 * bar that reads as a button, over the panel's flat --color-bg-card it lands on
+		 * almost the same colour and they look like three bare glyphs floating in the
+		 * middle of the menu. --control-surface is what the links above and the two
+		 * project buttons below already use, so all of them now read as one set.
+		 *
+		 * The organisation logos deliberately get nothing: they are artwork, not
+		 * controls, and a plate behind each would make them look like two more buttons.
+		 *
+		 * :global for a child component's class, and scoped to .header__nav so the bar's
+		 * own glass triggers are untouched.
+		 */
+		.header__nav :global(.dropdown__trigger) {
+			background: var(--control-surface);
+			border-color: transparent;
+			-webkit-backdrop-filter: none;
+			backdrop-filter: none;
+		}
 	}
 </style>

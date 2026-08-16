@@ -1257,6 +1257,74 @@ test.describe('an adopted card under the pointer', () => {
 });
 
 test.describe('the mobile menu', () => {
+	/**
+	 * Three states in the panel, and each has to be its own shape.
+	 *
+	 * They were two: the current tab was filled with the section colour and "Apply Now"
+	 * was filled with --color-primary, which IS the section colour on the cat pages —
+	 * so the page you were on and the button inviting you elsewhere were the same green
+	 * rectangle. Everything else had no fill at all, which is why only Play and Order a
+	 * website looked like buttons.
+	 *
+	 * Read as computed style rather than by screenshot: a look is a set of declarations,
+	 * and a screenshot test would fail on every unrelated palette change instead.
+	 */
+	test('tells a plain link, the current page and the call to action apart', async ({ page }) => {
+		await page.setViewportSize({ width: 480, height: 900 });
+		await page.goto('/adopt/cat');
+		await page.locator('.header__burger').first().click();
+
+		const of = (testId: string) =>
+			page.getByTestId(testId).evaluate((el) => {
+				const style = getComputedStyle(el);
+				return {
+					background: style.backgroundColor,
+					borderWidth: parseFloat(style.borderTopWidth),
+					marker: getComputedStyle(el, '::after').content
+				};
+			});
+
+		const plain = await of('nav-adopt-dog-link');
+		const current = await of('nav-adopt-cat-link');
+		const cta = await of('nav-apply-now-link');
+
+		// A plain link is filled, the same as the two project buttons at the foot.
+		const project = await page
+			.locator('.header__nav-project')
+			.first()
+			.evaluate((el) => getComputedStyle(el).backgroundColor);
+		expect(plain.background, 'a plain link has no surface of its own').toBe(project);
+
+		// The current one is filled with something else, and carries a marker that is a
+		// shape rather than a colour — in two themes the fills are the same lightness.
+		expect(current.background, 'the current page looks like any other link').not.toBe(
+			plain.background
+		);
+		expect(current.marker, 'nothing marks the current page except its colour').not.toBe('none');
+
+		// The call to action is outlined and NOT filled: that is the whole distinction.
+		expect(cta.borderWidth, 'the call to action has no outline').toBeGreaterThan(0);
+		expect(
+			cta.background,
+			'the call to action is filled, so it reads as another selected tab'
+		).toBe('rgba(0, 0, 0, 0)');
+		expect(cta.background, 'the call to action is filled like the current page').not.toBe(
+			current.background
+		);
+	});
+
+	test('says which page it is on, not only shows it', async ({ page }) => {
+		// There was no aria-current anywhere in the nav: the current item was a colour and
+		// nothing else, so a screen reader had no way to convey it at all.
+		await page.setViewportSize({ width: 480, height: 900 });
+		await page.goto('/adopt/cat');
+		await page.locator('.header__burger').first().click();
+
+		const current = page.locator('.header__nav [aria-current="page"]');
+		await expect(current).toHaveCount(1);
+		await expect(current).toHaveAttribute('data-testid', 'nav-adopt-cat-link');
+	});
+
 	const MOBILE = { width: 375, height: 812 };
 
 	test('is a panel with something behind it, not items over the page', async ({ page }) => {
