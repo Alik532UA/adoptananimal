@@ -388,6 +388,68 @@ test.describe('the header meets the page', () => {
 		expect(photograph, 'nothing behind the page at all').toContain('.webp');
 	});
 
+	/*
+	 * The photograph eases in over two seconds, the same as an animal's does.
+	 *
+	 * A CSS background has no load event, so this needs a real preload behind it, and
+	 * the preload is where it went wrong the first time: in a build the custom property
+	 * reads `url(./bg-….hash.webp)`, relative to the STYLESHEET, and resolving it
+	 * against the document asked the site root for a file that is not there. The decode
+	 * rejected, the reveal ran from the failure path instead of from the picture
+	 * arriving, and it still looked correct — which is why this measures the ramp and
+	 * the console rather than the final state.
+	 */
+	test('the theme’s photograph eases in rather than appearing at once', async ({ page }) => {
+		const failed: string[] = [];
+		page.on('response', (r) => {
+			if (r.status() === 404 && /\.webp$/.test(r.url())) failed.push(r.url());
+		});
+
+		await page.goto('/');
+		const layer = page.locator('.site-bg');
+
+		await expect(layer).toHaveClass(/site-bg--loaded/, { timeout: 10_000 });
+		expect(
+			await layer.evaluate((el) => getComputedStyle(el).transitionDuration),
+			'the fade is not two seconds long'
+		).toBe('2s');
+
+		// Caught mid-ramp: fully transparent or fully opaque would both pass a check on
+		// the end state alone, and the defect was that it jumped straight to the end.
+		const midway = await layer.evaluate(
+			(el) =>
+				new Promise<number>((resolve) =>
+					setTimeout(() => resolve(Number(getComputedStyle(el).opacity)), 700)
+				)
+		);
+		expect(midway, `not part-way through a fade — opacity was ${midway}`).toBeGreaterThan(0.05);
+		expect(midway, `not part-way through a fade — opacity was ${midway}`).toBeLessThan(0.95);
+
+		await expect
+			.poll(async () => Number(await layer.evaluate((el) => getComputedStyle(el).opacity)), {
+				timeout: 5000
+			})
+			.toBe(1);
+
+		expect(failed, 'the preload asked for a file that is not there: ' + failed.join(', ')).toEqual(
+			[]
+		);
+	});
+
+	test('the photograph is there for a visitor without JavaScript', async ({ browser }) => {
+		// The fade hides the layer behind [data-js], so a scripting failure must not be a
+		// page with no background at all — the same guard AnimalCard.svelte needs.
+		const context = await browser.newContext({ javaScriptEnabled: false });
+		const page = await context.newPage();
+		await page.goto('/');
+
+		const opacity = await page.evaluate(
+			() => getComputedStyle(document.querySelector('.site-bg')!).opacity
+		);
+		expect(opacity, 'no script, no background — the layer never comes back').toBe('1');
+		await context.close();
+	});
+
 	test('the colour runs to the end of the section, not to a fixed depth', async ({ page }) => {
 		await page.goto('/');
 

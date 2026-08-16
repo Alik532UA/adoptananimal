@@ -38,6 +38,24 @@
 	let bgShift = $state(0);
 
 	/**
+	 * Whether the theme's photograph has finished decoding, which is when it is allowed
+	 * to fade in — the same two seconds an animal photo gets in AnimalCard.svelte.
+	 *
+	 * A CSS background has no load event, so there is nothing to wait on declaratively:
+	 * the browser paints the flat `--color-bg` and then swaps the photograph in whole,
+	 * whenever it arrives. `transition: background-image` does not soften that and never
+	 * did — `background-image` animates discretely between two `url()`s, so the
+	 * declaration that used to sit here was decoration. Hence a real preload: fetch it,
+	 * `decode()` it, and only then let the element come up.
+	 *
+	 * Once true it stays true. On a theme change the CSS variable swaps the file
+	 * immediately, and the honest note is that this does NOT cross-fade it — that needs
+	 * two stacked layers, both carrying the parallax transform, and it is not what was
+	 * asked for. First paint is the case that looked broken.
+	 */
+	let bgLoaded = $state(false);
+
+	/**
 	 * How far the back-to-top button has to rise to stay off the footer.
 	 *
 	 * Of the three ways out of the collision, this is the only one that leaves a working
@@ -48,6 +66,80 @@
 	 * which is what a floating button is supposed to do.
 	 */
 	let footerLift = $state(0);
+
+	/**
+	 * Preload the theme's photograph, then let it fade.
+	 *
+	 * The URL is read back out of the custom property rather than imported: the four
+	 * themes each declare their own `--bg-image`, Vite rewrites those to hashed asset
+	 * paths at build time, and re-listing them here would be a second copy that goes
+	 * stale the day a fifth theme arrives.
+	 *
+	 * Keyed on the theme so a switch preloads the new file too. It does not hide the
+	 * old one while that happens — see the note on `bgLoaded`.
+	 */
+	$effect(() => {
+		if (!browser) return;
+
+		// Read, not merely touched: this is the dependency that re-runs the preload when
+		// the theme changes, and naming it here means the warning below can say which
+		// theme's file failed rather than only which URL.
+		const theme = settings.theme;
+
+		const declared = getComputedStyle(document.documentElement)
+			.getPropertyValue('--bg-image')
+			.trim();
+		const raw = /url\(\s*["']?(.*?)["']?\s*\)/.exec(declared)?.[1];
+
+		/*
+		 * Resolved against the STYLESHEET, not the page.
+		 *
+		 * In a build the property comes back as `url(./bg-….hash.webp)` — relative to
+		 * the CSS file in /_app/immutable/assets/, which is where Vite put both. Handing
+		 * that string to `new Image()` resolves it against the document instead, so it
+		 * asks the site root for a file that is not there: two 404s in the console, the
+		 * decode rejects, and the fade ends up driven by a failed request rather than by
+		 * the picture arriving. It looked like it worked, which is the bad part.
+		 */
+		const sheet = [...document.styleSheets].find((s) => {
+			try {
+				return [...s.cssRules].some((r) => r.cssText.includes('--bg-image'));
+			} catch {
+				return false; // cross-origin sheet: not ours, and not readable
+			}
+		});
+		const url = raw ? new URL(raw, sheet?.href ?? document.baseURI).href : undefined;
+
+		if (!url) {
+			// No photograph for this theme, or the property was renamed. Either way the
+			// element must not stay invisible waiting for something that is not coming.
+			bgLoaded = true;
+			return;
+		}
+
+		let current = true;
+		const image = new Image();
+		image.src = url;
+
+		// decode() rather than onload: onload fires when the bytes are in, decoding can
+		// still cost a frame after that, and a fade that starts mid-decode is the jump
+		// this exists to remove.
+		image
+			.decode()
+			.catch(() => {
+				// Decoding can fail on a cancelled navigation or a broken file. Showing the
+				// tint alone would look like a bug; the browser paints what it managed to
+				// fetch, and the page keeps its background.
+				logService.warn('ui', `Background image for theme "${theme}" did not decode: ${url}`);
+			})
+			.finally(() => {
+				if (current) bgLoaded = true;
+			});
+
+		return () => {
+			current = false;
+		};
+	});
 
 	$effect(() => {
 		if (!browser) return;
@@ -212,7 +304,11 @@
 
 <Header />
 
-<div class="site-bg" style="--bg-height: {bgHeight}px; --bg-shift: {bgShift}px;"></div>
+<div
+	class="site-bg"
+	class:site-bg--loaded={bgLoaded}
+	style="--bg-height: {bgHeight}px; --bg-shift: {bgShift}px;"
+></div>
 
 <div class="app-shell">
 	<main class="main" id="main-content">
@@ -280,6 +376,21 @@
 	 * property of the page. Sized exactly rather than guessed at generously, so the
 	 * image never runs out from under the last screenful.
 	 */
+	/*
+	 * Behind [data-js], the attribute app.html sets before the first paint, and for the
+	 * same reason AnimalCard.svelte does it: without a script nothing would ever add
+	 * the class below, and the page would keep a flat colour where its photograph
+	 * belongs. Reduced motion needs nothing here — the global rule in app.css already
+	 * cuts every transition, so the image simply arrives.
+	 */
+	:global([data-js]) .site-bg {
+		opacity: 0;
+	}
+
+	:global([data-js]) .site-bg--loaded {
+		opacity: 1;
+	}
+
 	.site-bg {
 		position: fixed;
 		top: 0;
@@ -302,7 +413,11 @@
 		background-position: center;
 		filter: blur(5px);
 		transform: translate3d(0, calc(var(--bg-shift) * -1), 0) scale(1.03);
-		transition: background-image var(--transition-slow);
+		/* Two seconds, matching an animal photograph in AnimalCard.svelte — the two
+		   fades are the same gesture and reading them as one is the point. There is no
+		   transition on background-image any more: it animates discretely between two
+		   url()s, so the declaration that stood here did nothing at all. */
+		transition: opacity 2s ease-out;
 		will-change: transform;
 	}
 
