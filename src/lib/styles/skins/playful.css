@@ -194,7 +194,10 @@
 	}
 }
 
-[data-style='playful'] .about__note {
+/* `:root` for the reason spelled out beside .animal-card:hover in playful.css:
+   without it this ties with the component's own rule at equal specificity, and a
+   tie is settled by bundler order, which differs between dev and a build. */
+:root[data-style='playful'] .about__note {
 	border: none;
 	background: var(--glass-bg);
 	-webkit-backdrop-filter: blur(var(--glass-blur));
