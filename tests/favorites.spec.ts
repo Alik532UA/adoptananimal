@@ -46,11 +46,71 @@ test.describe("an animal's own page", () => {
 		).not.toBe(saved);
 	});
 
+	test('the button sits beside the name and keeps its label back until asked', async ({ page }) => {
+		// It used to be in the column of buttons under the photograph, which is a list of
+		// ways OFF the page. Icon only now, following the two side buttons in the footer.
+		await page.goto('/adopt/cat/basti');
+
+		const button = page.getByTestId('detail-favorite-btn');
+		const label = page.locator('.detail__fav-label');
+
+		const nameBox = await page.locator('.detail__name').boundingBox();
+		const buttonBox = await button.boundingBox();
+		expect(buttonBox!.x, 'the button is not after the name').toBeGreaterThan(nameBox!.x);
+		expect(
+			Math.abs(buttonBox!.y - nameBox!.y),
+			'the button is not on the same line as the name'
+		).toBeLessThan(60);
+
+		expect(
+			await page.locator('.detail__aside-actions [data-testid="detail-favorite-btn"]').count()
+		).toBe(0);
+
+		// WCAG 2.5.8 — the glyph is small, the target is not.
+		expect(buttonBox!.width).toBeGreaterThanOrEqual(44);
+		expect(buttonBox!.height).toBeGreaterThanOrEqual(44);
+
+		await expect(label).toHaveCSS('opacity', '0');
+		await button.hover();
+		await expect(label).toHaveCSS('opacity', '1');
+	});
+
 	test('the choice survives a reload', async ({ page }) => {
 		await page.goto('/adopt/cat/berry');
 		await page.getByTestId('detail-favorite-btn').click();
 		await page.reload();
 		await expect(page.getByTestId('detail-favorite-btn')).toHaveAttribute('aria-pressed', 'true');
+	});
+});
+
+test.describe('the header on a phone', () => {
+	test('offers Favorites in the bar, but only once something is saved', async ({ page }) => {
+		// With nothing saved it is a link to an empty page beside a zero. Rendered at all
+		// rather than shown disabled: a control that does nothing is worse than no control.
+		await page.setViewportSize({ width: 480, height: 900 });
+		await page.goto('/adopt/cat');
+		await expect(page.getByTestId('header-favorites-mobile-link')).toHaveCount(0);
+
+		await page.locator('button[data-testid$="-favorite-btn"]').first().click();
+
+		const link = page.getByTestId('header-favorites-mobile-link');
+		await expect(link).toBeVisible();
+		await expect(link).toContainText('1');
+		// Its only text is a number, so the name has to come from aria-label.
+		await expect(link).toHaveAttribute('aria-label', /1$/);
+
+		// Its own locator, not the nav's: two elements answering `nav-favorites-link`
+		// would make every test that uses it a guess, and tests/testids.spec.ts says so.
+		await expect(page.locator('[data-testid="nav-favorites-link"]')).toHaveCount(1);
+	});
+
+	test('the bar link is a phone thing — the wide layout has its own', async ({ page }) => {
+		await page.setViewportSize({ width: 1280, height: 900 });
+		await page.goto('/adopt/cat');
+		await page.locator('button[data-testid$="-favorite-btn"]').first().click();
+
+		await expect(page.getByTestId('nav-favorites-link')).toBeVisible();
+		await expect(page.getByTestId('header-favorites-mobile-link')).toBeHidden();
 	});
 });
 

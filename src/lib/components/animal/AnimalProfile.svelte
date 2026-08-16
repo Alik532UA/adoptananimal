@@ -4,6 +4,7 @@
 	import { settings } from '$lib/services/settings.svelte';
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import AnimalFavoriteButton from '$lib/components/animal/AnimalFavoriteButton.svelte';
 	import AnimalActions from '$lib/components/animal/AnimalActions.svelte';
 	import AnimalSpecs from '$lib/components/animal/AnimalSpecs.svelte';
 	import AnimalStory from '$lib/components/animal/AnimalStory.svelte';
@@ -126,7 +127,18 @@
 			</div>
 
 			<div class="detail__info">
-				<h1 class="detail__name">{animal.name}</h1>
+				<div class="detail__heading">
+					<h1 class="detail__name">{animal.name}</h1>
+
+					<!--
+						Beside the name, where the decision is made. It used to sit in the column
+						of buttons under the photograph, which is a list of ways OFF this page —
+						apply, previous, next, back to the list. Keeping an animal is not one of
+						those, and the only item there that changed something in place read as a
+						fifth exit.
+					-->
+					<AnimalFavoriteButton slug={animal.slug} />
+				</div>
 				<AnimalSpecs {animal} />
 				<AnimalStory {animal} />
 			</div>
@@ -201,6 +213,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-xl);
+	}
+
+	/* The name takes the room it needs and the button sits after it, top-aligned so a
+	   name that wraps to two lines does not drag the glyph down with it. */
+	.detail__heading {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-sm);
 	}
 
 	.detail__name {

@@ -186,6 +186,30 @@
 </div>
 
 <style>
+	/*
+	 * The three triggers take the same surface as every other control on the site.
+	 *
+	 * DropdownMenu gives them --glass-bg, which is translucent: over the header's
+	 * blurred bar that reads as a button, and over the mobile panel's flat card colour
+	 * it lands on almost the same value and they look like three bare glyphs. One rule
+	 * for both places rather than a panel-only override, so there is nothing for the
+	 * bundler to break a tie over (SVELTE-UI § 3.6).
+	 *
+	 * `.header__controls :global(.dropdown__trigger)` is (0,3,0) once Svelte adds its
+	 * scoping class, against (0,2,0) for the component's own rule — it wins outright,
+	 * not by being later.
+	 */
+	.header__controls :global(.dropdown__trigger) {
+		background: var(--control-surface);
+		border-color: transparent;
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+
+	.header__controls :global(.dropdown__trigger:hover) {
+		background: var(--control-surface-hover);
+	}
+
 	.header__controls {
 		display: flex;
 		align-items: center;

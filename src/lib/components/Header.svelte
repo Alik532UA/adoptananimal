@@ -2,6 +2,7 @@
 	import { localePath } from '$lib/utils/withBase';
 	import { t } from '$lib/i18n';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import { settings } from '$lib/services/settings.svelte';
 	import HeaderNav from '$lib/components/header/HeaderNav.svelte';
 	import { clamp01, SETTLE_DISTANCE } from '$lib/utils/tabWave';
 
@@ -64,6 +65,33 @@
 		</a>
 
 		<HeaderNav open={mobileMenuOpen} {scrollProgress} onNavigate={closeMenu} />
+
+		<!--
+			The one destination worth reaching without opening the menu, and only once it
+			leads somewhere: with nothing saved it is a link to an empty page and a number
+			reading zero, so it is not rendered at all rather than shown disabled.
+
+			Its own locator, not the nav's. `nav-favorites-link` already exists inside the
+			panel, and a second element carrying it would be a duplicate in the DOM — which
+			tests/testids.spec.ts fails on, correctly: two elements answering one locator
+			make every test that uses it a guess.
+		-->
+		{#if settings.favorites.length > 0}
+			<a
+				href={localePath('/favorites')}
+				class="header__bar-fav"
+				onclick={closeMenu}
+				aria-label="{t('nav.favorites')}: {settings.favorites.length}"
+				data-testid="header-favorites-mobile-link"
+			>
+				<!-- The glyph and the number are the whole control, so the name has to come
+					 from aria-label — the same shape AnimalCard uses for its heart. There is
+					 no visually-hidden utility in this project, and inventing one for a single
+					 span would be a second way of saying what aria-label already says. -->
+				<Icon name="heart" size="1.35rem" />
+				<span class="header__bar-fav-count">{settings.favorites.length}</span>
+			</a>
+		{/if}
 
 		<button
 			class="header__burger"
@@ -188,6 +216,30 @@
 	 * 44px square: the button is the only way into the menu on a phone, and it is
 	 * pressed with a fingertip.
 	 */
+	/*
+	 * Only in the bar, and only on a phone: on a wide screen the nav carries a Favorites
+	 * item of its own a few pixels away, and two of them side by side would be one too
+	 * many. Hidden by default and revealed in the same query that reveals the burger.
+	 */
+	.header__bar-fav {
+		display: none;
+	}
+
+	.header__bar-fav-count {
+		position: absolute;
+		top: 2px;
+		right: 0;
+		min-width: 18px;
+		padding: 1px 5px;
+		border-radius: var(--radius-full);
+		background: var(--color-primary);
+		color: var(--color-text-on-accent);
+		font-size: 0.7rem;
+		font-weight: 800;
+		line-height: 1.4;
+		box-shadow: var(--shadow-sm);
+	}
+
 	.header__burger {
 		display: none;
 		align-items: center;
@@ -211,6 +263,24 @@
 		}
 		.header__burger {
 			display: flex;
+		}
+
+		/* Pushed to the right by the logo's `margin-right: auto`, so it lands beside the
+		   burger rather than beside the wordmark. Relative for the counter. */
+		.header__bar-fav {
+			position: relative;
+			/* Grouped with the burger rather than left to `space-between`, which would
+			   strand it alone in the middle of the bar. */
+			margin-left: auto;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			border-radius: 50%;
+			background: var(--control-surface);
+			color: var(--color-text);
+			flex-shrink: 0;
 		}
 	}
 </style>
