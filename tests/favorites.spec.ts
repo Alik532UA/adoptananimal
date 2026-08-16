@@ -187,7 +187,92 @@ test.describe('the hearts that fly to the counter', () => {
 		await expect(layer).not.toBeAttached({ timeout: 5000 });
 	});
 
-	test('are the theme colour, and readable over whatever they cross', async ({ page }) => {
+	test('turn from red into the theme colour on the way', async ({ page }) => {
+		await page.goto('/adopt/cat/basti');
+
+		const tokens = await page.evaluate(() => {
+			// Resolved through an element, because getPropertyValue hands back the raw
+			// token text and getComputedStyle(...).color hands back rgb() — comparing the
+			// two directly compares a hex string to a function call.
+			const resolve = (value: string) => {
+				const probe = document.createElement('span');
+				probe.style.color = value;
+				document.body.append(probe);
+				const resolved = getComputedStyle(probe).color;
+				probe.remove();
+				return resolved;
+			};
+			const root = getComputedStyle(document.documentElement);
+			return {
+				red: resolve(root.getPropertyValue('--color-error').trim()),
+				accent: resolve(root.getPropertyValue('--color-primary').trim())
+			};
+		});
+		expect(tokens.red, 'the two ends of the ramp are the same colour').not.toBe(tokens.accent);
+
+		/*
+		 * Traced frame by frame from inside the page, rather than sampled from the test.
+		 *
+		 * Two earlier versions got this wrong in opposite directions, and both times the
+		 * cause was the same: the effect's easing is front-loaded, so an offset in the
+		 * keyframes and a moment in time are not the same thing, and any fixed
+		 * `waitForTimeout` is a guess about how busy the machine is. requestAnimationFrame
+		 * inside the page uses the browser's own clock, which is the one the animation
+		 * uses too.
+		 */
+		const trace = await page.evaluate(async () => {
+			(document.querySelector('[data-testid="detail-favorite-btn"]') as HTMLElement).click();
+			const frames: { ms: number; colour: string }[] = [];
+			const started = performance.now();
+			return await new Promise<typeof frames>((resolve) => {
+				const tick = () => {
+					const heart = document.querySelector('.fly-to-favorites__heart');
+					const elapsed = performance.now() - started;
+					if (!heart || elapsed > 1200) return resolve(frames);
+					frames.push({ ms: elapsed, colour: getComputedStyle(heart).color });
+					requestAnimationFrame(tick);
+				};
+				requestAnimationFrame(tick);
+			});
+		});
+
+		expect(trace.length, 'the flight was over before it could be traced').toBeGreaterThan(10);
+
+		// It leaves as the colour the heart on the card turns when you press it.
+		expect(trace[0].colour, 'the hearts do not start red').toBe(tokens.red);
+		expect(trace[trace.length - 1].colour, 'the hearts do not end the theme colour').toBe(
+			tokens.accent
+		);
+
+		// A ramp, not a swap: values that are neither end.
+		const blended = trace.filter((f) => f.colour !== tokens.red && f.colour !== tokens.accent);
+		expect(
+			blended.length,
+			`the colour jumps rather than blends — only ever saw ${
+				[...new Set(trace.map((f) => f.colour))].length
+			} values`
+		).toBeGreaterThan(2);
+
+		/*
+		 * And it turns EARLY. Asked for at about a quarter of the way across; it settles
+		 * at ~23%. The window is generous in both directions because this is a judgement
+		 * about how it reads, but it is bounded on both sides on purpose — the two
+		 * versions before this one finished at ~3% and at ~68%, and each looked wrong in
+		 * its own way.
+		 */
+		const settled = trace.find((f) => f.colour === tokens.accent)!;
+		const share = settled.ms / 950;
+		expect(
+			share,
+			`the turn completes at ${Math.round(share * 100)}% of the flight, not near a quarter`
+		).toBeGreaterThan(0.1);
+		expect(
+			share,
+			`the turn completes at ${Math.round(share * 100)}% of the flight, not near a quarter`
+		).toBeLessThan(0.4);
+	});
+
+	test('are big enough to see, and readable over whatever they cross', async ({ page }) => {
 		await page.goto('/adopt/cat/basti');
 		await page.getByTestId('detail-favorite-btn').click();
 
@@ -196,28 +281,12 @@ test.describe('the hearts that fly to the counter', () => {
 			.first()
 			.evaluate((el) => {
 				const style = getComputedStyle(el);
-				const accent = getComputedStyle(document.documentElement)
-					.getPropertyValue('--color-primary')
-					.trim();
-				const probe = document.createElement('span');
-				probe.style.color = accent;
-				document.body.append(probe);
-				const resolved = getComputedStyle(probe).color;
-				probe.remove();
-				return {
-					colour: style.color,
-					accent: resolved,
-					shadow: style.textShadow,
-					size: style.fontSize
-				};
+				return { shadow: style.textShadow, size: style.fontSize };
 			});
 
-		// The accent, not a fixed red: red belonged to no palette but the green one.
-		expect(heart.colour, 'the hearts are not the theme colour').toBe(heart.accent);
-
 		/*
-		 * And a halo, which is not decoration. In the default theme --cat-hero is the
-		 * same #3f6b28 as --color-primary, so without an outline the hearts vanish
+		 * The halo is not decoration. In the default theme --cat-hero is the same
+		 * #3f6b28 as --color-primary, so once the ramp finishes the hearts would vanish
 		 * completely while crossing the hero band — measured at 1.00:1.
 		 */
 		expect(heart.shadow, 'nothing separates the hearts from a ground of the same colour').not.toBe(

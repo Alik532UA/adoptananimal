@@ -71,6 +71,24 @@ export function flyToFavorites(origin: Element): void {
 	const from = centreOf(origin);
 	const to = centreOf(target);
 
+	/*
+	 * The hearts leave red and arrive in the theme's colour.
+	 *
+	 * Red is what a heart is at the moment you press it — it is the colour the filled
+	 * glyph on the card turns, so the particles start as pieces of the thing you just
+	 * clicked. By the time they reach the counter they are the site's accent, which is
+	 * what the counter is. The journey says both: this came from there, and it belongs
+	 * here now.
+	 *
+	 * Resolved to concrete values first. `var(--…)` inside WAAPI keyframes is not
+	 * dependable — custom properties are not animatable there in every engine, and a
+	 * keyframe the browser cannot parse is dropped in silence, leaving the base colour
+	 * and no hint that anything was meant to happen.
+	 */
+	const palette = getComputedStyle(document.documentElement);
+	const startColour = palette.getPropertyValue('--color-error').trim() || 'crimson';
+	const endColour = palette.getPropertyValue('--color-primary').trim() || 'currentColor';
+
 	const layer = document.createElement('div');
 	layer.className = 'fly-to-favorites';
 	layer.setAttribute('aria-hidden', 'true');
@@ -104,14 +122,41 @@ export function flyToFavorites(origin: Element): void {
 
 		const animation = particle.animate(
 			[
-				{ transform: `translate3d(${from.x}px, ${from.y}px, 0) scale(0.4)`, opacity: 0 },
+				{
+					transform: `translate3d(${from.x}px, ${from.y}px, 0) scale(0.4)`,
+					opacity: 0,
+					color: startColour
+				},
 				{
 					transform: `translate3d(${from.x}px, ${from.y}px, 0) scale(1.15)`,
 					opacity: 1,
+					color: startColour,
 					offset: 0.15
 				},
-				{ transform: `translate3d(${midX}px, ${midY}px, 0) scale(1)`, opacity: 1, offset: 0.6 },
-				{ transform: `translate3d(${to.x}px, ${to.y}px, 0) scale(0.3)`, opacity: 0 }
+				/*
+				 * The turn happens EARLY — done by about a quarter of the way across.
+				 *
+				 * Offsets are not wall-clock here: the easing below is front-loaded, so
+				 * the effect is already ~64% through at a quarter of the duration. That
+				 * cuts both ways and has caught me twice. A ramp on 0.15–0.6 finished so
+				 * soon it read as no ramp at all; moved to 0.5–0.95 it finished around
+				 * two thirds of the way, which read as changing at the end. Ending it at
+				 * 0.5 puts the last of the red at roughly 240ms of 950 — a quarter, in
+				 * the time the eye actually measures.
+				 *
+				 * A keyframe may carry only some properties; transform interpolates across
+				 * this one as though it were not here.
+				 */
+				{ color: endColour, offset: 0.5 },
+				{
+					transform: `translate3d(${midX}px, ${midY}px, 0) scale(1)`,
+					opacity: 1,
+					offset: 0.6
+				},
+				{
+					transform: `translate3d(${to.x}px, ${to.y}px, 0) scale(0.3)`,
+					opacity: 0
+				}
 			],
 			{
 				duration: DURATION_MS,
