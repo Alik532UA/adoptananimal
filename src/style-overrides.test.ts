@@ -62,8 +62,7 @@ function specificity(selector: string): [number, number, number] {
 		(cleaned.match(/\.[\w-]+/g) ?? []).length +
 		(cleaned.match(/\[[^\]]+\]/g) ?? []).length +
 		(cleaned.match(/:(?!:)[a-z-]+(\([^)]*\))?/g) ?? []).length;
-	const elements =
-		(cleaned.match(//g) ?? []).length + (cleaned.match(/(^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
+	const elements = (cleaned.match(/(^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
 
 	return [ids, classes, elements];
 }
