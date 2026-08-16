@@ -17,6 +17,7 @@ export type IconName =
 	| 'email'
 	| 'globe'
 	| 'idea'
+	| 'leaf'
 	| 'sun'
 	| 'moon'
 	| 'sparkles'

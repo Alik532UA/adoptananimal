@@ -79,7 +79,7 @@
 		{#if settings.favorites.length > 0}
 			<a
 				href={localePath('/favorites')}
-				class="header__bar-fav"
+				class="header__bar-fav control-shape"
 				onclick={closeMenu}
 				aria-label="{t('nav.favorites')}: {settings.favorites.length}"
 				data-testid="header-favorites-mobile-link"
@@ -277,7 +277,6 @@
 			justify-content: center;
 			width: 44px;
 			height: 44px;
-			border-radius: 50%;
 			background: var(--control-surface);
 			color: var(--color-text);
 			flex-shrink: 0;

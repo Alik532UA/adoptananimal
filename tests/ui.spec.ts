@@ -1256,6 +1256,86 @@ test.describe('an adopted card under the pointer', () => {
 	});
 });
 
+test.describe('the shape of a control', () => {
+	/*
+	 * Every round-ish control is the same superellipse, and it is one declaration.
+	 *
+	 * The check is that they all carry `.control-shape`, not that each has some radius:
+	 * a per-component copy would satisfy a radius assertion and still drift the day one
+	 * of the four is edited. The point of the class is that there is nowhere to drift to.
+	 */
+	test('the pickers, the side links and the bar favourite share one shape', async ({ page }) => {
+		await page.setViewportSize({ width: 480, height: 900 });
+		await page.goto('/adopt/cat');
+		await page.locator('button[data-testid$="-favorite-btn"]').first().click();
+		await page.locator('.header__burger').click();
+
+		const shapes = await page.evaluate(() => {
+			const token = getComputedStyle(document.documentElement)
+				.getPropertyValue('--radius-control')
+				.trim();
+			const wanted = [
+				'.dropdown__trigger',
+				'.header__nav-project',
+				'.header__bar-fav',
+				'.footer__aside-link'
+			];
+			return wanted.map((selector) => {
+				const el = document.querySelector(selector);
+				if (!el) return { selector, found: false, shaped: false, radius: '', token };
+				return {
+					selector,
+					found: true,
+					shaped: el.classList.contains('control-shape'),
+					radius: getComputedStyle(el).borderRadius,
+					token
+				};
+			});
+		});
+
+		const missing = shapes.filter((s) => !s.found).map((s) => s.selector);
+		expect(missing, `not on the page — the check is looking at nothing`).toEqual([]);
+
+		const unshaped = shapes.filter((s) => !s.shaped).map((s) => s.selector);
+		expect(unshaped, `carrying their own radius instead of the shared shape`).toEqual([]);
+
+		// And the shape is not a circle: that is the whole change.
+		const circles = shapes
+			.filter((s) => s.radius === '50%' || parseFloat(s.radius) > 100)
+			.map((s) => `${s.selector}: ${s.radius}`);
+		expect(circles, `still round rather than a superellipse`).toEqual([]);
+	});
+
+	test('a skin that means square corners still gets them', async ({ page }) => {
+		// --radius-control is per skin, and `minimal` declaring 0 is not an oversight —
+		// square corners are what that skin is. A hard-coded pixel radius would have
+		// quietly overridden it.
+		await page.addInitScript(() => {
+			try {
+				localStorage.setItem('adoptananimal_style', 'minimal');
+			} catch {
+				/* private mode — the assertion below reports it */
+			}
+		});
+		await page.goto('/adopt/cat');
+		await expect(page.locator('html')).toHaveAttribute('data-style', 'minimal');
+
+		const radius = await page
+			.locator('.dropdown__trigger')
+			.first()
+			.evaluate((el) => getComputedStyle(el).borderRadius);
+		expect(radius, 'the minimal skin lost its square corners').toBe('0px');
+	});
+
+	test('the Vibrant theme is a leaf', async ({ page }) => {
+		await page.goto('/adopt/cat');
+		await page.getByTestId('theme-toggle-btn').click();
+
+		const icon = page.locator('[data-testid="theme-option-orange-purple-btn"] svg').first();
+		await expect(icon).toHaveClass(/lucide-leaf/);
+	});
+});
+
 test.describe('the mobile menu', () => {
 	/**
 	 * Three states in the panel, and each has to be its own shape.

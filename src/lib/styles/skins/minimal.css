@@ -10,6 +10,10 @@
 	--radius-md: 0px;
 	--radius-sm: 0px;
 	--radius-full: 0px;
+	/* Round-ish controls - the header's three pickers, the two side links, the
+	   favourites button in the bar. A superellipse rather than a circle, which is
+	   what the sibling project uses at the same size. Square, like every other corner here - the skin's whole point. */
+	--radius-control: 0px;
 
 	/* Shadows - No shadows in minimal style */
 	--shadow-sm: none;

@@ -296,6 +296,25 @@
 	will-change: transform, opacity;
 }
 
+/*
+ * The shape a round-ish control has: a superellipse, not a circle.
+ *
+ * Global because four components draw one — the header's three pickers, the two side
+ * links in the footer, the same two in the mobile menu, and the favourites button in
+ * the bar. Two declarations repeated five times is five places to forget, and
+ * SVELTE-UI § 3.5 says a rule several components share belongs in a global file rather
+ * than copied into each of their scopes.
+ *
+ * `corner-shape` is the real curve and only Chromium draws it so far. Everywhere else
+ * the radius alone leaves a rounded square, which is what the sibling project uses and
+ * is the whole point of the change — so the fallback is the requested shape, not a
+ * degraded one. The radius is per skin: `minimal` means square corners and says 0.
+ */
+.control-shape {
+	border-radius: var(--radius-control);
+	corner-shape: squircle;
+}
+
 /* Accessibility: Skip Link */
 .skip-link {
 	position: absolute;

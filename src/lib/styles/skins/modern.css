@@ -10,6 +10,10 @@
 	--radius-md: 12px;
 	--radius-sm: 8px;
 	--radius-full: 9999px;
+	/* Round-ish controls - the header's three pickers, the two side links, the
+	   favourites button in the bar. A superellipse rather than a circle, which is
+	   what the sibling project uses at the same size. Crisper than playful, still unmistakably not a circle. */
+	--radius-control: 14px;
 
 	/* Shadows are inherited from the theme to match palette intensity */
 }

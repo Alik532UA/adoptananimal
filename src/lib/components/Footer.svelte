@@ -57,7 +57,7 @@
 		<div class="footer__aside">
 			{#each SIDE_PROJECTS as project (project.id)}
 				<a
-					class="footer__aside-link"
+					class="footer__aside-link control-shape"
 					href={project.url}
 					target="_blank"
 					rel="noopener noreferrer"
@@ -134,7 +134,6 @@
 		/* WCAG 2.5.8: faint is not the same as small. */
 		width: 44px;
 		height: 44px;
-		border-radius: 50%;
 		color: var(--color-text);
 		opacity: 0.1;
 		transition:

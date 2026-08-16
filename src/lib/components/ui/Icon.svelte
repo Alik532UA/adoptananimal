@@ -9,6 +9,7 @@
 		Mail,
 		Globe,
 		Lightbulb,
+		Leaf,
 		Sun,
 		Moon,
 		Sparkles,
@@ -75,6 +76,8 @@
 			<Globe {size} class={className} {strokeWidth} />
 		{:else if name === 'idea'}
 			<Lightbulb {size} class={className} {strokeWidth} />
+		{:else if name === 'leaf'}
+			<Leaf {size} class={className} {strokeWidth} />
 		{:else if name === 'sun'}
 			<Sun {size} class={className} {strokeWidth} />
 		{:else if name === 'moon'}

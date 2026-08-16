@@ -28,7 +28,7 @@
 				href={project.url}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="header__nav-project"
+				class="header__nav-project control-shape"
 				onclick={onNavigate}
 				data-testid="nav-{project.id}-link"
 			>
@@ -82,7 +82,6 @@
 			/* WCAG 2.5.8, and a comfortable tap target beside its neighbour. */
 			min-height: 44px;
 			padding: 0 var(--space-md);
-			border-radius: var(--radius-full);
 			background: var(--control-surface);
 			color: var(--color-text);
 			font-size: 0.85rem;

@@ -10,6 +10,10 @@
 	--radius-md: 24px;
 	--radius-sm: 16px;
 	--radius-full: 9999px;
+	/* Round-ish controls — the header's three pickers, the two side links, the
+	   favourites button in the bar. A superellipse rather than a circle, which is
+	   what the sibling project uses at the same size. Generous, like everything else in this skin. */
+	--radius-control: 18px;
 
 	/* Shadows - Modern and soft, no solid borders */
 	--shadow-md: 0 10px 20px rgba(0, 0, 0, 0.1);

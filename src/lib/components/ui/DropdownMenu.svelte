@@ -128,7 +128,7 @@
 
 <div bind:this={anchorElement} class="dropdown">
 	<button
-		class="dropdown__trigger"
+		class="dropdown__trigger control-shape"
 		onclick={(event) => {
 			// Without this the document-level close handler fires straight after and
 			// the menu shuts in the same tick it opened.
@@ -200,7 +200,6 @@
 		min-width: 44px;
 		height: 44px;
 		padding: 0 10px;
-		border-radius: var(--radius-full);
 		background: var(--glass-bg);
 		-webkit-backdrop-filter: blur(var(--glass-blur));
 		backdrop-filter: blur(var(--glass-blur));
