@@ -58,6 +58,12 @@ jobs:
         env:
           BASE_PATH: ${{ steps.base.outputs.path }}
 
+      # PERFORMANCE-v8 § 10.1. Measured from the generated pages, not from the
+      # `entry` folder the canon names: in this SvelteKit version that folder holds
+      # 2 KB and the application lives in the chunks beside it, so the reference
+      # script would report "2 KB of 150" forever.
+      - run: npm run check:bundle
+
       # The only machine check of "a build artefact is not committed"
       # (VERSIONING-v8 § 1.4). It costs a second and it is the difference between
       # noticing a generated file on the first push and finding it months later in
