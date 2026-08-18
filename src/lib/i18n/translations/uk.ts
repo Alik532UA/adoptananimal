@@ -189,6 +189,14 @@ export const uk = {
 	'list.dog.count.few': '{count} собаки шукають свій вічний дім',
 	'list.dog.count.many': '{count} собак шукають свій вічний дім',
 	'list.dog.count.other': '{count} собаки шукають свій вічний дім',
+	'age.months.one': '~{count} місяць',
+	'age.months.few': '~{count} місяці',
+	'age.months.many': '~{count} місяців',
+	'age.months.other': '~{count} місяця',
+	'age.years.one': '~{count} рік',
+	'age.years.few': '~{count} роки',
+	'age.years.many': '~{count} років',
+	'age.years.other': '~{count} року',
 	'list.cat.description':
 		'Перегляньте {count} котів, врятованих в Україні та готових до прихистку.',
 	'list.dog.description':

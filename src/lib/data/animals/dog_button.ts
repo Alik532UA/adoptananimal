@@ -17,12 +17,8 @@ export const summary: AnimalSummary = {
 		de: 'Zwergspitz',
 		nl: 'Dwergkees'
 	},
-	age: {
-		en: '9 years',
-		uk: '9 років',
-		de: '9 Jahre',
-		nl: '9 jaar'
-	},
+	// 9 years on 2025-01-21, the date on document 7.
+	bornOn: '2016-01-21',
 	size: {
 		en: 'small',
 		uk: 'малий',

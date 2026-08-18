@@ -9,6 +9,8 @@
 	import AnimalSpecs from '$lib/components/animal/AnimalSpecs.svelte';
 	import AnimalStory from '$lib/components/animal/AnimalStory.svelte';
 	import { absoluteFromRoot } from '$lib/config';
+	import { ageDisplay, ageInEnglish, ageInMonths } from '$lib/data/age';
+	import { clock } from '$lib/services/clock.svelte';
 	import type { AnimalDetail } from '$lib/data/types';
 
 	/**
@@ -51,7 +53,12 @@
 			category: kind === 'cat' ? 'Cat' : 'Dog',
 			additionalProperty: [
 				{ '@type': 'PropertyValue', name: 'Breed', value: animal.breed.en },
-				{ '@type': 'PropertyValue', name: 'Age', value: animal.age.en },
+				{
+					'@type': 'PropertyValue',
+					name: 'Age',
+					// English regardless of the reader's language: this block is for machines.
+					value: ageInEnglish(ageDisplay(ageInMonths(animal.bornOn, clock.now)))
+				},
 				{ '@type': 'PropertyValue', name: 'Gender', value: animal.gender.en },
 				{ '@type': 'PropertyValue', name: 'Size', value: animal.size.en }
 			],

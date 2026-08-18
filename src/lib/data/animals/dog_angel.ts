@@ -17,12 +17,8 @@ export const summary: AnimalSummary = {
 		de: 'Mischling',
 		nl: 'gemengd ras'
 	},
-	age: {
-		en: '5 years',
-		uk: '5 років',
-		de: '5 Jahre',
-		nl: '5 jaar'
-	},
+	// 5 years on 2025-07-09, the date on document 9.
+	bornOn: '2020-07-09',
 	size: {
 		en: 'medium',
 		uk: 'середній',

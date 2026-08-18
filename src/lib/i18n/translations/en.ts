@@ -189,6 +189,17 @@ export const en = {
 	'list.dog.count.few': '{count} dogs waiting for a home',
 	'list.dog.count.many': '{count} dogs waiting for a home',
 	'list.dog.count.other': '{count} dogs waiting for a home',
+	// Ages are worked out from a birth date, so the number arrives at runtime and the
+	// language has to pick its own form for it. The tilde is inside the string rather
+	// than bolted on in code: it is a word choice, and a language may want it elsewhere.
+	'age.months.one': '~{count} month',
+	'age.months.few': '~{count} months',
+	'age.months.many': '~{count} months',
+	'age.months.other': '~{count} months',
+	'age.years.one': '~{count} year',
+	'age.years.few': '~{count} years',
+	'age.years.many': '~{count} years',
+	'age.years.other': '~{count} years',
 	'list.cat.description': 'Browse {count} cats available for adoption, rescued from Ukraine.',
 	'list.dog.description': 'Browse {count} dogs available for adoption, rescued from Ukraine.',
 	'list.dog.subtitle': 'Rescued dogs from Ukraine, ready for adoption',

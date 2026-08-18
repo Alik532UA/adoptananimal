@@ -8,6 +8,7 @@
 	import { onNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { logService } from '$lib/services/logService.svelte';
+	import { refreshToday } from '$lib/services/clock.svelte';
 	import { scrollbar } from '$lib/services/scrollbar.svelte';
 	import { webVitals } from '$lib/controllers/webVitals.svelte';
 	import Header from '$lib/components/Header.svelte';
@@ -25,6 +26,16 @@
 	// The locale-free path of the current page, e.g. /adopt/cat for both /adopt/cat
 	// and /uk/adopt/cat. Resolved in the load so it is available before anything renders.
 	const route = $derived(data);
+
+	/**
+	 * The ages on the cards were worked out during `npm run build`, because every page
+	 * here is prerendered. Restamping the date once the browser has the page makes them
+	 * the reader's today rather than the deploy's — see clock.svelte.ts. Runs once: the
+	 * effect reads nothing reactive, so nothing re-triggers it.
+	 */
+	$effect(() => {
+		refreshToday();
+	});
 
 	/**
 	 * The parallax background's own geometry.

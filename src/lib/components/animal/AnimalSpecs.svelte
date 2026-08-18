@@ -1,7 +1,9 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import { normaliseGender } from '$lib/data/filters';
-	import { t } from '$lib/i18n';
+	import { ageDisplay, ageInMonths } from '$lib/data/age';
+	import { t, tPlural } from '$lib/i18n';
+	import { clock } from '$lib/services/clock.svelte';
 	import { settings } from '$lib/services/settings.svelte';
 	import type { AnimalSummary } from '$lib/data/types';
 
@@ -15,6 +17,9 @@
 	 * returns null rather than guessing, which here means no icon at all.
 	 */
 	const genderIcon = $derived(normaliseGender(animal.gender.en));
+
+	/** Worked out from `bornOn` against today, not read from the file — see age.ts. */
+	const age = $derived(ageDisplay(ageInMonths(animal.bornOn, clock.now)));
 </script>
 
 <div class="detail__specs">
@@ -31,7 +36,7 @@
 	</div>
 	<div class="detail__spec">
 		<span class="detail__spec-label">{t('detail.age')}</span>
-		<span class="detail__spec-value">{animal.age[settings.locale]}</span>
+		<span class="detail__spec-value">{tPlural(`age.${age.unit}`, age.value)}</span>
 	</div>
 	<div class="detail__spec">
 		<span class="detail__spec-label">{t('detail.size')}</span>

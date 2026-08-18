@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { localePath, withBase } from '$lib/utils/withBase';
 	import type { Animal } from '$lib/data/animals';
-	import { t } from '$lib/i18n';
+	import { t, tPlural } from '$lib/i18n';
+	import { clock } from '$lib/services/clock.svelte';
+	import { ageDisplay, ageInMonths } from '$lib/data/age';
 	import { settings } from '$lib/services/settings.svelte';
 	import { flyToFavorites } from '$lib/utils/flyToFavorites';
 	import { queuedPhoto } from '$lib/services/imageQueue';
@@ -18,6 +20,10 @@
 
 	/** Same reading of the gender field as the filters and the detail page. */
 	const genderIcon = $derived(normaliseGender(animal.gender.en));
+
+	/** Same age as the detail page, from the same date and the same clock. */
+	const age = $derived(ageDisplay(ageInMonths(animal.bornOn, clock.now)));
+	const ageText = $derived(tPlural(`age.${age.unit}`, age.value));
 
 	let imageFailed = $state(false);
 	/** Whole and decoded, which is when the fade below is allowed to start. */
@@ -109,44 +115,34 @@
 			</Badge>
 			-->
 		</div>
+		<!--
+			All five facts, in the order the detail page uses them. The two long ones take
+			a half-width each on the top row; the three short ones share the bottom. See
+			the grid in the style block for why the split is written down rather than left
+			to wrapping.
+		-->
 		<div class="animal-card__details">
 			<span class="animal-card__detail" title={animal.gender[settings.locale]}>
 				{#if genderIcon}
-					<Icon name={genderIcon} size="0.9rem" class="animal-card__detail-icon" />
+					<Icon name={genderIcon} size="0.85rem" class="animal-card__detail-icon" />
 				{/if}
-				<span
-					class="animal-card__detail-text"
-					class:text-xs={animal.gender[settings.locale].length > 12}
-				>
-					{animal.gender[settings.locale]}
-				</span>
+				<span class="animal-card__detail-text">{animal.gender[settings.locale]}</span>
 			</span>
 			<span class="animal-card__detail" title={animal.breed[settings.locale]}>
-				<Icon name="breed" size="0.9rem" class="animal-card__detail-icon" />
-				<span
-					class="animal-card__detail-text"
-					class:text-xs={animal.breed[settings.locale].length > 12}
-				>
-					{animal.breed[settings.locale]}
-				</span>
+				<Icon name="breed" size="0.85rem" class="animal-card__detail-icon" />
+				<span class="animal-card__detail-text">{animal.breed[settings.locale]}</span>
 			</span>
-			<span class="animal-card__detail" title={animal.age[settings.locale]}>
-				<Icon name="age" size="0.9rem" class="animal-card__detail-icon" />
-				<span
-					class="animal-card__detail-text"
-					class:text-xs={animal.age[settings.locale].length > 12}
-				>
-					{animal.age[settings.locale]}
-				</span>
+			<span class="animal-card__detail" title={ageText}>
+				<Icon name="age" size="0.85rem" class="animal-card__detail-icon" />
+				<span class="animal-card__detail-text">{ageText}</span>
+			</span>
+			<span class="animal-card__detail" title={animal.size[settings.locale]}>
+				<Icon name="size" size="0.85rem" class="animal-card__detail-icon" />
+				<span class="animal-card__detail-text">{animal.size[settings.locale]}</span>
 			</span>
 			<span class="animal-card__detail" title={animal.color[settings.locale]}>
-				<Icon name="color" size="0.9rem" class="animal-card__detail-icon" />
-				<span
-					class="animal-card__detail-text"
-					class:text-xs={animal.color[settings.locale].length > 12}
-				>
-					{animal.color[settings.locale]}
-				</span>
+				<Icon name="color" size="0.85rem" class="animal-card__detail-icon" />
+				<span class="animal-card__detail-text">{animal.color[settings.locale]}</span>
 			</span>
 		</div>
 	</div>
@@ -387,42 +383,92 @@
 		letter-spacing: -0.02em;
 	}
 
+	/*
+	 * Five facts, two rows, and both numbers are written down rather than hoped for.
+	 *
+	 * This was `flex-wrap` under `max-height: 80px; overflow: hidden`, which is a
+	 * layout that reads as "about two rows" and behaves as "however many fit, the rest
+	 * are gone". What fitted depended on how long the words happened to be, so the same
+	 * grid showed LUCKY two facts and JOE three, and the fifth — size — was not in the
+	 * markup at all. Nothing was clipped visibly; the tags simply were not there.
+	 *
+	 * Six columns so both rows divide evenly: the two long fields take three each on
+	 * top, the three short ones take two each underneath. Gender and breed are the ones
+	 * that carry "female (spayed)" and "померанський шпіц"; age, size and colour are
+	 * words like "~2 years" and "small". Wrapping is off — `grid-auto-flow` never runs,
+	 * because every child is placed.
+	 */
 	.animal-card__details {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: repeat(6, minmax(0, 1fr));
 		gap: 8px;
 		margin-top: auto;
-		max-height: 80px; /* Limit to roughly two rows of tags */
-		overflow: hidden;
 	}
 
+	.animal-card__detail:nth-child(1),
+	.animal-card__detail:nth-child(2) {
+		grid-column: span 3;
+	}
+
+	.animal-card__detail:nth-child(n + 3) {
+		grid-column: span 2;
+	}
+
+	/*
+	 * The type is smaller than it was, and that is the trade this layout asks for: five
+	 * tags across a card that used to hold three need the room to come from somewhere.
+	 * Sized against the longest string in the data rather than by eye — Ukrainian
+	 * "самка (стерилізована)" is the worst case at twenty-one characters, and
+	 * measurement is in the e2e suite so a future change to it fails there.
+	 *
+	 * `min-width: 0` is what lets a tag be narrower than its text: a grid item's
+	 * automatic minimum is its content, so without it the tags would push the track
+	 * wider than the card and the ellipsis below would never come into play.
+	 */
 	.animal-card__detail {
-		display: inline-flex;
+		display: flex;
 		align-items: center;
-		gap: 6px;
-		font-size: 0.85rem;
+		gap: 5px;
+		min-width: 0;
+		font-size: 0.72rem;
 		font-weight: 600;
 		color: var(--color-text-muted);
 		background: var(--color-bg-surface);
-		padding: 6px 10px;
+		padding: 6px 8px;
 		border-radius: var(--radius-md);
 		border: none;
 		transition: all var(--transition-fast);
-		min-height: 34px;
-		flex-grow: 1; /* Allow to grow but keep content-based width base */
-		flex-basis: auto;
-		max-width: 100%;
+		min-height: 32px;
 		box-shadow: var(--shadow-sm);
 	}
 
-	.animal-card__detail-text {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	/* The glyph keeps its size while the words shrink around it. */
+	.animal-card__detail :global(.animal-card__detail-icon) {
+		flex-shrink: 0;
 	}
 
-	.animal-card__detail-text.text-xs {
-		font-size: 0.75rem;
+	/*
+	 * Two lines allowed, and this is what makes five tags possible at all.
+	 *
+	 * Measured on the widest layout, which is the tightest one: four columns puts the
+	 * card at 270px, so a tag on the bottom row is about 85px and has some fifty left
+	 * for words after the glyph and the padding. Ukrainian asks for far more than that
+	 * — "поки не визначено" is 105px and "самка (стерилізована)" is 125px — and no
+	 * readable size closes a gap of that shape. On one line these would simply have
+	 * been cut; over two they fit, and the tag grows by a line rather than the text
+	 * disappearing.
+	 *
+	 * The clamp is still an ellipsis underneath, for a word longer than anything in the
+	 * data today. `title` on the tag carries the full string either way.
+	 */
+	.animal-card__detail-text {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+		overflow-wrap: anywhere;
+		line-height: 1.25;
 	}
 
 	.animal-card:hover .animal-card__detail {

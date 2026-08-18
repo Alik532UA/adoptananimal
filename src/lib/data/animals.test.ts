@@ -32,7 +32,7 @@ const animalModules = import.meta.glob<{
 		image: string;
 		gender: Record<string, string>;
 		breed: Record<string, string>;
-		age: Record<string, string>;
+		bornOn: string;
 		size: Record<string, string>;
 		color: Record<string, string>;
 	};
@@ -79,7 +79,9 @@ describe('animal summaries', () => {
 
 	it('carry every language in every multilingual field', () => {
 		const incomplete: string[] = [];
-		const fields = ['gender', 'breed', 'age', 'size', 'color'] as const;
+		// No 'age': it is not written in four languages any more. `bornOn` is a single
+		// date and src/lib/data/age.test.ts is what checks it.
+		const fields = ['gender', 'breed', 'size', 'color'] as const;
 		const locales = ['en', 'uk', 'de', 'nl'] as const;
 
 		for (const [path, mod] of Object.entries(animalModules)) {

@@ -12,7 +12,15 @@ export interface AnimalSummary {
 	isAdopted: boolean;
 	gender: MultiLangString;
 	breed: MultiLangString;
-	age: MultiLangString;
+	/**
+	 * The day this animal would have been born for the shelter's estimate to be right,
+	 * as `YYYY-MM-DD`. Not a birthday — see `age.ts`, which turns it back into words.
+	 *
+	 * A date rather than the four translated strings the other fields carry, because
+	 * the age is the one fact here that changes on its own. Written down, it was wrong
+	 * for all fifty animals within two years; derived, it cannot be.
+	 */
+	bornOn: string;
 	size: MultiLangString;
 	color: MultiLangString;
 	image: string;
