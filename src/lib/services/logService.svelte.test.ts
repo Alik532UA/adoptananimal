@@ -28,7 +28,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  *   - прибрати гілку `Error` зі `scrub()` — падає «виняток у даних …»;
  *   - прибрати охоронця `seen` — падає «цикл …» із переповненням стека;
  *   - прибрати рядок `ONLINE:` — падає «стан мережі …»;
- *   - віддати адресу повз `maskUrl()` — падає «адреса у звіті …».
+ *   - віддати адресу повз `maskUrl()` — падає «адреса у звіті …»;
+ *   - дзеркалити повний буфер замість хвоста — падає «обрізаний буфер …»;
+ *   - прибрати прапорець `mirroring` — падають обидві перевірки квоти.
  */
 
 /** Обидва поля змінні: різні перевірки потребують різних гілок. */
@@ -134,7 +136,41 @@ describe('логер', () => {
 		const logService = await freshLogService({ session: makeSessionStorage({ setItem: QUOTA }) });
 
 		expect(() => logService.info('app', 'подія')).not.toThrow();
-		expect(logService.logs, 'буфер у памʼяті працює далі').toHaveLength(1);
+		expect(
+			logService.logs.map((l) => l.message),
+			'буфер у памʼяті працює далі; другий запис — слід про втрачене дзеркало'
+		).toEqual(['подія', 'Session mirror is full — logs stay in memory only']);
+	});
+
+	it('у дзеркало їде обрізаний буфер, а не всі 1000 (§ 1.5)', async () => {
+		const session = makeSessionStorage();
+		const logService = await freshLogService({ session });
+
+		for (let i = 0; i < 300; i++) logService.info('app', `подія ${i}`);
+
+		const mirrored = JSON.parse(session.getItem('adoptananimal_logs') ?? '[]');
+		expect(mirrored).toHaveLength(200);
+		expect(mirrored.at(-1).message, 'лишається хвіст, а не початок').toBe('подія 299');
+		expect(logService.logs, 'у памʼяті — повний буфер').toHaveLength(300);
+	});
+
+	it('після відмови сховища дзеркалення припиняється до кінця сесії (§ 1.5)', async () => {
+		const setItem = vi.fn(QUOTA);
+		const logService = await freshLogService({ session: makeSessionStorage({ setItem }) });
+
+		logService.info('app', 'перша');
+		const afterFirst = setItem.mock.calls.length;
+		for (let i = 0; i < 20; i++) logService.info('app', `подія ${i}`);
+
+		expect(
+			setItem.mock.calls.length,
+			'повторювати серіалізацію буфера на кожен запис заради відмови — дорого й марно'
+		).toBe(afterFirst);
+		expect(logService.logs.length, 'буфер у памʼяті працює далі').toBeGreaterThan(20);
+		expect(
+			logService.logs.some((l) => l.message.includes('Session mirror is full')),
+			'втрата дзеркала має лишити слід у самому звіті'
+		).toBe(true);
 	});
 
 	it('зіпсоване дзеркало не валить старт (§ 1.5)', async () => {

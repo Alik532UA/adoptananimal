@@ -13,6 +13,18 @@ export interface LogEntry {
 }
 
 const MAX_LOGS = 1000;
+
+/**
+ * Скільки записів їде в дзеркало (DEBUGGING-v8 § 1.5: «обрізаний буфер, а не всі
+ * 1000 з довільними даними»).
+ *
+ * Дзеркало переписується на **кожен** запис, тож повний буфер означав би
+ * `JSON.stringify` тисячі об'єктів тисячу разів за сесію — квадратична робота
+ * заради даних, яких у звіті все одно не буде: звіт беруть із памʼяті, а
+ * дзеркало існує лише щоб пережити перезавантаження сторінки.
+ */
+const MIRRORED_LOGS = 200;
+
 const LOG_KEY = 'logs';
 
 /**
@@ -88,6 +100,9 @@ function scrub(value: unknown, seen = new WeakSet<object>()): unknown {
 class LogService {
 	logs = $state<LogEntry[]>([]);
 	errorCount = $state(0);
+
+	/** Дзеркало вимикається до кінця сесії, щойно сховище відмовило (§ 1.5). */
+	private mirroring = true;
 
 	private config: Record<LogCategory, boolean> = {
 		app: true,
@@ -174,9 +189,16 @@ class LogService {
 	// Persisted only in dev: in production the buffer lives for the session, which is
 	// what a report describes anyway, and sessionStorage would carry noise across reloads.
 	private persist() {
-		if (browser && dev) {
-			storage.session.set(LOG_KEY, JSON.stringify(this.logs));
-		}
+		if (!browser || !dev || !this.mirroring) return;
+
+		if (storage.session.set(LOG_KEY, JSON.stringify(this.logs.slice(-MIRRORED_LOGS)))) return;
+
+		// The facade turns a full quota into `false` rather than an exception, so the
+		// only way to notice is to read it. Retrying on every entry afterwards costs a
+		// serialisation of the whole buffer per log line and never succeeds
+		// (DEBUGGING-v8 § 1.5): losing the mirror is acceptable, the app is not.
+		this.mirroring = false;
+		this.warn('storage', 'Session mirror is full — logs stay in memory only');
 	}
 
 	getReport(): string {
