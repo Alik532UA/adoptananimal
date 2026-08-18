@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,10 +18,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '7 months',
+		uk: '7 місяців',
+		de: '7 Monate',
+		nl: '7 maanden'
 	},
 	size: {
 		en: 'medium',
@@ -30,10 +30,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'grey and white',
-		uk: 'сіро-білий',
-		de: 'grau-weiß',
-		nl: 'grijs-wit'
+		en: 'white',
+		uk: 'білий',
+		de: 'weiß',
+		nl: 'wit'
 	},
 	image: '/images/animals/dog_tobey.jpg'
 };

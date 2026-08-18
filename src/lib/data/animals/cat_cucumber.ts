@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: true,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '1 year',
-		uk: '1 рік',
-		de: '1 Jahr',
-		nl: '1 jaar'
+		en: '5 years',
+		uk: '5 років',
+		de: '5 Jahre',
+		nl: '5 jaar'
 	},
 	size: {
-		en: 'small',
-		uk: 'малий',
-		de: 'klein',
-		nl: 'klein'
+		en: 'about 4 kg',
+		uk: 'близько 4 кг',
+		de: 'etwa 4 kg',
+		nl: 'ongeveer 4 kg'
 	},
 	color: {
-		en: 'green-eyed grey',
-		uk: 'сірий (зеленоокий)',
-		de: 'grau (grünäugig)',
-		nl: 'grijs (groenoog)'
+		en: 'black and white',
+		uk: 'чорно-білий',
+		de: 'schwarz-weiß',
+		nl: 'zwart-wit'
 	},
 	image: '/images/animals/cat_cucumber.jpg',
 	imagePosition: '70% 50%'

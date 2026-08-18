@@ -6,22 +6,22 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: true,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
-		en: 'mixed breed puppy',
-		uk: 'цуценя-метис',
-		de: 'Mischlingswelpe',
-		nl: 'gemengde ras puppy'
+		en: 'mixed breed',
+		uk: 'метис',
+		de: 'Mischling',
+		nl: 'gemengd ras'
 	},
 	age: {
-		en: '0.5 years',
-		uk: '0.5 року',
-		de: '0.5 Jahre',
-		nl: '0.5 jaar'
+		en: '1 year',
+		uk: '1 рік',
+		de: '1 Jahr',
+		nl: '1 jaar'
 	},
 	size: {
 		en: 'medium',
@@ -30,10 +30,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'brown',
-		uk: 'коричневий',
-		de: 'braun',
-		nl: 'bruin'
+		en: 'black',
+		uk: 'чорний',
+		de: 'schwarz',
+		nl: 'zwart'
 	},
 	image: '/images/animals/dog_t-800.jpg'
 };

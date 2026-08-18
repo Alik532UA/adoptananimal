@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: 'unknown',
-		uk: 'невідомо',
-		de: 'unbekannt',
-		nl: 'onbekend'
+		en: '1 year',
+		uk: '1 рік',
+		de: '1 Jahr',
+		nl: '1 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'grey tabby',
-		uk: 'сірий смугастий',
-		de: 'grau getigert',
-		nl: 'grijze cyper'
+		en: 'red and white',
+		uk: 'рудо-білий',
+		de: 'rot-weiß',
+		nl: 'rood-wit'
 	},
 	image: '/images/animals/cat_richard.jpg',
 	// A tall photo of a sitting cat: centred, the card cropped him at the forehead.

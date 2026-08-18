@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: true,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'Pomeranian Spitz',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'Dwergkees'
 	},
 	age: {
-		en: '6 years',
-		uk: '6 років',
-		de: '6 Jahre',
-		nl: '6 jaar'
+		en: '9 years',
+		uk: '9 років',
+		de: '9 Jahre',
+		nl: '9 jaar'
 	},
 	size: {
-		en: 'tiny',
-		uk: 'мініатюрний',
-		de: 'winzig',
-		nl: 'zeer klein'
+		en: 'small',
+		uk: 'малий',
+		de: 'klein',
+		nl: 'klein'
 	},
 	color: {
-		en: 'orange',
-		uk: 'orange',
-		de: 'orange',
-		nl: 'orange'
+		en: 'brown',
+		uk: 'коричневий',
+		de: 'braun',
+		nl: 'bruin'
 	},
 	image: '/images/animals/dog_button.jpg'
 };

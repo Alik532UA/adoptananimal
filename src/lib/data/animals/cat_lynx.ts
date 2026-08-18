@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '1 year',
+		uk: '1 рік',
+		de: '1 Jahr',
+		nl: '1 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'tabby',
-		uk: 'смугастий',
-		de: 'getigert',
-		nl: 'cyper'
+		en: 'tricolor',
+		uk: 'триколірний',
+		de: 'dreifarbig',
+		nl: 'driekleurig'
 	},
 	image: '/images/animals/cat_lynx.jpg',
 	// A wide photograph in a square frame on the detail page: centred, the crop cut

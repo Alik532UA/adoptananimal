@@ -1,18 +1,27 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import { normaliseGender } from '$lib/data/filters';
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import type { AnimalSummary } from '$lib/data/types';
 
 	/** The five facts about an animal, as tiles. */
 	let { animal }: { animal: AnimalSummary } = $props();
+
+	/**
+	 * The data says 'male (castrated)', not 'male', so this cannot be an equality
+	 * check — that read every castrated male as female and drew Venus next to the
+	 * word "male". `normaliseGender` is the same function the filters use, and it
+	 * returns null rather than guessing, which here means no icon at all.
+	 */
+	const genderIcon = $derived(normaliseGender(animal.gender.en));
 </script>
 
 <div class="detail__specs">
 	<div class="detail__spec">
 		<span class="detail__spec-label">{t('detail.gender')}</span>
 		<span class="detail__spec-value"
-			><Icon name={animal.gender.en.toLowerCase() === 'male' ? 'male' : 'female'} size="1.1rem" />
+			>{#if genderIcon}<Icon name={genderIcon} size="1.1rem" />{/if}
 			{animal.gender[settings.locale]}</span
 		>
 	</div>

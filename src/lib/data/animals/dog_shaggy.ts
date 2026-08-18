@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,16 +18,16 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '3 years',
-		uk: '3 роки',
-		de: '3 Jahre',
-		nl: '3 jaar'
+		en: '6 years',
+		uk: '6 років',
+		de: '6 Jahre',
+		nl: '6 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'large',
+		uk: 'великий',
+		de: 'groß',
+		nl: 'groot'
 	},
 	color: {
 		en: 'grey',

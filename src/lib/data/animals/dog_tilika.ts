@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: true,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'Pomeranian Spitz',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'Dwergkees'
 	},
 	age: {
-		en: '5 years',
-		uk: '5 років',
-		de: '5 Jahre',
-		nl: '5 jaar'
+		en: '10 years',
+		uk: '10 років',
+		de: '10 Jahre',
+		nl: '10 jaar'
 	},
 	size: {
-		en: 'tiny',
-		uk: 'мініатюрний',
-		de: 'winzig',
-		nl: 'zeer klein'
+		en: 'small',
+		uk: 'малий',
+		de: 'klein',
+		nl: 'klein'
 	},
 	color: {
-		en: 'white',
-		uk: 'білий',
-		de: 'weiß',
-		nl: 'wit'
+		en: 'brown',
+		uk: 'коричневий',
+		de: 'braun',
+		nl: 'bruin'
 	},
 	image: '/images/animals/dog_tilika.jpg'
 };

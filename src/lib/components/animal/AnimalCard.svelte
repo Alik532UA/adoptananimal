@@ -6,6 +6,7 @@
 	import { flyToFavorites } from '$lib/utils/flyToFavorites';
 	import { queuedPhoto } from '$lib/services/imageQueue';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import { normaliseGender } from '$lib/data/filters';
 
 	interface Props {
 		animal: Animal;
@@ -14,6 +15,9 @@
 	}
 
 	let { animal, priority = false }: Props = $props();
+
+	/** Same reading of the gender field as the filters and the detail page. */
+	const genderIcon = $derived(normaliseGender(animal.gender.en));
 
 	let imageFailed = $state(false);
 	/** Whole and decoded, which is when the fade below is allowed to start. */
@@ -107,11 +111,9 @@
 		</div>
 		<div class="animal-card__details">
 			<span class="animal-card__detail" title={animal.gender[settings.locale]}>
-				<Icon
-					name={animal.gender.en.toLowerCase() === 'male' ? 'male' : 'female'}
-					size="0.9rem"
-					class="animal-card__detail-icon"
-				/>
+				{#if genderIcon}
+					<Icon name={genderIcon} size="0.9rem" class="animal-card__detail-icon" />
+				{/if}
 				<span
 					class="animal-card__detail-text"
 					class:text-xs={animal.gender[settings.locale].length > 12}

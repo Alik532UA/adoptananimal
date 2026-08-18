@@ -30,10 +30,15 @@ export function normaliseGender(value: string): Gender | null {
 export function normaliseSize(value: string): SizeBucket | null {
 	const text = value.trim().toLowerCase();
 
-	if (/\b(tiny|mini)\b/.test(text)) return 'small';
+	if (/\b(tiny|mini)\b/.test(text) || text.startsWith('very small')) return 'small';
 	if (text.startsWith('small')) return 'small';
 	if (text.startsWith('medium')) return 'medium';
 	if (text.startsWith('large')) return 'large';
+
+	// What the shelter writes for an animal too young to call — a four-month kitten,
+	// a five-month puppy. The page shows the hedge, but they are small today and
+	// have to land in some bucket, or the filter loses them entirely.
+	if (text.startsWith('not clear')) return 'small';
 
 	// 'up to 4 kg' and similar: a weight rather than a word.
 	const kilos = text.match(/(\d+(?:[.,]\d+)?)\s*kg/);

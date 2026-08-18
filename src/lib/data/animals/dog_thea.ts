@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -24,16 +24,16 @@ export const summary: AnimalSummary = {
 		nl: '3 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'small',
+		uk: 'малий',
+		de: 'klein',
+		nl: 'klein'
 	},
 	color: {
-		en: 'black and brown',
-		uk: 'чорно-коричневий',
-		de: 'schwarz-braun',
-		nl: 'zwart-bruin'
+		en: 'black',
+		uk: 'чорний',
+		de: 'schwarz',
+		nl: 'zwart'
 	},
 	image: '/images/animals/dog_thea.jpg'
 };

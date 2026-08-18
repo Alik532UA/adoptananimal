@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -24,16 +24,16 @@ export const summary: AnimalSummary = {
 		nl: '1 jaar'
 	},
 	size: {
-		en: 'small',
-		uk: 'малий',
-		de: 'klein',
-		nl: 'klein'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'long-haired grey',
-		uk: 'довгошерстий сірий',
-		de: 'langhaarig grau',
-		nl: 'langharig grijs'
+		en: 'grey-white',
+		uk: 'сіро-білий',
+		de: 'grau-weiß',
+		nl: 'grijs-wit'
 	},
 	image: '/images/animals/cat_fluffy.jpg'
 };

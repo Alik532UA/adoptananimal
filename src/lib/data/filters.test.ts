@@ -27,10 +27,16 @@ describe('normaliseSize', () => {
 		expect(normaliseSize('medium')).toBe('medium');
 		expect(normaliseSize('large')).toBe('large');
 		expect(normaliseSize('tiny')).toBe('small');
+		expect(normaliseSize('very small')).toBe('small');
+	});
+
+	it('buckets an animal whose adult size the shelter has not called', () => {
+		expect(normaliseSize('not clear yet')).toBe('small');
 	});
 
 	it('reads a weight as a size', () => {
 		expect(normaliseSize('up to 4 kg')).toBe('small');
+		expect(normaliseSize('about 4 kg')).toBe('small');
 		expect(normaliseSize('20 kg')).toBe('medium');
 		expect(normaliseSize('35 kg')).toBe('large');
 	});
@@ -87,7 +93,9 @@ describe('getFiltered', () => {
 			.map((size) => animalService.getFiltered('dog', { ...base, size }).length)
 			.reduce((a, b) => a + b, 0);
 
-		// Three dogs are listed as "tiny" and used to fall outside every size filter.
+		// The shelter's own words for the small end are "very small" and "not clear
+		// yet"; neither is one of the three filter words, and a dog whose size does
+		// not map falls outside every size filter.
 		expect(counted).toBe(dogs.length);
 	});
 

@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -24,16 +24,16 @@ export const summary: AnimalSummary = {
 		nl: '4 jaar'
 	},
 	size: {
-		en: 'large',
-		uk: 'великий',
-		de: 'groß',
-		nl: 'groot'
+		en: 'medium',
+		uk: 'середній',
+		de: 'mittel',
+		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'black and brown',
-		uk: 'чорно-коричневий',
-		de: 'schwarz-braun',
-		nl: 'zwart-bruin'
+		en: 'black',
+		uk: 'чорний',
+		de: 'schwarz',
+		nl: 'zwart'
 	},
 	image: '/images/animals/dog_partos.jpg'
 };

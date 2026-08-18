@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: true,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'Chihuahua',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'Chihuahua'
 	},
 	age: {
-		en: '7 years',
-		uk: '7 років',
-		de: '7 Jahre',
-		nl: '7 jaar'
+		en: '9 years',
+		uk: '9 років',
+		de: '9 Jahre',
+		nl: '9 jaar'
 	},
 	size: {
-		en: 'tiny',
-		uk: 'мініатюрний',
-		de: 'winzig',
+		en: 'very small',
+		uk: 'дуже малий',
+		de: 'sehr klein',
 		nl: 'zeer klein'
 	},
 	color: {
-		en: 'multicolor',
-		uk: 'різнокольоровий',
-		de: 'mehrfarbig',
-		nl: 'meerkleurig'
+		en: 'white',
+		uk: 'білий',
+		de: 'weiß',
+		nl: 'wit'
 	},
 	image: '/images/animals/dog_multik.jpg'
 };

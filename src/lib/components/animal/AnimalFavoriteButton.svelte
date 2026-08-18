@@ -59,6 +59,22 @@
 		const needed = label.offsetWidth + 8;
 		flipped = box.right + needed > window.innerWidth;
 	}
+
+	/**
+	 * Twice: now, and again after the browser has laid out the next frame.
+	 *
+	 * One reading is one chance to be wrong, and being wrong here is permanent —
+	 * nothing re-runs the measurement, so a label that opened off-screen stays there
+	 * for as long as the pointer rests on it. That is not theory: the placement test
+	 * caught it at 900px on a machine running the rest of the suite alongside, and
+	 * polling the DOM for five seconds never saw it correct itself, because there was
+	 * nothing left to correct it. A width measured before the label has settled reads
+	 * short, `needed` comes out small, and the label is left on the side with no room.
+	 */
+	function chooseSideWhenSettled() {
+		chooseSide();
+		requestAnimationFrame(chooseSide);
+	}
 </script>
 
 <button
@@ -67,8 +83,8 @@
 	class:detail__fav--saved={saved}
 	class:detail__fav--flipped={flipped}
 	bind:this={button}
-	onpointerenter={chooseSide}
-	onfocus={chooseSide}
+	onpointerenter={chooseSideWhenSettled}
+	onfocus={chooseSideWhenSettled}
 	aria-pressed={saved}
 	onclick={(event) => {
 		const adding = !saved;

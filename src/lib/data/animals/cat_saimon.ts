@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -24,16 +24,16 @@ export const summary: AnimalSummary = {
 		nl: '1 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'orange tabby',
-		uk: 'рудий смугастий',
-		de: 'rot getigert',
-		nl: 'rode cyper'
+		en: 'brown and white',
+		uk: 'коричнево-білий',
+		de: 'braun-weiß',
+		nl: 'bruin-wit'
 	},
 	image: '/images/animals/cat_saimon.jpg',
 	imagePosition: '70% 50%'

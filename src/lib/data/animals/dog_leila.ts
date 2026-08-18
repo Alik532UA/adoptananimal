@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: true,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '5 years',
+		uk: '5 років',
+		de: '5 Jahre',
+		nl: '5 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'small',
+		uk: 'малий',
+		de: 'klein',
+		nl: 'klein'
 	},
 	color: {
-		en: 'black',
-		uk: 'чорний',
-		de: 'schwarz',
-		nl: 'zwart'
+		en: 'brown',
+		uk: 'коричневий',
+		de: 'braun',
+		nl: 'bruin'
 	},
 	image: '/images/animals/dog_leila.jpg'
 };

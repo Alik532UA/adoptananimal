@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '1 year',
+		uk: '1 рік',
+		de: '1 Jahr',
+		nl: '1 jaar'
 	},
 	size: {
-		en: 'large',
-		uk: 'великий',
-		de: 'groß',
-		nl: 'groot'
+		en: 'medium',
+		uk: 'середній',
+		de: 'mittel',
+		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'black and white',
-		uk: 'чорно-білий',
-		de: 'schwarz-weiß',
-		nl: 'zwart-wit'
+		en: 'ginger',
+		uk: 'рудий',
+		de: 'rot',
+		nl: 'rood'
 	},
 	image: '/images/animals/dog_joe.jpg'
 };

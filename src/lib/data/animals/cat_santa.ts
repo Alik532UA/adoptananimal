@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '1.5 years',
+		uk: '1.5 роки',
+		de: '1.5 Jahre',
+		nl: '1.5 jaar'
 	},
 	size: {
-		en: 'large',
-		uk: 'великий',
-		de: 'groß',
-		nl: 'groot'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'white',
-		uk: 'білий',
-		de: 'weiß',
-		nl: 'wit'
+		en: 'tricolor',
+		uk: 'триколірний',
+		de: 'dreifarbig',
+		nl: 'driekleurig'
 	},
 	image: '/images/animals/cat_santa.jpg',
 	imagePosition: '30% 50%'

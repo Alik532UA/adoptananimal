@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,10 +18,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '1.5 years',
-		uk: '1.5 роки',
-		de: '1.5 Jahre',
-		nl: '1.5 jaar'
+		en: '1.4 years',
+		uk: '1.4 роки',
+		de: '1.4 Jahre',
+		nl: '1.4 jaar'
 	},
 	size: {
 		en: 'medium',
@@ -30,10 +30,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'brown',
-		uk: 'коричневий',
-		de: 'braun',
-		nl: 'bruin'
+		en: 'black',
+		uk: 'чорний',
+		de: 'schwarz',
+		nl: 'zwart'
 	},
 	image: '/images/animals/dog_comet.jpg',
 	imagePosition: '30% 50%'

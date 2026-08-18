@@ -6,34 +6,34 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
-		en: 'mixed breed puppy',
-		uk: 'цуценя-метис',
-		de: 'Mischlingswelpe',
-		nl: 'gemengde ras puppy'
+		en: 'mixed breed',
+		uk: 'метис',
+		de: 'Mischling',
+		nl: 'gemengd ras'
 	},
 	age: {
-		en: '0.5 years',
-		uk: '0.5 року',
-		de: '0.5 Jahre',
-		nl: '0.5 jaar'
+		en: '1 year',
+		uk: '1 рік',
+		de: '1 Jahr',
+		nl: '1 jaar'
 	},
 	size: {
-		en: 'small',
-		uk: 'малий',
-		de: 'klein',
-		nl: 'klein'
+		en: 'medium',
+		uk: 'середній',
+		de: 'mittel',
+		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'black and brown',
-		uk: 'чорно-коричневий',
-		de: 'schwarz-braun',
-		nl: 'zwart-bruin'
+		en: 'white',
+		uk: 'білий',
+		de: 'weiß',
+		nl: 'wit'
 	},
 	image: '/images/animals/dog_flora.jpg'
 };

@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: true,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -24,16 +24,16 @@ export const summary: AnimalSummary = {
 		nl: '1 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'grey tabby',
-		uk: 'сірий смугастий',
-		de: 'grau getigert',
-		nl: 'grijze cyper'
+		en: 'white and grey',
+		uk: 'біло-сірий',
+		de: 'weiß-grau',
+		nl: 'wit-grijs'
 	},
 	image: '/images/animals/cat_nicole.jpg',
 	// Nudged up so the ears stay in frame without stranding the cat at the top.

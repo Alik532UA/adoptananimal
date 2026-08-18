@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -30,10 +30,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemiddeld'
 	},
 	color: {
-		en: 'black and brown',
-		uk: 'чорно-коричневий',
-		de: 'schwarz-braun',
-		nl: 'zwart-bruin'
+		en: 'redhead',
+		uk: 'рудий',
+		de: 'rot',
+		nl: 'rood'
 	},
 	image: '/images/animals/dog_vira.jpg'
 };

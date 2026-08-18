@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: true,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '1 year',
-		uk: '1 рік',
-		de: '1 Jahr',
-		nl: '1 jaar'
+		en: '3 years',
+		uk: '3 роки',
+		de: '3 Jahre',
+		nl: '3 jaar'
 	},
 	size: {
-		en: 'small',
-		uk: 'малий',
-		de: 'klein',
-		nl: 'klein'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'grey',
-		uk: 'сірий',
-		de: 'grau',
-		nl: 'grijs'
+		en: 'black and white',
+		uk: 'чорно-білий',
+		de: 'schwarz-weiß',
+		nl: 'zwart-wit'
 	},
 	image: '/images/animals/cat_mirabel.jpg',
 	// Nudged up so the ears stay in frame without stranding the cat at the top.

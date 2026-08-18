@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'male (castrated)',
+		uk: 'самець (кастрований)',
+		de: 'männlich (kastriert)',
+		nl: 'mannetje (gecastreerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '1.5 years',
-		uk: '1.5 роки',
-		de: '1.5 Jahre',
-		nl: '1.5 jaar'
+		en: '3 years',
+		uk: '3 роки',
+		de: '3 Jahre',
+		nl: '3 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'black and white',
-		uk: 'чорно-білий',
-		de: 'schwarz-weiß',
-		nl: 'zwart-wit'
+		en: 'tricolor',
+		uk: 'триколірний',
+		de: 'dreifarbig',
+		nl: 'driekleurig'
 	},
 	image: '/images/animals/cat_basti.jpg',
 	// Nudged up so the ears stay in frame without stranding the cat at the top.

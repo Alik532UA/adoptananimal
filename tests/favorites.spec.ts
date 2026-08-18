@@ -108,21 +108,25 @@ test.describe("an animal's own page", () => {
 			const button = page.locator('.detail__fav');
 			await button.hover();
 
-			const placed = await page.evaluate(() => {
-				const glyph = document.querySelector('.detail__fav')!.getBoundingClientRect();
-				const label = document.querySelector('.detail__fav-label')!.getBoundingClientRect();
-				return {
-					beside: label.right <= glyph.left + 1 || label.left >= glyph.right - 1,
-					sameRow: Math.abs(label.top + label.height / 2 - (glyph.top + glyph.height / 2)) < 3,
-					inside: label.left >= 0 && label.right <= window.innerWidth
-				};
-			});
+			// Polled rather than measured once, because the placement lands over two
+			// frames: `hover()` resolves when the pointer has moved, the side is chosen
+			// in `onpointerenter`, and the component re-measures on the next frame to
+			// correct a reading taken before the label settled. This went red at 900px
+			// only with the rest of the suite running alongside it.
+			const measure = () =>
+				page.evaluate(() => {
+					const glyph = document.querySelector('.detail__fav')!.getBoundingClientRect();
+					const label = document.querySelector('.detail__fav-label')!.getBoundingClientRect();
+					return {
+						beside: label.right <= glyph.left + 1 || label.left >= glyph.right - 1,
+						sameRow: Math.abs(label.top + label.height / 2 - (glyph.top + glyph.height / 2)) < 3,
+						inside: label.left >= 0 && label.right <= window.innerWidth
+					};
+				});
 
-			expect(placed.beside, `at ${width}px the label is not to either side of the glyph`).toBe(
-				true
-			);
-			expect(placed.sameRow, `at ${width}px the label is above or below, not beside`).toBe(true);
-			expect(placed.inside, `at ${width}px the label runs outside the window`).toBe(true);
+			await expect
+				.poll(measure, { message: `at ${width}px the label is misplaced` })
+				.toEqual({ beside: true, sameRow: true, inside: true });
 		}
 	});
 

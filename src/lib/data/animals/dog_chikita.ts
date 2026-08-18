@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,10 +18,10 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '3 years',
+		uk: '3 роки',
+		de: '3 Jahre',
+		nl: '3 jaar'
 	},
 	size: {
 		en: 'small',
@@ -30,10 +30,10 @@ export const summary: AnimalSummary = {
 		nl: 'klein'
 	},
 	color: {
-		en: 'brown',
-		uk: 'коричневий',
-		de: 'braun',
-		nl: 'bruin'
+		en: 'black',
+		uk: 'чорний',
+		de: 'schwarz',
+		nl: 'zwart'
 	},
 	image: '/images/animals/dog_chikita.jpg',
 	imagePosition: '30% 50%'

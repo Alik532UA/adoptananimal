@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: true,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,16 +18,16 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '0.5 years',
-		uk: '0.5 року',
-		de: '0.5 Jahre',
-		nl: '0.5 jaar'
+		en: '4 months',
+		uk: '4 місяці',
+		de: '4 Monate',
+		nl: '4 maanden'
 	},
 	size: {
-		en: 'small',
-		uk: 'малий',
-		de: 'klein',
-		nl: 'klein'
+		en: 'not clear yet',
+		uk: 'поки не визначено',
+		de: 'noch nicht absehbar',
+		nl: 'nog niet duidelijk'
 	},
 	color: {
 		en: 'grey and white',

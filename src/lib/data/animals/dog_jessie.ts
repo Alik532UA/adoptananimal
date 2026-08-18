@@ -6,10 +6,10 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
 		en: 'mixed breed',
@@ -18,22 +18,22 @@ export const summary: AnimalSummary = {
 		nl: 'gemengd ras'
 	},
 	age: {
-		en: '3 years',
-		uk: '3 роки',
-		de: '3 Jahre',
-		nl: '3 jaar'
+		en: '1.4 years',
+		uk: '1.4 роки',
+		de: '1.4 Jahre',
+		nl: '1.4 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'small',
+		uk: 'малий',
+		de: 'klein',
+		nl: 'klein'
 	},
 	color: {
-		en: 'black and tan',
-		uk: 'чорно-підпалий',
-		de: 'schwarz-loh',
-		nl: 'black and tan'
+		en: 'brown',
+		uk: 'коричневий',
+		de: 'braun',
+		nl: 'bruin'
 	},
 	image: '/images/animals/dog_jessie.jpg'
 };

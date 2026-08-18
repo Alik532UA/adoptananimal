@@ -6,34 +6,34 @@ export const summary: AnimalSummary = {
 	type: 'cat',
 	isAdopted: false,
 	gender: {
-		en: 'female',
-		uk: 'самка',
-		de: 'weiblich',
-		nl: 'vrouwtje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
-		en: 'mixed breed',
-		uk: 'метис',
-		de: 'Mischling',
-		nl: 'gemengd ras'
+		en: 'Russian Blue',
+		uk: 'руська блакитна',
+		de: 'Russisch Blau',
+		nl: 'Russisch Blauw'
 	},
 	age: {
-		en: '2 years',
-		uk: '2 роки',
-		de: '2 Jahre',
-		nl: '2 jaar'
+		en: '1 year',
+		uk: '1 рік',
+		de: '1 Jahr',
+		nl: '1 jaar'
 	},
 	size: {
-		en: 'medium',
-		uk: 'середній',
-		de: 'mittel',
-		nl: 'gemiddeld'
+		en: 'up to 4 kg',
+		uk: 'до 4 кг',
+		de: 'bis zu 4 kg',
+		nl: 'tot 4 kg'
 	},
 	color: {
-		en: 'cream',
-		uk: 'кремовий',
-		de: 'cremefarben',
-		nl: 'crème'
+		en: 'grey',
+		uk: 'сірий',
+		de: 'grau',
+		nl: 'grijs'
 	},
 	image: '/images/animals/cat_sofi.jpg',
 	// A tall portrait of a sitting cat: centred, the card cropped him at the forehead.

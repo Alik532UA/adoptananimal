@@ -6,34 +6,34 @@ export const summary: AnimalSummary = {
 	type: 'dog',
 	isAdopted: true,
 	gender: {
-		en: 'male',
-		uk: 'самець',
-		de: 'männlich',
-		nl: 'mannetje'
+		en: 'female (spayed)',
+		uk: 'самка (стерилізована)',
+		de: 'weiblich (sterilisiert)',
+		nl: 'vrouwtje (gesteriliseerd)'
 	},
 	breed: {
-		en: 'mixed breed puppy',
-		uk: 'цуценя-метис',
-		de: 'Mischlingswelpe',
-		nl: 'gemengde ras puppy'
+		en: 'mixed breed',
+		uk: 'метис',
+		de: 'Mischling',
+		nl: 'gemengd ras'
 	},
 	age: {
-		en: '0.4 years',
-		uk: '0.4 року',
-		de: '0.4 Jahre',
-		nl: '0.4 jaar'
+		en: '5 months',
+		uk: '5 місяців',
+		de: '5 Monate',
+		nl: '5 maanden'
 	},
 	size: {
-		en: 'small',
-		uk: 'малий',
-		de: 'klein',
-		nl: 'klein'
+		en: 'not clear yet',
+		uk: 'поки не визначено',
+		de: 'noch nicht absehbar',
+		nl: 'nog niet duidelijk'
 	},
 	color: {
-		en: 'black and white',
-		uk: 'чорно-білий',
-		de: 'schwarz-weiß',
-		nl: 'zwart-wit'
+		en: 'black',
+		uk: 'чорний',
+		de: 'schwarz',
+		nl: 'zwart'
 	},
 	image: '/images/animals/dog_lucky.jpg'
 };

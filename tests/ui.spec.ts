@@ -1629,3 +1629,46 @@ test.describe('the header dropdowns', () => {
 		});
 	}
 });
+
+test.describe('the gender symbol', () => {
+	/**
+	 * The symbol is drawn from `gender.en`, and the shelter writes 'male (castrated)'
+	 * there, not 'male'. The check used to be `=== 'male'`, so every castrated male
+	 * fell through to the female branch and TYLER's page showed Venus beside the word
+	 * "male". Nothing went red: svelte-check, eslint and the unit suite all pass with
+	 * that line in place, because the fault is a symbol, not a value.
+	 */
+	for (const [type, path] of [
+		['cats', '/adopt/cat'],
+		['dogs', '/adopt/dog']
+	] as const) {
+		test(`agrees with the word beside it on every one of the ${type}`, async ({ page }) => {
+			await page.goto(path);
+
+			const rows = await page.evaluate(() =>
+				[...document.querySelectorAll('.animal-card')].map((card) => ({
+					name: card.querySelector('.animal-card__name')?.textContent?.trim() ?? '?',
+					word: card.querySelector('.animal-card__detail-text')?.textContent?.trim() ?? '',
+					symbol: card.querySelector('.animal-card__detail svg')?.getAttribute('class') ?? ''
+				}))
+			);
+
+			expect(rows.length).toBeGreaterThan(0);
+
+			const wrong = rows.filter((r) =>
+				r.word.startsWith('male') ? !r.symbol.includes('mars') : !r.symbol.includes('venus')
+			);
+			expect(wrong.map((r) => `${r.name}: "${r.word}" drew ${r.symbol || 'no symbol'}`)).toEqual(
+				[]
+			);
+		});
+	}
+
+	test('draws Mars beside a castrated male on the detail page', async ({ page }) => {
+		await page.goto('/adopt/cat/tyler');
+
+		const gender = page.locator('.detail__spec').first();
+		await expect(gender).toContainText('male (castrated)');
+		await expect(gender.locator('svg')).toHaveClass(/lucide-mars/);
+	});
+});
