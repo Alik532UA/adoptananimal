@@ -317,6 +317,27 @@
 	corner-shape: superellipse(var(--corner-superellipse));
 }
 
+/*
+ * The frosted panel: background, blur, edge and shadow. Padding is NOT here — every
+ * user of this class sets its own, and the three that existed disagreed about it.
+ *
+ * Global for the reason spelled out above .control-shape: three components draw one —
+ * the form and the sidebar of /apply, and the two cards of the about section on the
+ * home page. Two of them carried their own copy of the declaration and the third
+ * carried none, so its two cards had no glass at all: the class was there, the rule
+ * stayed behind in the file the component was split out of, and Svelte scoping does
+ * not reach across that line (SVELTE-UI § 3.5). Neither the compiler nor svelte-check
+ * says a word about it — the class simply matches nothing.
+ */
+.glass-card {
+	background: var(--glass-bg);
+	-webkit-backdrop-filter: blur(var(--glass-blur));
+	backdrop-filter: blur(var(--glass-blur));
+	border: none;
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-xl);
+}
+
 /* Accessibility: Skip Link */
 .skip-link {
 	position: absolute;

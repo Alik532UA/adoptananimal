@@ -240,15 +240,6 @@
 		}
 	}
 
-	.glass-card {
-		background: var(--glass-bg);
-		-webkit-backdrop-filter: blur(var(--glass-blur));
-		backdrop-filter: blur(var(--glass-blur));
-		border: none;
-		border-radius: var(--radius-lg);
-		box-shadow: var(--shadow-xl);
-	}
-
 	:global([data-style='modern']) .about__card {
 		border-radius: 32px;
 	}

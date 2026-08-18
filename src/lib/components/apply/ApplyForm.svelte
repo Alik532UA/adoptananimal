@@ -230,21 +230,10 @@ ${formData.message}
 {/if}
 
 <style>
-	.glass-card {
-		background: var(--glass-bg);
-		-webkit-backdrop-filter: blur(var(--glass-blur));
-		backdrop-filter: blur(var(--glass-blur));
-		border: none;
-		border-radius: var(--radius-lg);
-		box-shadow: var(--shadow-xl);
-		padding: var(--space-2xl);
-		transition:
-			transform var(--transition-normal),
-			box-shadow var(--transition-normal);
-	}
 	.apply__form-card {
 		position: relative;
 		overflow: hidden;
+		padding: var(--space-lg);
 	}
 	.apply__form-card::before {
 		content: '';
@@ -374,6 +363,7 @@ ${formData.message}
 		box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
 	}
 	.apply__success {
+		padding: var(--space-lg);
 		text-align: center;
 		display: flex;
 		flex-direction: column;
@@ -388,17 +378,9 @@ ${formData.message}
 		margin-bottom: var(--space-md);
 		box-shadow: var(--shadow-inner);
 	}
-	.glass-card {
-		padding: var(--space-lg);
-	}
-
 	@media (max-width: 600px) {
 		.form-grid {
 			grid-template-columns: 1fr;
-		}
-
-		.glass-card {
-			padding: var(--space-lg);
 		}
 	}
 </style>
