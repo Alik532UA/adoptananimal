@@ -23,7 +23,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  *   - прибрати `if (this.logs.length > MAX_LOGS)` — падає «буфер тримає …»;
  *   - інкрементувати `errorCount` на кожному записі — падає «лічильник …»;
  *   - прибрати маскування з `getReport()` — падає «пошта у звіті …»;
- *   - віддати `set` без `try/catch` у фасаді — падає «переповнена квота …».
+ *   - віддати `set` без `try/catch` у фасаді — падає «переповнена квота …»;
+ *   - записати `data` без `scrub()` — падають «чутливі поля …» і «цикл …»;
+ *   - прибрати гілку `Error` зі `scrub()` — падає «виняток у даних …»;
+ *   - прибрати охоронця `seen` — падає «цикл …» із переповненням стека;
+ *   - прибрати рядок `ONLINE:` — падає «стан мережі …»;
+ *   - віддати адресу повз `maskUrl()` — падає «адреса у звіті …».
  */
 
 /** Обидва поля змінні: різні перевірки потребують різних гілок. */
@@ -60,14 +65,18 @@ function makeSessionStorage(overrides: Partial<Storage> = {}): Storage {
  * дзеркало **в конструкторі**, тож стан сховища треба поставити до імпорту, а
  * не після нього.
  */
-async function freshLogService(session: Storage = makeSessionStorage()) {
+async function freshLogService({
+	session = makeSessionStorage(),
+	href = 'https://example.test/adopt/cat',
+	online = false
+}: { session?: Storage; href?: string; online?: boolean } = {}) {
 	vi.stubGlobal('sessionStorage', session);
-	// Заголовок звіту читає адресу й UA напряму з `window`/`navigator` за
-	// прапорцем `browser`. Під `environment: 'node'` їх немає, тож без цих
+	// Заголовок звіту читає адресу, UA і стан мережі напряму з `window`/`navigator`
+	// за прапорцем `browser`. Під `environment: 'node'` їх немає, тож без цих
 	// заглушок `getReport()` кидає — і перевірка звітувала б про дефект логера
 	// там, де його немає.
-	vi.stubGlobal('window', { location: { href: 'https://example.test/adopt/cat' } });
-	vi.stubGlobal('navigator', { userAgent: 'vitest' });
+	vi.stubGlobal('window', { location: { href } });
+	vi.stubGlobal('navigator', { userAgent: 'vitest', onLine: online });
 	vi.resetModules();
 	return (await import('./logService.svelte')).logService;
 }
@@ -122,7 +131,7 @@ describe('логер', () => {
 	});
 
 	it('переповнена квота не валить логування (§ 1.5)', async () => {
-		const logService = await freshLogService(makeSessionStorage({ setItem: QUOTA }));
+		const logService = await freshLogService({ session: makeSessionStorage({ setItem: QUOTA }) });
 
 		expect(() => logService.info('app', 'подія')).not.toThrow();
 		expect(logService.logs, 'буфер у памʼяті працює далі').toHaveLength(1);
@@ -132,7 +141,7 @@ describe('логер', () => {
 		const session = makeSessionStorage();
 		session.setItem('adoptananimal_logs', '{ це не JSON');
 
-		const logService = await freshLogService(session);
+		const logService = await freshLogService({ session });
 
 		expect(logService.logs).toEqual([]);
 		expect(logService.errorCount).toBe(0);
@@ -154,6 +163,72 @@ describe('логер', () => {
 		);
 		expect(report, 'домен лишається — без нього запис нічого не пояснює').toContain(
 			'b***@example.com'
+		);
+	});
+
+	it('чутливі поля не доходять до буфера (§ 1.4)', async () => {
+		const logService = await freshLogService();
+
+		logService.error('network', 'Заявку відхилено', {
+			email: 'olena@example.com',
+			token: 'eyJhbGciOi.SECRET.value',
+			user: { phone: '+380671234567', name: 'Olena' },
+			tokenCount: 12
+		});
+
+		const data = logService.logs[0].data as Record<string, unknown>;
+		expect(data.email, 'редакція робиться в логері, а не на місці виклику').toBe('«приховано»');
+		expect(data.token).toBe('«приховано»');
+		expect((data.user as Record<string, unknown>).phone).toBe('«приховано»');
+		expect((data.user as Record<string, unknown>).name, 'вкладене нечутливе — лишається').toBe(
+			'Olena'
+		);
+		expect(data.tokenCount, 'зіставлення точне: це число, а не токен').toBe(12);
+
+		expect(JSON.stringify(logService.logs)).not.toContain('olena@example.com');
+		expect(JSON.stringify(logService.logs)).not.toContain('380671234567');
+	});
+
+	it('виняток у даних лишається читомим після редакції (§ 1.4)', async () => {
+		const logService = await freshLogService();
+
+		logService.error('app', 'Збій', new TypeError('Failed to fetch'));
+
+		// Object.entries(new Error(…)) віддає порожній масив, тож обхід «як по
+		// звичайному об'єкту» стер би саме той текст, заради якого запис і робили.
+		expect(logService.logs[0].data).toMatchObject({
+			name: 'TypeError',
+			message: 'Failed to fetch'
+		});
+	});
+
+	it('цикл у даних не валить логер (§ 1.5)', async () => {
+		const logService = await freshLogService();
+		const loop: Record<string, unknown> = { name: 'root' };
+		loop.self = loop;
+
+		expect(() => logService.warn('app', 'циклічні дані', loop)).not.toThrow();
+		expect(() => JSON.stringify(logService.logs)).not.toThrow();
+	});
+
+	it('заголовок звіту називає стан мережі (§ 2.3)', async () => {
+		const logService = await freshLogService();
+
+		expect(
+			logService.getReport(),
+			'половина звітів «нічого не працює» пояснюється саме цим рядком'
+		).toContain('ONLINE: false');
+	});
+
+	it('адреса у звіті без значень чутливих параметрів (§ 1.4)', async () => {
+		const logService = await freshLogService({
+			href: 'https://example.test/favorites?debug=1&access_token=abc123'
+		});
+
+		const report = logService.getReport();
+		expect(report).not.toContain('abc123');
+		expect(report, 'решта query лишається — саме вона пояснює побачений екран').toContain(
+			'debug=1'
 		);
 	});
 

@@ -15,6 +15,76 @@ export interface LogEntry {
 const MAX_LOGS = 1000;
 const LOG_KEY = 'logs';
 
+/**
+ * Поля, вміст яких не потрапляє в буфер у відкритому вигляді (DEBUGGING-v8 § 1.4).
+ *
+ * Список канону — `email`, `password`, `token`, `phone`, `authorization`, `cookie`
+ * — плюс написання тих самих речей, під якими вони приходять із чужих API
+ * (`accessToken`, `apiKey`, `secret`). Зіставлення точне, а не входженням: інакше
+ * під редакцію потрапило б і `tokenCount`, тобто число, заради якого запис і
+ * робили.
+ */
+const REDACTED_KEY =
+	/^(password|passwd|token|access_?token|id_?token|refresh_?token|api_?key|secret|authorization|auth|cookie|e_?mail|phone|tel)$/i;
+
+const REDACTED = '«приховано»';
+
+/** Те саме для параметрів адреси, де межі слова немає: `?id_token=…`, `?api-key=…`. */
+const REDACTED_PARAM = /(password|token|secret|api[-_]?key|auth|cookie|email|phone|session)/i;
+
+/** Пошта в довільному тексті: адреса лишає перший символ і домен, решта зникає. */
+function maskEmails(text: string): string {
+	return text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, (email) => {
+		const [local, domain] = email.split('@');
+		return `${local[0]}***@${domain}`;
+	});
+}
+
+/**
+ * Адреса у звіті без значень чутливих параметрів (§ 1.4). Решта query лишається:
+ * саме фільтри й `?debug=1` пояснюють, що людина бачила на екрані.
+ */
+function maskUrl(href: string): string {
+	try {
+		const url = new URL(href);
+		for (const key of [...url.searchParams.keys()]) {
+			if (REDACTED_PARAM.test(key)) url.searchParams.set(key, REDACTED);
+		}
+		return maskEmails(url.toString());
+	} catch {
+		// Не адреса — краще віддати як є, ніж загубити рядок звіту.
+		return maskEmails(href);
+	}
+}
+
+/**
+ * Прибирає чутливі значення перед записом — у самому логері, а не на місцях
+ * виклику: досить одного забутого місця, щоб правило перестало діяти (§ 1.4).
+ *
+ * `Error` розкладається руками: `Object.entries(new Error('x'))` віддає порожній
+ * масив, тож звичайний обхід стер би саме той текст, заради якого виняток і
+ * логували.
+ */
+function scrub(value: unknown, seen = new WeakSet<object>()): unknown {
+	if (typeof value === 'string') return maskEmails(value);
+	if (value instanceof Error) {
+		return { name: value.name, message: maskEmails(value.message), stack: value.stack };
+	}
+	if (Array.isArray(value)) return value.map((item) => scrub(item, seen));
+	if (value && typeof value === 'object') {
+		// Цикл у даних не має валити логер: він і так кличеться там, де вже зле.
+		if (seen.has(value)) return '«цикл»';
+		seen.add(value);
+		return Object.fromEntries(
+			Object.entries(value).map(([key, item]) => [
+				key,
+				REDACTED_KEY.test(key) ? REDACTED : scrub(item, seen)
+			])
+		);
+	}
+	return value;
+}
+
 class LogService {
 	logs = $state<LogEntry[]>([]);
 	errorCount = $state(0);
@@ -64,7 +134,10 @@ class LogService {
 			level,
 			category,
 			message,
-			data
+			// Редакція на вході, а не на виході: буфер дзеркалиться в sessionStorage
+			// і копіюється у звіт, тож «приховаю під час читання» означало б, що
+			// значення вже полежало на диску відкритим.
+			data: data === undefined ? undefined : scrub(data)
 		};
 
 		this.logs.push(entry);
@@ -85,10 +158,12 @@ class LogService {
 
 			if (dev || level === 'error') {
 				// Masked here too: the console is copied into bug reports as often as getReport().
+				// `entry.data`, not the argument: the scrubbed copy is the only one allowed
+				// to leave this module (DEBUGGING-v8 § 1.4).
 				console.log(
-					`%c[${entry.timestamp}] [${level.toUpperCase()}] [${category.toUpperCase()}] ${this.maskPII(message)}`,
+					`%c[${entry.timestamp}] [${level.toUpperCase()}] [${category.toUpperCase()}] ${maskEmails(message)}`,
 					styles[level],
-					data || ''
+					entry.data ?? ''
 				);
 			}
 		}
@@ -104,16 +179,6 @@ class LogService {
 		}
 	}
 
-	/**
-	 * Masks sensitive data like emails in the log message.
-	 */
-	private maskPII(message: string): string {
-		return message.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, (email) => {
-			const [local, domain] = email.split('@');
-			return `${local[0]}***@${domain}`;
-		});
-	}
-
 	getReport(): string {
 		const header = [
 			'--- LOG REPORT ---',
@@ -121,15 +186,18 @@ class LogService {
 			// user's locale, and an unqualified toLocaleString() differs per machine.
 			`DATE: ${new Date().toISOString()}`,
 			`VERSION: v${__APP_VERSION__}`,
-			`URL: ${browser ? window.location.href : 'N/A'}`,
+			`URL: ${browser ? maskUrl(window.location.href) : 'N/A'}`,
 			`UA: ${browser ? navigator.userAgent : 'N/A'}`,
+			// DEBUGGING-v8 § 2.3: половина звітів «нічого не працює» пояснюється
+			// саме цим рядком, і дізнатися його заднім числом уже неможливо.
+			`ONLINE: ${browser ? navigator.onLine : 'N/A'}`,
 			'---'
 		].join('\n');
 
 		const body = this.logs
 			.map(
 				(l) =>
-					`[${l.timestamp}] [${l.level.toUpperCase()}] [${l.category.toUpperCase()}] ${this.maskPII(l.message)}`
+					`[${l.timestamp}] [${l.level.toUpperCase()}] [${l.category.toUpperCase()}] ${maskEmails(l.message)}`
 			)
 			.join('\n');
 
