@@ -345,7 +345,9 @@
 
 	.about__flags {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		/* minmax(0, …) for the reason spelled out beside .grid--4 in app.css: a bare
+		   1fr is minmax(auto, 1fr), and that auto is a floor (FLUID-SIZING-v8 § 1). */
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 8px;
 		width: 110px;
 	}
