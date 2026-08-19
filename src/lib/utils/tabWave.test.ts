@@ -9,6 +9,19 @@ const points = (path: string): Array<[number, number]> => {
 	return out;
 };
 
+/**
+ * Width of the bottom edge — the distance between the two feet.
+ *
+ * This, not `totalWidth`, is what moves once the tab can lean inward: the box stops at
+ * the label width (it has to cover the text) while the feet keep coming in. The two
+ * checks below used to measure the box and passed for the wrong reason.
+ */
+const baseWidth = (labelWidth: number, progress: number): number => {
+	const { path, totalWidth } = tabShape(labelWidth, progress);
+	const left = Number(path.match(/^M ([\d.]+)/)![1]);
+	return totalWidth - 2 * left;
+};
+
 describe('clamp01', () => {
 	it('holds the ends', () => {
 		expect(clamp01(-3)).toBe(0);
@@ -43,12 +56,19 @@ describe('tabShape', () => {
 	});
 
 	it('pulls the skirts in as it closes', () => {
-		const widths = [0, 0.25, 0.5, 0.75, 1].map((p) => tabShape(132, p).totalWidth);
+		const bases = [0, 0.25, 0.5, 0.75, 1].map((p) => baseWidth(132, p));
 
-		for (let i = 1; i < widths.length; i++) {
-			expect(widths[i], `width grew between step ${i - 1} and ${i}`).toBeLessThan(widths[i - 1]);
+		for (let i = 1; i < bases.length; i++) {
+			expect(bases[i], `the base grew between step ${i - 1} and ${i}`).toBeLessThan(bases[i - 1]);
 		}
-		expect(widths.at(-1)).toBeLessThan(widths[0] * 0.7);
+		// Closed, the feet stand well inside the label rather than level with its edges.
+		expect(bases.at(-1)).toBeLessThan(bases[0] * 0.35);
+
+		// And the box never grows, or the tab would be seen to widen while it closes.
+		const boxes = [0, 0.25, 0.5, 0.75, 1].map((p) => tabShape(132, p).totalWidth);
+		for (let i = 1; i < boxes.length; i++) {
+			expect(boxes[i], `box grew between step ${i - 1} and ${i}`).toBeLessThanOrEqual(boxes[i - 1]);
+		}
 	});
 
 	it('never lets the tab get narrower than the label it sits behind', () => {
@@ -72,10 +92,18 @@ describe('tabShape', () => {
 
 	it('moves smoothly rather than jumping', () => {
 		// A shape that changes in steps reads as a glitch while the page is moving.
-		let previous = tabShape(132, 0).totalWidth;
+		//
+		// A share of the whole journey rather than a fixed number of pixels: the bound has
+		// to mean «no visible step» for any travel, and the previous 12px was tied to how
+		// far the shape happened to move at the time it was written. A twentieth of the
+		// scroll may not carry more than a tenth of the movement.
+		const travel = baseWidth(132, 0) - baseWidth(132, 1);
+		let previous = baseWidth(132, 0);
 		for (let p = 0.05; p <= 1.0001; p += 0.05) {
-			const current = tabShape(132, p).totalWidth;
-			expect(Math.abs(current - previous), `jump at progress ${p.toFixed(2)}`).toBeLessThan(12);
+			const current = baseWidth(132, p);
+			expect(Math.abs(current - previous), `jump at progress ${p.toFixed(2)}`).toBeLessThan(
+				travel * 0.1
+			);
 			previous = current;
 		}
 	});

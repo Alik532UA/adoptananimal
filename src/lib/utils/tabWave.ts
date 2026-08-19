@@ -15,8 +15,34 @@ export const TAB_HEIGHT = 48;
 /** How far the page has to move for the tab to finish closing, in pixels. */
 export const SETTLE_DISTANCE = 120;
 
-const OPEN = { slope: 100, radius: 0, inset: 48 };
-const CLOSED = { slope: 20, radius: 14, inset: 20 };
+/**
+ * `flare` is the SIGNED horizontal distance from the end of the top plateau to the foot
+ * of the skirt. Positive flares outward — the shape is widest at the baseline, which is
+ * what makes it read as part of the band. Negative leans inward, so the feet sit inside
+ * the plateau and the tab stands on a narrow base.
+ *
+ * It used to be an unsigned `slope`, which could only ever flare out: the closed tab
+ * was therefore always at least as wide at the bottom as at the top, and the feet could
+ * not come in past the label edge no matter how small the number.
+ */
+const OPEN = { flare: 100, radius: 0, inset: 48 };
+const CLOSED = { flare: -24, radius: 14, inset: 4 };
+
+/**
+ * Where the corner rounding starts, as a share of the whole travel.
+ *
+ * The two movements are deliberately NOT simultaneous. The skirts pulling in is
+ * horizontal; the rounding lifts the outer bottom points off the baseline, because the
+ * arc starts `radius` above it. Run together, the feet slide inwards and rise at the
+ * same time, and the eye reads one muddled diagonal drift instead of two decisions.
+ *
+ * So the feet travel first and lift only at the end: for the first five sixths of the
+ * scroll the shape stays flat on the baseline and only narrows, and the corners round
+ * off over what is left — by which point the feet have covered about four fifths of
+ * their way inwards and the lift reads as the movement finishing rather than as part
+ * of it.
+ */
+const ROUND_START = 0.85;
 
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 
@@ -35,40 +61,60 @@ export interface TabShape {
  * @param progress   0 at the top of the page, 1 once it has scrolled past SETTLE_DISTANCE
  */
 export function tabShape(labelWidth: number, progress: number): TabShape {
-	const t = ease(clamp01(progress));
+	const p = clamp01(progress);
+	const t = ease(p);
 
-	const slope = lerp(OPEN.slope, CLOSED.slope, t);
-	const radius = lerp(OPEN.radius, CLOSED.radius, t);
+	/** The late half of the movement: still 0 until ROUND_START, then eased to 1. */
+	const tRound = ease(clamp01((p - ROUND_START) / (1 - ROUND_START)));
+
+	const flare = lerp(OPEN.flare, CLOSED.flare, t);
 	const inset = lerp(OPEN.inset, CLOSED.inset, t);
 
 	const plateau = Math.max(12, labelWidth - inset);
-	const totalWidth = 2 * slope + plateau;
+	const base = Math.max(12, plateau + 2 * flare);
+
+	/**
+	 * The box holds whichever part is widest, and never less than the label it stands
+	 * behind: once the feet lean inward the bottom stops being the widest part, and a box
+	 * measured from it would crop the text.
+	 */
+	const totalWidth = Math.max(labelWidth, plateau, base);
+
+	// Both parts centred in the box, so the shape stays symmetrical whichever is wider.
+	const plateauX = (totalWidth - plateau) / 2;
+	const footX = (totalWidth - base) / 2;
 
 	const h = TAB_HEIGHT;
+
+	// Never more than half the bottom edge: two arcs of the full radius on a narrow base
+	// would meet past each other and the edge would run backwards.
+	const radius = Math.min(lerp(OPEN.radius, CLOSED.radius, tRound), base / 2, h / 2);
+
 	// Where the skirts land. With a radius they stop short of the baseline and the
 	// corner arc carries them the rest of the way.
 	const foot = h - radius;
 
-	const x1 = slope;
-	const x2 = slope + plateau;
-	const right = totalWidth;
+	const x1 = plateauX;
+	const x2 = plateauX + plateau;
+	const left = footX;
+	const right = totalWidth - footX;
 
-	// Control points keep the same proportions as the original curve, so the open
-	// shape is unchanged and only the closing is new.
-	const c1 = slope * 0.5625;
-	const c2 = slope * 0.625;
-	const c3 = x2 + slope * 0.375;
-	const c4 = x2 + slope * 0.4375;
+	// Control points keep the same proportions as the original curve — measured along the
+	// flare, so a negative one mirrors them without any extra case.
+	const c1 = left + flare * 0.5625;
+	const c2 = left + flare * 0.625;
+	const c3 = x2 + flare * 0.375;
+	const c4 = x2 + flare * 0.4375;
 
 	const n = (value: number) => value.toFixed(1);
 
 	const bottom =
 		radius > 0.05
-			? `Q ${n(right)} ${n(h)} ${n(right - radius)} ${n(h)} L ${n(radius)} ${n(h)} Q 0 ${n(h)} 0 ${n(foot)}`
-			: `L 0 ${n(h)}`;
+			? `Q ${n(right)} ${n(h)} ${n(right - radius)} ${n(h)} L ${n(left + radius)} ${n(h)} Q ${n(left)} ${n(h)} ${n(left)} ${n(foot)}`
+			: `L ${n(left)} ${n(h)}`;
 
 	const path =
-		`M 0 ${n(foot)} ` +
+		`M ${n(left)} ${n(foot)} ` +
 		`C ${n(c1)} ${n(foot)} ${n(c2)} 0 ${n(x1)} 0 ` +
 		`L ${n(x2)} 0 ` +
 		`C ${n(c3)} 0 ${n(c4)} ${n(foot)} ${n(right)} ${n(foot)} ` +
