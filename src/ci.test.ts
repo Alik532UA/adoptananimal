@@ -23,7 +23,26 @@ const DIR = join(ROOT, '.github/workflows');
 
 const files = existsSync(DIR) ? readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f)) : [];
 const workflows = files.map((f) => ({ name: f, text: readFileSync(join(DIR, f), 'utf8') }));
-const all = workflows.map((w) => w.text).join('\n');
+
+/**
+ * The workflows with their comment lines removed — every check below reads this rather
+ * than the raw text.
+ *
+ * A comment is documentation, not a step, and letting one answer a grep breaks the
+ * checks in both directions. It has happened here already: a comment explaining why the
+ * Lighthouse call carries a version made the very check for that version fail, because
+ * the sentence quoted the unpinned form. The mirror case is worse and quieter — a note
+ * saying "never use npm install" would satisfy a search for `npm install` and report a
+ * defect that is not there, or a note naming a step would report a step that is gone.
+ */
+const all = workflows
+	.map((w) =>
+		w.text
+			.split('\n')
+			.filter((line) => !/^\s*#/.test(line))
+			.join('\n')
+	)
+	.join('\n');
 
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
 	scripts?: Record<string, string>;
@@ -93,6 +112,32 @@ describe('CI', () => {
 			.map(([name, cmd]) => `${name}: ${cmd}`);
 
 		expect(watchers, `watch-режим підвисне поза CI, де немає CI=true`).toEqual([]);
+	});
+
+	it('кожен інструмент, який кличе npx, або локальний, або з версією (§ 1.2)', () => {
+		// `npm ci` тримає версії всього, що в lockfile. `npx <tool>` без версії обходить
+		// його: якщо бінарника немає локально, npx тягне ПОТОЧНИЙ реліз із реєстру —
+		// тобто `latest` у полі версії, який DEPENDENCIES-v8 § 2.3 забороняє, тільки
+		// невидимий, бо він не в package.json.
+		//
+		// Знайдено саме так: `npx @lhci/cli autorun` стояв тут без версії, а пороги
+		// Lighthouse — це пороги БАЛІВ. Реліз, який рахує інакше, валить деплой без
+		// жодної зміни в репозиторії, і причина цього не видна ніде.
+		const calls = [...all.matchAll(/npx\s+((?:@[\w.-]+\/)?[\w.-]+)(@[\w.^~-]+)?/g)];
+		expect(calls.length, 'жодного npx у workflow — сканер шукає не там').toBeGreaterThan(0);
+
+		const floating = calls
+			.filter(([, tool, version]) => {
+				if (version) return false;
+				// Локальний бінарник приходить із lockfile — саме те, чого ми й хочемо.
+				return !existsSync(join(ROOT, 'node_modules/.bin', tool));
+			})
+			.map(([, tool]) => tool);
+
+		expect(
+			floating,
+			`версія вирішується під час прогону: ${floating.join(', ')} — або в devDependencies, або з @версією`
+		).toEqual([]);
 	});
 
 	it('ignore-файл для AI не ховає ні конфігів, ні документації (§ 2.2)', () => {

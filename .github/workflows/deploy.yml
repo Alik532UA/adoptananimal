@@ -71,6 +71,15 @@ jobs:
       - name: The build leaves tracked files alone
         run: git diff --exit-code
 
+      # The browsers do not arrive with `npm ci`, and downloading them is the longest
+      # step in this job. Keyed on the lockfile, because that is what decides which
+      # version of Playwright is asking for them.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       # Without this step Playwright fails with "Executable doesn't exist".
       - run: npx playwright install --with-deps chromium
 
@@ -84,8 +93,19 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+      # Version pinned on purpose. `npx @lhci/cli` without one resolves to whatever is
+      # latest at the moment the job runs — which is `latest` in a version field, the
+      # thing DEPENDENCIES-v8 § 2.3 forbids, only harder to see because it is not in
+      # package.json. The thresholds here are score thresholds, so a Lighthouse that
+      # scores differently turns the deploy red without a line of this repo changing.
+      #
+      # Not a devDependency, and that is a decision rather than an oversight: it brings
+      # 321 transitive packages (express, inquirer 6, isomorphic-fetch) into every
+      # install of a project whose whole runtime is two packages, for a tool that runs
+      # once per deploy and never touches the bundle. § 1.1 counts those 321 as 321
+      # risks. Recorded in PROJECT-CONTEXT.md § 4.24; bumped as its own commit.
       - name: Lighthouse Audit
-        run: npx @lhci/cli autorun
+        run: npx @lhci/cli@0.15.1 autorun
 
       - uses: actions/upload-pages-artifact@v3
         with:
