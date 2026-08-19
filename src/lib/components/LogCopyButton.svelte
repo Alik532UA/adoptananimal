@@ -98,19 +98,20 @@
 		data-testid="debug-log-copy-btn"
 	>
 		<div class="log-fab__icon">
+			<!-- The version sits OUTSIDE the branches: the error count is ADDED to it rather
+			     than replacing it. Otherwise, in dev — where an error is almost always
+			     present — the version would never be on screen at all. -->
 			{#if copied}
-				<ClipboardCheck size={20} />
+				<ClipboardCheck size={14} class="log-fab__hint" />
 			{:else if logService.errorCount > 0}
-				<div class="log-fab__error-badge">
-					<AlertCircle size={20} />
-					<span class="log-fab__count"
-						>{logService.errorCount > 99 ? '!' : logService.errorCount}</span
-					>
-				</div>
+				<AlertCircle size={14} class="log-fab__hint" />
+				<span class="log-fab__count"
+					>{logService.errorCount > 99 ? '99+' : logService.errorCount}</span
+				>
 			{:else}
 				<Copy size={12} class="log-fab__hint" />
-				<span class="log-fab__version" data-testid="app-version-value">{appVersion}</span>
 			{/if}
+			<span class="log-fab__version" data-testid="app-version-value">{appVersion}</span>
 		</div>
 	</button>
 {/if}
@@ -145,16 +146,10 @@
 	}
 
 	/*
-	 * With errors it becomes a square control again: in that state what matters is that
-	 * something happened, not which build it happened on. The version stays in the report
-	 * this same click copies.
+	 * The shape does NOT change between states: the pill stays a pill, because the
+	 * version stays in place. Errors used to shrink it to a 32px square, which lost not
+	 * just the version but the element's recognisability.
 	 */
-	.log-fab--has-errors,
-	.log-fab--copied {
-		width: 32px;
-		min-height: 32px;
-		padding: 0;
-	}
 
 	/*
 	 * Darker than #ef4444 for WCAG AA rather than for taste: white text on the old colour
@@ -219,30 +214,23 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: 4px;
 	}
 
-	.log-fab__error-badge {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		position: relative;
-	}
-
+	/*
+	 * The count is a chip in the row, not a floating bubble on an icon. Darker red than
+	 * the capsule itself (#7f1d1d on #c92a2a): white on it gives 10:1. The old absolute
+	 * bubble had to be positioned against an icon — and that icon is what the version
+	 * replaced.
+	 */
 	.log-fab__count {
-		position: absolute;
-		top: -8px;
-		right: -8px;
-		background: white;
-		color: #ef4444;
+		background: #7f1d1d;
+		color: white;
 		font-size: 10px;
 		font-weight: 800;
-		width: 18px;
-		height: 18px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 0 0 2px #ef4444;
+		line-height: 1;
+		padding: 2px 5px;
+		border-radius: 8px;
 	}
 
 	/*
@@ -258,12 +246,6 @@
 			padding: 0 12px;
 			bottom: 12px;
 			left: 12px;
-		}
-
-		.log-fab--has-errors,
-		.log-fab--copied {
-			width: 44px;
-			padding: 0;
 		}
 
 		.log-fab__version {
