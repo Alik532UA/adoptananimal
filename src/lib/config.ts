@@ -78,9 +78,6 @@ export const DEFAULT_OG_IMAGE = '/images/logo/adoptananimal_logo_Notpfote.webp';
 export const absoluteFromRoot = (path: string): string =>
 	`${SITE_ORIGIN}${SITE_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 
-/** Absolute URL from a pathname that already includes the base, e.g. `page.url.pathname`. */
-export const absoluteFromPathname = (pathname: string): string => `${SITE_ORIGIN}${pathname}`;
-
 /**
  * Absolute URL of a page in a given language, from a locale-free path such as
  * `/adopt/cat`. Used for canonical and for the hreflang alternates, which have to

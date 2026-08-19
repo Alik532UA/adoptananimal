@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import { storage } from '$lib/services/storage';
 import { logService } from '$lib/services/logService.svelte';
 
-import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from '$lib/i18n/locales';
+import { DEFAULT_LOCALE, isLocale, type Locale } from '$lib/i18n/locales';
 
 export type Theme = 'dark' | 'light-green' | 'orange-purple' | 'winter';
 export type SiteStyle = 'modern' | 'minimal' | 'playful';
@@ -135,19 +135,8 @@ class Settings {
 		if (this.locale !== locale) this.locale = locale;
 	}
 
-	toggleLocale() {
-		const currentIndex = LOCALES.indexOf(this.locale);
-		this.setLocale(LOCALES[(currentIndex + 1) % LOCALES.length]);
-	}
-
 	setStyle(style: SiteStyle) {
 		this.style = style;
-	}
-
-	nextStyle() {
-		const currentIndex = this.styles.indexOf(this.style);
-		const nextIndex = (currentIndex + 1) % this.styles.length;
-		this.style = this.styles[nextIndex];
 	}
 
 	toggleFavorite(slug: string) {

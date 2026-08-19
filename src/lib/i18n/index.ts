@@ -2,7 +2,7 @@ import { en, type TranslationKey } from './translations/en';
 import { uk } from './translations/uk';
 import { de } from './translations/de';
 import { nl } from './translations/nl';
-import { settings, type Locale } from '$lib/services/settings.svelte';
+import { settings } from '$lib/services/settings.svelte';
 
 type Translations = Record<TranslationKey, string>;
 
@@ -52,31 +52,16 @@ export const tFormat = (key: TranslationKey, values: Record<string, string | num
 	);
 
 /**
- * Formats a date according to the current locale.
+ * Formats a number in the SITE's language, not the machine's.
+ *
+ * Internal on purpose: the only caller is `tPlural` above. Exporting it would put a
+ * second, equally plausible way to render a number next to the sentence that already
+ * contains one — and the two would drift the first time a language wants a different
+ * grouping. `Intl.NumberFormat` with an explicit locale is what the ESLint rule against
+ * bare `toLocaleString()` exists to push callers towards (I18N-v8 § 4.3).
  */
-export const formatDate = (
-	date: Date | string,
-	options: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }
-): string => {
-	const d = typeof date === 'string' ? new Date(date) : date;
-	return new Intl.DateTimeFormat(settings.locale, options).format(d);
-};
-
-/**
- * Formats a number according to the current locale.
- */
-export const formatNumber = (num: number, options: Intl.NumberFormatOptions = {}): string => {
+const formatNumber = (num: number, options: Intl.NumberFormatOptions = {}): string => {
 	return new Intl.NumberFormat(settings.locale, options).format(num);
-};
-
-export const setLocale = (locale: string) => {
-	if (translations[locale]) {
-		settings.setLocale(locale as Locale);
-	}
-};
-
-export const getLocale = () => {
-	return settings.locale;
 };
 
 export type { TranslationKey };
