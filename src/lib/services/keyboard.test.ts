@@ -206,6 +206,36 @@ describe('§ 1.1 — a letter means the same thing in every project on this orig
 	});
 });
 
+describe('§ 5 — a shortcut nobody is told about exists only for its author', () => {
+	/**
+	 * Letters that drive a control on screen, and the ARIA notation each is announced
+	 * in. `V` and `R` are absent on purpose: § 5 says the service gestures stay out of
+	 * the help, because they are not for the visitor.
+	 */
+	const ANNOUNCED: Record<string, string> = { KeyT: 'T', KeyL: 'L' };
+
+	const markup = files.filter((f) => f.path.endsWith('.svelte'));
+
+	it('every visitor-facing letter is announced on the control it drives', () => {
+		const silent = Object.entries(ANNOUNCED)
+			.filter(([code]) => files.some((f) => f.text.includes(`'${code}'`)))
+			.filter(([, aria]) => !markup.some((f) => f.text.includes(`keyshortcuts="${aria}"`)))
+			.map(([code, aria]) => `${code}: nothing carries aria-keyshortcuts="${aria}"`);
+
+		expect(silent, `undiscoverable shortcuts:\n${silent.join('\n')}`).toEqual([]);
+	});
+
+	it('the announcement reaches the DOM rather than stopping at a prop', () => {
+		// `keyshortcuts="T"` on a component is a prop name until something renders it as
+		// the attribute. The two are one letter apart and the difference is invisible
+		// everywhere except a screen reader.
+		const dropdown = read('src/lib/components/ui/DropdownMenu.svelte');
+		expect(dropdown, 'the prop is taken but never rendered').toContain(
+			'aria-keyshortcuts={keyshortcuts}'
+		);
+	});
+});
+
 /**
  * A stand-in for a focused element. `closest` here answers the same question a browser
  * would: is any of the selector's alternatives this element's tag?

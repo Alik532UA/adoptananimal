@@ -14,6 +14,15 @@
 	interface Props {
 		/** Accessible name of the trigger. */
 		label: string;
+		/**
+		 * The key that reaches this menu without the mouse, in ARIA notation (`"T"`) —
+		 * HOTKEYS-v8 § 5. It announces a shortcut, it does not create one: the handler
+		 * stays the caller's, and `keyboard.test.ts` is what keeps the two in step.
+		 * A legend printed on the button would be a second glyph in a 44px control that
+		 * already carries one, and a shortcuts dialog for two letters is more page than
+		 * it saves — so this is the whole of discoverability here.
+		 */
+		keyshortcuts?: string;
 		/** Feature segment of the test ids: "theme" gives theme-toggle-btn. */
 		testId: string;
 		items: DropdownItem[];
@@ -25,7 +34,8 @@
 		itemVisual?: Snippet<[DropdownItem]>;
 	}
 
-	let { label, testId, items, open, onToggle, onselect, trigger, itemVisual }: Props = $props();
+	let { label, keyshortcuts, testId, items, open, onToggle, onselect, trigger, itemVisual }: Props =
+		$props();
 
 	/**
 	 * Escape closes and returns focus to the trigger, arrows walk the items, Home and
@@ -138,6 +148,7 @@
 		aria-label={label}
 		aria-expanded={open}
 		aria-haspopup="menu"
+		aria-keyshortcuts={keyshortcuts}
 		data-testid="{testId}-toggle-btn"
 	>
 		{@render trigger()}

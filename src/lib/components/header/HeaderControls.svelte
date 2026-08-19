@@ -3,9 +3,10 @@
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
 	import { acceptsShortcut } from '$lib/services/keyboard';
-	import { t, type TranslationKey } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 	import { splitLocale } from '$lib/i18n/locales';
 	import { settings, type Locale, type SiteStyle, type Theme } from '$lib/services/settings.svelte';
+	import { LOCALE_OPTIONS, STYLE_OPTIONS, THEME_OPTIONS } from './menuOptions';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
 
@@ -30,41 +31,6 @@
 	 */
 	let openMenu = $state<'theme' | 'style' | 'lang' | null>(null);
 
-	const locales: { id: Locale; label: string; flags: string[] }[] = [
-		{ id: 'en', label: 'English', flags: ['/images/flags/en.svg'] },
-		{ id: 'uk', label: 'Українська', flags: ['/images/flags/uk.svg'] },
-		{ id: 'de', label: 'Deutsch', flags: ['/images/flags/de.svg', '/images/flags/at.svg'] },
-		{ id: 'nl', label: 'Nederlands', flags: ['/images/flags/nl.svg'] }
-	];
-
-	const styles: {
-		id: SiteStyle;
-		labelKey: TranslationKey;
-		icon: 'sparkles' | 'minimal' | 'playful';
-	}[] = [
-		/*
-		 * Minimal is deliberately absent from this list, not deleted.
-		 *
-		 * Its stylesheet, its tokens and its handling everywhere else are intact, and
-		 * setting the stored value by hand still applies it — it is simply not offered.
-		 * Removing the code would make bringing it back a rewrite instead of a line.
-		 */
-		{ id: 'playful', labelKey: 'style.playful', icon: 'playful' },
-		{ id: 'modern', labelKey: 'style.modern', icon: 'sparkles' }
-	];
-
-	const themes: {
-		id: Theme;
-		labelKey: TranslationKey;
-		icon: 'moon' | 'sun' | 'leaf' | 'winter';
-	}[] = [
-		// The one the site opens in leads the list; the rest are alternatives to it.
-		{ id: 'light-green', labelKey: 'theme.light-green', icon: 'sun' },
-		{ id: 'dark', labelKey: 'theme.dark', icon: 'moon' },
-		{ id: 'orange-purple', labelKey: 'theme.orange-purple', icon: 'leaf' },
-		{ id: 'winter', labelKey: 'theme.winter', icon: 'winter' }
-	];
-
 	/*
 	 * Close on any outside click. In an $effect so the listener leaves with the component
 	 * instead of outliving it.
@@ -88,7 +54,9 @@
 	 * and instant, while switching language is NAVIGATION (`localeHref` is an `href`), so
 	 * "next language" would mean up to three page loads to reach the wanted one.
 	 *
-	 * `V` and `R` live in `ServiceGestures.svelte` — they need nothing from here.
+	 * Both letters are announced on the button they drive, via `keyshortcuts` below
+	 * (§ 5). `V` and `R` live in `ServiceGestures.svelte` and stay unannounced — they
+	 * are service gestures, not something to offer a visitor.
 	 */
 	function handleShortcut(event: KeyboardEvent) {
 		if (!acceptsShortcut(event)) return;
@@ -123,8 +91,9 @@
 <div class="header__controls">
 	<DropdownMenu
 		label={t('a11y.toggleTheme')}
+		keyshortcuts="T"
 		testId="theme"
-		items={themes.map((theme) => ({
+		items={THEME_OPTIONS.map((theme) => ({
 			id: theme.id,
 			label: t(theme.labelKey),
 			active: settings.theme === theme.id
@@ -137,17 +106,20 @@
 		}}
 	>
 		{#snippet trigger()}
-			<Icon name={themes.find((x) => x.id === settings.theme)?.icon ?? 'moon'} size="1.2rem" />
+			<Icon
+				name={THEME_OPTIONS.find((x) => x.id === settings.theme)?.icon ?? 'moon'}
+				size="1.2rem"
+			/>
 		{/snippet}
 		{#snippet itemVisual(item)}
-			<Icon name={themes.find((x) => x.id === item.id)?.icon ?? 'moon'} size="1.1rem" />
+			<Icon name={THEME_OPTIONS.find((x) => x.id === item.id)?.icon ?? 'moon'} size="1.1rem" />
 		{/snippet}
 	</DropdownMenu>
 
 	<DropdownMenu
 		label={t('a11y.toggleStyle')}
 		testId="style"
-		items={styles.map((style) => ({
+		items={STYLE_OPTIONS.map((style) => ({
 			id: style.id,
 			label: t(style.labelKey),
 			active: settings.style === style.id
@@ -160,17 +132,21 @@
 		}}
 	>
 		{#snippet trigger()}
-			<Icon name={styles.find((x) => x.id === settings.style)?.icon ?? 'sparkles'} size="1.2rem" />
+			<Icon
+				name={STYLE_OPTIONS.find((x) => x.id === settings.style)?.icon ?? 'sparkles'}
+				size="1.2rem"
+			/>
 		{/snippet}
 		{#snippet itemVisual(item)}
-			<Icon name={styles.find((x) => x.id === item.id)?.icon ?? 'sparkles'} size="1.1rem" />
+			<Icon name={STYLE_OPTIONS.find((x) => x.id === item.id)?.icon ?? 'sparkles'} size="1.1rem" />
 		{/snippet}
 	</DropdownMenu>
 
 	<DropdownMenu
 		label={t('a11y.toggleLanguage')}
+		keyshortcuts="L"
 		testId="lang"
-		items={locales.map((locale) => ({
+		items={LOCALE_OPTIONS.map((locale) => ({
 			id: locale.id,
 			label: locale.label,
 			href: localeHref(locale.id),
@@ -186,9 +162,9 @@
 	>
 		{#snippet trigger()}
 			<span class="header__lang">
-				{#if locales.find((l) => l.id === settings.locale)?.flags[0]}
+				{#if LOCALE_OPTIONS.find((l) => l.id === settings.locale)?.flags[0]}
 					<img
-						src={withBase(locales.find((l) => l.id === settings.locale)!.flags[0])}
+						src={withBase(LOCALE_OPTIONS.find((l) => l.id === settings.locale)!.flags[0])}
 						alt=""
 						class="header__flag"
 						width={FLAG_WIDTH}
@@ -200,7 +176,7 @@
 		{/snippet}
 		{#snippet itemVisual(item)}
 			<span class="header__flags">
-				{#each locales.find((l) => l.id === item.id)?.flags ?? [] as flag (flag)}
+				{#each LOCALE_OPTIONS.find((l) => l.id === item.id)?.flags ?? [] as flag (flag)}
 					<img
 						src={withBase(flag)}
 						alt=""
