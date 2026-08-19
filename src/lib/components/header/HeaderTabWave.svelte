@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
 	import { page } from '$app/state';
 	import { tabShape } from '$lib/utils/tabWave';
 
@@ -22,6 +21,18 @@
 	}
 
 	let { container, scrollProgress }: Props = $props();
+
+	/**
+	 * Whether to draw the point overlay: `?points=1` on any address, in any build.
+	 *
+	 * Off by default because it is a tool for talking about the shape, not part of it. Not
+	 * behind `dev` either, and that is the point of the change: `npm run preview` serves the
+	 * real build, which is where the shape has to be judged, and a `dev` guard put the
+	 * overlay out of reach exactly there.
+	 *
+	 * The same shape as the debug switch DEBUGGING-v8 § 2.1 describes for the log button.
+	 */
+	const showPoints = $derived(page.url.searchParams.get('points') === '1');
 
 	let indicatorX = $state(0);
 	let activeWidth = $state(132);
@@ -124,7 +135,7 @@
 		>
 			<path d={indicator.path} fill="var(--active-tab-bg)" />
 		</svg>
-		{#if dev}
+		{#if showPoints}
 			<!--
 				A second svg over the first, not a group inside it, and that is the whole point:
 				the wave is painted BEHIND the nav link, so the link's own box covered the top
@@ -141,8 +152,9 @@
 				data-testid="debug-wave-points-container"
 			>
 				<!--
-					dev only, and it exists so the shape can be talked about precisely: «point 4
-					should rise later» instead of «the bottom moves wrong».
+					Off unless asked for with `?points=1`. It exists so the shape can be talked
+					about precisely: «point 4 should rise later» instead of «the bottom moves
+					wrong».
 
 					Four dots, which is how many corners the shape has: two feet and the two ends
 					of the plateau. The control points that bend the skirts between them are not
@@ -218,7 +230,7 @@
 	}
 
 	/*
-	 * dev overlay, in its own layer above the nav link.
+	 * The point overlay, in its own layer above the nav link.
 	 *
 	 * `z-index` on the element rather than on a group inside the wave: the link sits over
 	 * the wave, so the two plateau corners were unreachable — the pointer met the link
