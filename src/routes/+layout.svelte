@@ -361,6 +361,7 @@
 	style="--footer-lift: {footerLift}px;"
 	onclick={scrollToTop}
 	aria-label={t('a11y.backToTop')}
+	data-testid="back-to-top-btn"
 >
 	<Icon name="arrow-up" size="1.5rem" />
 </button>
