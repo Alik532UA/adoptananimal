@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dev } from '$app/environment';
 	import { page } from '$app/state';
 	import { tabShape } from '$lib/utils/tabWave';
 
@@ -122,6 +123,61 @@
 			style="width: {indicator.totalWidth}px; left: -{indicator.totalWidth / 2}px;"
 		>
 			<path d={indicator.path} fill="var(--active-tab-bg)" />
+
+			{#if dev}
+				<!--
+					dev only, and it exists so the shape can be talked about precisely: «point 7
+					should come down later» instead of «the bottom bit moves wrong».
+
+					The numbers come from `tabShape` itself, not from parsing the path back apart —
+					an overlay that re-derives the geometry can disagree with the shape it is
+					drawn over, and then it is illustrating something that is not there.
+
+					Hollow circles are anchors, on the outline. Filled ones are control points,
+					which are NOT on the outline — each only bends the curve toward the anchor it
+					is tethered to by the dashed line.
+				-->
+				<g class="wave-debug" data-testid="debug-wave-points-container">
+					{#each indicator.points.filter((point) => point.of !== undefined) as control (control.n)}
+						{@const anchor = indicator.points.find((point) => point.n === control.of)}
+						{#if anchor}
+							<line
+								class="wave-debug__tether"
+								x1={control.x}
+								y1={control.y}
+								x2={anchor.x}
+								y2={anchor.y}
+							/>
+						{/if}
+					{/each}
+
+					{#each indicator.points as point (point.n)}
+						<g class="wave-debug__point">
+							<!--
+								Native SVG tooltip: no JS, and it survives the shape animating. On the
+								group rather than on a circle, so either circle triggers it.
+							-->
+							<title
+								>{point.n} · {point.name} · {point.kind}{point.of ? ` of ${point.of}` : ''} · x {point.x.toFixed(
+									1
+								)} y {point.y.toFixed(1)} · progress {scrollProgress.toFixed(2)}</title
+							>
+							<circle
+								class="wave-debug__dot wave-debug__dot--{point.kind}"
+								cx={point.x}
+								cy={point.y}
+								r="3.5"
+							/>
+							<!--
+								The part the pointer actually meets, and the only thing here that takes
+								the pointer at all. Wider than the dot because a 3.5px target is not one,
+								and invisible because the dot is what should be seen.
+							-->
+							<circle class="wave-debug__hit" cx={point.x} cy={point.y} r="9" />
+						</g>
+					{/each}
+				</g>
+			{/if}
 		</svg>
 	</div>
 {/if}
@@ -145,6 +201,58 @@
 	@media (prefers-reduced-motion: reduce) {
 		.header__indicator--animated,
 		.header__wave,
+		/*
+	 * dev overlay. Numbers are always on so the shape can be read at a glance; hovering a
+	 * dot adds its name, its coordinates and the current progress.
+	 *
+	 * `pointer-events` is re-enabled here and nowhere else — the wave is behind the label,
+	 * so a dot that takes the pointer would take a click meant for the link. Kept to the
+	 * dots themselves and to 3.5px, which is the whole reason the tethers and numerals are
+	 * not hoverable.
+	 */
+	.wave-debug__dot {
+			/* Drawn only. The hit circle beside it is what the pointer meets. */
+			pointer-events: none;
+			stroke: #ff00e0;
+			stroke-width: 1.5;
+		}
+
+		/* Hollow: it lies on the outline. */
+		.wave-debug__dot--anchor {
+			fill: none;
+		}
+
+		/* Filled and cyan: it does NOT lie on the outline, it only pulls the curve. */
+		.wave-debug__dot--control {
+			fill: #00e5ff;
+			stroke: #0077aa;
+		}
+
+		.wave-debug__tether {
+			pointer-events: none;
+			stroke: #00e5ff;
+			stroke-width: 1;
+			stroke-dasharray: 2 2;
+		}
+
+		/*
+	 * `pointer-events` is re-enabled here and nowhere else in the overlay.
+	 *
+	 * The wave sits behind the label, so anything here that takes the pointer takes a
+	 * click meant for the link. Nine pixels is a target a person can find without being
+	 * so large that the dots overlap each other on the plateau.
+	 */
+		.wave-debug__hit {
+			pointer-events: auto;
+			fill: transparent;
+			cursor: crosshair;
+		}
+
+		.wave-debug__hit:hover + *,
+		.wave-debug__point:hover .wave-debug__dot {
+			stroke-width: 3;
+		}
+
 		.header__wave path {
 			transition: none;
 		}

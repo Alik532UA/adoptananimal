@@ -51,9 +51,32 @@ const ease = (t: number) => t * t * (3 - 2 * t);
 
 export const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
+/**
+ * One point of the outline, for the dev overlay (`HeaderTabWave.svelte`).
+ *
+ * Returned from the same computation that writes the path rather than parsed back out
+ * of it: an overlay that re-derives the geometry can disagree with the shape, and then
+ * it is showing something that is not there. The cost is a dozen small objects per
+ * frame, and `dev` is the only place that reads them.
+ */
+export interface TabPoint {
+	/** 1-based, in the order the path visits them — this is the number to quote. */
+	n: number;
+	x: number;
+	y: number;
+	/** `anchor` lies on the outline; `control` only bends the curve into the next anchor. */
+	kind: 'anchor' | 'control';
+	/** Which of them it is, in the words the source uses. */
+	name: string;
+	/** The anchor this control belongs to, so the overlay can draw the tether. */
+	of?: number;
+}
+
 export interface TabShape {
 	path: string;
 	totalWidth: number;
+	/** Every point of the outline, in path order. */
+	points: TabPoint[];
 }
 
 /**
@@ -113,6 +136,32 @@ export function tabShape(labelWidth: number, progress: number): TabShape {
 			? `Q ${n(right)} ${n(h)} ${n(right - radius)} ${n(h)} L ${n(left + radius)} ${n(h)} Q ${n(left)} ${n(h)} ${n(left)} ${n(foot)}`
 			: `L ${n(left)} ${n(h)}`;
 
+	/**
+	 * The same numbers the path is built from, named. `of` ties a control to the anchor it
+	 * bends toward, which is the part that is impossible to guess by looking.
+	 */
+	const points: TabPoint[] = [
+		{ n: 1, x: left, y: foot, kind: 'anchor', name: 'left foot' },
+		{ n: 2, x: c1, y: foot, kind: 'control', name: 'left skirt, lower', of: 4 },
+		{ n: 3, x: c2, y: 0, kind: 'control', name: 'left skirt, upper', of: 4 },
+		{ n: 4, x: x1, y: 0, kind: 'anchor', name: 'plateau start' },
+		{ n: 5, x: x2, y: 0, kind: 'anchor', name: 'plateau end' },
+		{ n: 6, x: c3, y: 0, kind: 'control', name: 'right skirt, upper', of: 8 },
+		{ n: 7, x: c4, y: foot, kind: 'control', name: 'right skirt, lower', of: 8 },
+		{ n: 8, x: right, y: foot, kind: 'anchor', name: 'right foot' }
+	];
+
+	// The rounded corners exist only once there is a radius; flat, points 1 and 8 already
+	// sit on the baseline and the bottom edge is the straight line between them.
+	if (radius > 0.05) {
+		points.push(
+			{ n: 9, x: right, y: h, kind: 'control', name: 'right corner', of: 10 },
+			{ n: 10, x: right - radius, y: h, kind: 'anchor', name: 'bottom right' },
+			{ n: 11, x: left + radius, y: h, kind: 'anchor', name: 'bottom left' },
+			{ n: 12, x: left, y: h, kind: 'control', name: 'left corner', of: 1 }
+		);
+	}
+
 	const path =
 		`M ${n(left)} ${n(foot)} ` +
 		`C ${n(c1)} ${n(foot)} ${n(c2)} 0 ${n(x1)} 0 ` +
@@ -120,5 +169,5 @@ export function tabShape(labelWidth: number, progress: number): TabShape {
 		`C ${n(c3)} 0 ${n(c4)} ${n(foot)} ${n(right)} ${n(foot)} ` +
 		`${bottom} Z`;
 
-	return { path, totalWidth };
+	return { path, totalWidth, points };
 }
