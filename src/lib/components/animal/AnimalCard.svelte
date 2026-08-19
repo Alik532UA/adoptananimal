@@ -116,10 +116,10 @@
 			-->
 		</div>
 		<!--
-			All five facts, in the order the detail page uses them. The two long ones take
-			a half-width each on the top row; the three short ones share the bottom. See
-			the grid in the style block for why the split is written down rather than left
-			to wrapping.
+			Four of the five facts, in the order the detail page uses them. Colour is the one
+			left out here and it stays on the animal’s own page, where there is room for it.
+			See the grid in the style block for why the 2×2 is stated rather than left to
+			wrapping.
 		-->
 		<div class="animal-card__details">
 			<span class="animal-card__detail" title={animal.gender[settings.locale]}>
@@ -139,10 +139,6 @@
 			<span class="animal-card__detail" title={animal.size[settings.locale]}>
 				<Icon name="size" size="0.85rem" class="animal-card__detail-icon" />
 				<span class="animal-card__detail-text">{animal.size[settings.locale]}</span>
-			</span>
-			<span class="animal-card__detail" title={animal.color[settings.locale]}>
-				<Icon name="color" size="0.85rem" class="animal-card__detail-icon" />
-				<span class="animal-card__detail-text">{animal.color[settings.locale]}</span>
 			</span>
 		</div>
 	</div>
@@ -392,26 +388,20 @@
 	 * grid showed LUCKY two facts and JOE three, and the fifth — size — was not in the
 	 * markup at all. Nothing was clipped visibly; the tags simply were not there.
 	 *
-	 * Six columns so both rows divide evenly: the two long fields take three each on
-	 * top, the three short ones take two each underneath. Gender and breed are the ones
-	 * that carry "female (spayed)" and "померанський шпіц"; age, size and colour are
-	 * words like "~2 years" and "small". Wrapping is off — `grid-auto-flow` never runs,
-	 * because every child is placed.
+	 * Two columns, four facts, and the two rows divide evenly without any placement
+	 * rules: gender and breed on top, age and size underneath. Colour lives only on the
+	 * animal’s own page — on a card it was the fifth tag competing for the same width
+	 * with the two that actually carry length, "female (spayed)" and "померанський шпіц".
+	 *
+	 * This replaced six columns under a 3-3 / 2-2-2 split. With four children that split
+	 * left a two-column gap on the second row, and an even 2×2 needs no `nth-child` at
+	 * all — which is also two rules that can no longer disagree with the markup.
 	 */
 	.animal-card__details {
 		display: grid;
-		grid-template-columns: repeat(6, minmax(0, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 8px;
 		margin-top: auto;
-	}
-
-	.animal-card__detail:nth-child(1),
-	.animal-card__detail:nth-child(2) {
-		grid-column: span 3;
-	}
-
-	.animal-card__detail:nth-child(n + 3) {
-		grid-column: span 2;
 	}
 
 	/*
