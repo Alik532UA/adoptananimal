@@ -6,7 +6,18 @@ import { expect, test } from '@playwright/test';
  * and a duplicate makes every E2E locator that uses it non-deterministic.
  */
 
-const PAGES = ['/', '/adopt/cat', '/adopt/dog', '/apply', '/favorites', '/uk', '/uk/adopt/cat'];
+const PAGES = [
+	'/',
+	'/adopt/cat',
+	'/adopt/dog',
+	'/apply',
+	'/favorites',
+	'/uk',
+	'/uk/adopt/cat',
+	// Fifty-one items, each carrying four locators: if any of them shared an id this
+	// is the page where it would show, and nowhere else.
+	'/beta-test-checklists'
+];
 
 for (const path of PAGES) {
 	test(`no duplicate data-testid on ${path}`, async ({ page }) => {

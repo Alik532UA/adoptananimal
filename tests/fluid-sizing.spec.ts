@@ -31,7 +31,16 @@ import { expect, test } from '@playwright/test';
  * actually gets.
  */
 
-const PAGES = ['/', '/adopt/dog', '/adopt/cat', '/favorites', '/apply', '/adopt/cat/basti'];
+const PAGES = [
+	'/',
+	'/adopt/dog',
+	'/adopt/cat',
+	'/favorites',
+	'/apply',
+	'/adopt/cat/basti',
+	// The longest text on the site sits here, in rows of vote buttons that wrap.
+	'/beta-test-checklists'
+];
 
 /**
  * Pages that already travel sideways at some width, and by how much.

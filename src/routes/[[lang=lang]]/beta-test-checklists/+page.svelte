@@ -54,12 +54,24 @@
 	<title>{pick(BETA_UI.title, locale)}</title>
 </svelte:head>
 
+<!--
+	Two sections, not one, and the reason is in the root layout: `.main > :first-child`
+	is painted `--cat-hero` so the header tab has somewhere to land (PROJECT-CONTEXT
+	§ 4.14). A single section made the whole page the hero surface, and every line of
+	body text was then measured against it — axe found ten contrast failures in
+	light-green alone, down to 1.18:1. The hero carries white on the accent, the body
+	carries the page colours on the page ground.
+-->
+<section class="beta-hero">
+	<div class="container">
+		<h1 class="beta-hero__title">{pick(BETA_UI.title, locale)}</h1>
+		<p class="beta-hero__intro">{pick(BETA_UI.intro, locale)}</p>
+		<p class="beta-hero__hidden">{pick(BETA_UI.hidden, locale)}</p>
+	</div>
+</section>
+
 <section class="beta section">
 	<div class="container beta__inner">
-		<h1 class="beta__title">{pick(BETA_UI.title, locale)}</h1>
-		<p class="beta__intro">{pick(BETA_UI.intro, locale)}</p>
-		<p class="beta__hidden">{pick(BETA_UI.hidden, locale)}</p>
-
 		<p class="beta__progress">
 			{pick(BETA_UI.progress, locale)}:
 			<strong data-testid="beta-progress-value"
@@ -142,20 +154,33 @@
 		max-width: 60rem;
 	}
 
-	.beta__title {
-		font-family: var(--font-accent);
-		font-size: clamp(1.6rem, 4vw, 2.4rem);
-		color: var(--color-primary-on-surface);
+	/* White on the accent, the same pairing every other hero on the site uses. */
+	.beta-hero {
+		background: var(--cat-hero);
+		color: white;
+		padding: var(--space-xl) 0;
 	}
 
-	.beta__intro,
-	.beta__hidden {
-		color: var(--color-text);
+	.beta-hero__title {
+		font-family: var(--font-accent);
+		font-size: clamp(1.6rem, 4vw, 2.4rem);
+		margin-bottom: var(--space-sm);
+	}
+
+	.beta-hero__intro {
+		max-width: 60rem;
 		line-height: 1.6;
 	}
 
-	.beta__hidden {
-		color: var(--color-text-muted);
+	/*
+	 * No opacity, and that was measured rather than assumed. White faded to 0.85 on the
+	 * winter hero (#1f66cc) blends to #dde8f7 and scores 4.42:1 — under the 4.5 this
+	 * size needs, and axe said so. The neighbouring hero subtitle fades to 0.9 and
+	 * passes because it is 1.25rem, i.e. large text at the 3:1 threshold. This line is
+	 * smaller, so it gets the difference from size alone; solid white is 5.48:1 there.
+	 */
+	.beta-hero__hidden {
+		margin-top: var(--space-sm);
 		font-size: 0.9rem;
 	}
 

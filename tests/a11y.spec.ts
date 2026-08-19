@@ -10,7 +10,17 @@ import { baselineFor, knownFor } from './a11y-baseline';
 
 const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'] as const;
 const STYLES = ['modern', 'minimal', 'playful'] as const;
-const PAGES = ['/', '/adopt/cat', '/adopt/cat/basti', '/apply', '/apply/form', '/favorites'];
+const PAGES = [
+	'/',
+	'/adopt/cat',
+	'/adopt/cat/basti',
+	'/apply',
+	'/apply/form',
+	'/favorites',
+	// Kept out of the index, not out of the audit: it is the page testers spend the
+	// most time on, and BETA-CHECKLIST-v8 § 5.5 says so explicitly.
+	'/beta-test-checklists'
+];
 
 /**
  * Waits for every running animation on the element to finish.
