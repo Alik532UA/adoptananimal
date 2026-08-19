@@ -41,7 +41,7 @@ class DebugMode {
 		// `browser &&` matters: there is no storage during prerender, and the
 		// facade — which never throws — would just answer `null` there anyway.
 		if (browser) {
-			const stored = storage.get('debug-mode');
+			const stored = storage.get('debug_mode');
 			this.override = stored === '1' ? true : stored === '0' ? false : null;
 		}
 	}
@@ -73,7 +73,7 @@ class DebugMode {
 		 * back after a reload, right after somebody asked for it to be hidden. The
 		 * three states in storage have to be the same three that exist in memory.
 		 */
-		storage.set('debug-mode', next ? '1' : '0');
+		storage.set('debug_mode', next ? '1' : '0');
 		return next;
 	}
 }
