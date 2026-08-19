@@ -48,11 +48,21 @@ describe('tabShape', () => {
 		expect(path).not.toContain('Q');
 	});
 
-	it('rounds its bottom corners once the page has scrolled', () => {
-		// This is the whole point: scrolled, it must look like a finished tab rather
-		// than a shape cut off where the colour behind it ended.
-		const { path } = tabShape(132, 1);
-		expect(path).toContain('Q');
+	it('lifts its feet off the baseline once the page has scrolled', () => {
+		// This is the whole point: scrolled, it must look like a finished tab standing on
+		// a narrow base rather than a shape cut off where the colour behind it ended.
+		const feet = tabShape(132, 1).points.filter((point) => point.name.endsWith('foot'));
+		expect(feet).toHaveLength(2);
+		for (const foot of feet) expect(foot.y).toBeLessThan(TAB_HEIGHT);
+		expect(feet[0].y, 'the two feet must sit level with each other').toBe(feet[1].y);
+	});
+
+	it('has four corners and no more', () => {
+		// The dev overlay draws one dot per point, and a dozen dots on a 132px tab is not
+		// something anyone can point at.
+		for (const progress of [0, 0.5, 1]) {
+			expect(tabShape(132, progress).points.map((point) => point.n)).toEqual([1, 2, 3, 4]);
+		}
 	});
 
 	it('pulls the skirts in as it closes', () => {
