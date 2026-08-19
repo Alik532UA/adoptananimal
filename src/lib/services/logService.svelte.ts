@@ -200,7 +200,15 @@ class LogService {
 	private persist() {
 		if (!browser || !dev || !this.mirroring) return;
 
-		if (storage.session.set(LOG_KEY, JSON.stringify(this.logs.slice(-MIRRORED_LOGS)))) return;
+		// $state.snapshot before the serialiser (SVELTE-CORE-v8 § 1.6). `.slice()` gives a
+		// plain array whose ELEMENTS are still proxies, which is the half-fix that reads
+		// as a whole one; the snapshot goes over the 200 entries being mirrored rather
+		// than the whole buffer, so it costs the same as the stringify already did.
+		if (
+			storage.session.set(LOG_KEY, JSON.stringify($state.snapshot(this.logs.slice(-MIRRORED_LOGS))))
+		) {
+			return;
+		}
 
 		// The facade turns a full quota into `false` rather than an exception, so the
 		// only way to notice is to read it. Retrying on every entry afterwards costs a

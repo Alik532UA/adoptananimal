@@ -43,7 +43,9 @@ class BetaProgress {
 		} else {
 			this.marks = { ...this.marks, [id]: { vote, version: __APP_VERSION__ } };
 		}
-		storage.setJSON(STORAGE_KEY, this.marks);
+		// $state.snapshot, not the field itself: `setJSON` ends in `JSON.stringify`, and
+		// what crosses into it must not be a reactive proxy (SVELTE-CORE-v8 § 1.6).
+		storage.setJSON(STORAGE_KEY, $state.snapshot(this.marks));
 	}
 
 	/** A mark given on an earlier build: shown, labelled, not counted (§ 3.1). */
