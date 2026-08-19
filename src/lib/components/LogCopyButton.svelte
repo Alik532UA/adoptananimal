@@ -208,8 +208,9 @@
 		transform: scale(1.05);
 	}
 
+	/* The green follows the same rule: #2f9e44 gave 3.45:1 under white text, #237a35 gives 5.38:1. */
 	.log-fab--copied {
-		background: #2f9e44 !important;
+		background: #237a35 !important;
 		color: white;
 		border-color: #1b5e20;
 	}
