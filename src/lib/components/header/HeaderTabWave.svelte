@@ -123,8 +123,23 @@
 			style="width: {indicator.totalWidth}px; left: -{indicator.totalWidth / 2}px;"
 		>
 			<path d={indicator.path} fill="var(--active-tab-bg)" />
+		</svg>
+		{#if dev}
+			<!--
+				A second svg over the first, not a group inside it, and that is the whole point:
+				the wave is painted BEHIND the nav link, so the link's own box covered the top
+				edge and took the pointer — the two plateau corners could not be hovered at all.
+				SVG has no z-index for a `<g>`, so the overlay needs an element of its own to be
+				lifted above the link.
 
-			{#if dev}
+				Transparent apart from the dots, so the label underneath stays readable.
+			-->
+			<svg
+				class="wave-debug"
+				viewBox="0 0 {indicator.totalWidth} 48"
+				style="width: {indicator.totalWidth}px; left: -{indicator.totalWidth / 2}px;"
+				data-testid="debug-wave-points-container"
+			>
 				<!--
 					dev only, and it exists so the shape can be talked about precisely: «point 4
 					should rise later» instead of «the bottom moves wrong».
@@ -138,30 +153,29 @@
 					apart: an overlay that re-derives the geometry can disagree with the shape it
 					is drawn over, and then it illustrates something that is not there.
 				-->
-				<g class="wave-debug" data-testid="debug-wave-points-container">
-					{#each indicator.points as point (point.n)}
-						<g class="wave-debug__point">
-							<!--
-								Native SVG tooltip: no JS, and it survives the shape animating. On the
-								group, so either circle triggers it.
-							-->
-							<title
-								>{point.n} · {point.name} · x {point.x.toFixed(1)} y {point.y.toFixed(1)} · progress {scrollProgress.toFixed(
-									2
-								)}</title
-							>
-							<circle class="wave-debug__dot" cx={point.x} cy={point.y} r="3.5" />
-							<!--
-								The part the pointer actually meets, and the only thing here that takes
-								the pointer at all. Wider than the dot because 3.5px is not a target,
-								and invisible because the dot is what should be seen.
-							-->
-							<circle class="wave-debug__hit" cx={point.x} cy={point.y} r="10" />
-						</g>
-					{/each}
-				</g>
-			{/if}
-		</svg>
+				{#each indicator.points as point (point.n)}
+					<g class="wave-debug__point">
+						<!--
+							Native SVG tooltip: no JS, and it survives the shape animating. On the
+							group, so either circle triggers it.
+						-->
+						<title
+							>{point.n} · {point.name} · x {point.x.toFixed(1)} y {point.y.toFixed(1)} · progress {scrollProgress.toFixed(
+								2
+							)}</title
+						>
+						<circle class="wave-debug__dot" cx={point.x} cy={point.y} r="3.5" />
+						<!--
+							The part the pointer actually meets. Wider than the dot because 3.5px is
+							not a target, and invisible because the dot is what should be seen. The
+							top pair is clipped to its lower half by the viewBox, which is why ten
+							rather than five.
+						-->
+						<circle class="wave-debug__hit" cx={point.x} cy={point.y} r="10" />
+					</g>
+				{/each}
+			</svg>
+		{/if}
 	</div>
 {/if}
 
@@ -204,7 +218,23 @@
 	}
 
 	/*
-	 * dev overlay. Hollow so the outline it marks stays visible through it; the number,
+	 * dev overlay, in its own layer above the nav link.
+	 *
+	 * `z-index` on the element rather than on a group inside the wave: the link sits over
+	 * the wave, so the two plateau corners were unreachable — the pointer met the link
+	 * instead. Everything here is `pointer-events: none` except the hit circles, so the
+	 * link keeps its clicks.
+	 */
+	.wave-debug {
+		position: absolute;
+		bottom: 0;
+		height: 48px;
+		z-index: 10;
+		pointer-events: none;
+	}
+
+	/*
+	 * Hollow so the outline it marks stays visible through it; the number,
 	 * the name, the coordinates and the current progress arrive on hover.
 	 *
 	 * Nothing is drawn beside the dot. Numerals sat next to each one in the first version
@@ -238,7 +268,8 @@
 	@media (max-width: 768px) {
 		/* Behind the burger there is no row of tabs, so there is nothing to point at. */
 		.header__indicator,
-		.header__wave {
+		.header__wave,
+		.wave-debug {
 			display: none;
 		}
 	}

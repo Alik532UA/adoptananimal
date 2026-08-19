@@ -26,8 +26,21 @@ export const SETTLE_DISTANCE = 120;
  * was therefore always at least as wide at the bottom as at the top, and the feet could
  * not come in past the label edge no matter how small the number.
  */
-const OPEN = { flare: 100, lift: 0, inset: 48 };
-const CLOSED = { flare: -24, lift: 9, inset: 4 };
+const OPEN = { flare: 76, lift: 0 };
+const CLOSED = { flare: -24, lift: 9 };
+
+/**
+ * The plateau is the label, and it does NOT change.
+ *
+ * It used to narrow as the tab closed, and that moved the two top corners — a movement
+ * nobody asked for and which the reference drawings do not have: there the plateau is
+ * 777→1173 in all three stages. Only the feet travel.
+ *
+ * Equal to the label rather than narrower than it because the closed shape leans inward:
+ * the plateau is then the widest part of it, and anything less would leave the text
+ * standing outside its own background.
+ */
+const PLATEAU_INSET = 0;
 
 /**
  * Where the corner rounding starts, as a share of the whole travel.
@@ -87,9 +100,8 @@ export function tabShape(labelWidth: number, progress: number): TabShape {
 	const tLift = ease(clamp01((p - LIFT_START) / (1 - LIFT_START)));
 
 	const flare = lerp(OPEN.flare, CLOSED.flare, t);
-	const inset = lerp(OPEN.inset, CLOSED.inset, t);
 
-	const plateau = Math.max(12, labelWidth - inset);
+	const plateau = Math.max(12, labelWidth - PLATEAU_INSET);
 	const base = Math.max(12, plateau + 2 * flare);
 
 	/**
