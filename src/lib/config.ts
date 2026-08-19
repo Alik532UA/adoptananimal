@@ -25,6 +25,29 @@ export const SITE_ORIGIN = __SITE_ORIGIN__;
 export const SITE_BASE = __BASE_PATH__;
 
 /**
+ * Routes that are served in every language and kept out of the index
+ * (BETA-CHECKLIST-v8 § 4, § 4.1).
+ *
+ * One list, three consequences, and that is the point of it being a list. The layout
+ * draws no `canonical`, no `hreflang` and no `og:url` for these paths and writes
+ * `noindex` instead; the sitemap filters them out; `robots.txt` disallows every
+ * language of each. Before this they were hidden by three unrelated edits in three
+ * files, so hiding a second route meant remembering all three — and forgetting one of
+ * them looks exactly like remembering it.
+ *
+ * `/apply/form` — the form that came before the embedded Google one, kept against the
+ * day applications come back to the site (PROJECT-CONTEXT § 4.12).
+ *
+ * Hidden is not secret, and pretending otherwise is self-deception: the repository is
+ * public and the address works for anyone who types it. It is kept out of the index so
+ * a search for an animal does not land on a page for testers.
+ */
+export const HIDDEN_ROUTES = ['/apply/form'] as const;
+
+export const isHiddenRoute = (path: string): boolean =>
+	(HIDDEN_ROUTES as readonly string[]).includes(path);
+
+/**
  * Contact addresses, in one place. They used to be typed out in the footer and again
  * in the apply form, which is how two copies of the same address start to differ.
  */

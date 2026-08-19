@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { t } from '$lib/i18n';
-	import { absoluteFromRoot, absoluteLocale, DEFAULT_OG_IMAGE } from '$lib/config';
+	import { absoluteFromRoot, absoluteLocale, DEFAULT_OG_IMAGE, isHiddenRoute } from '$lib/config';
 	import { HTML_LANG, LOCALES, DEFAULT_LOCALE } from '$lib/i18n/locales';
 	import { untrack } from 'svelte';
 	import { settings } from '$lib/services/settings.svelte';
@@ -214,6 +214,10 @@
 		settings.applyRouteLocale(data.locale);
 	});
 
+	// Whether this page is kept out of the index (BETA-CHECKLIST § 4). One list in
+	// config.ts decides it, and the same list drives the sitemap and robots.txt.
+	const hidden = $derived(isHiddenRoute(route.path));
+
 	// One canonical per language (SEO § 2.1), built from SITE_ORIGIN — page.url.origin
 	// is the placeholder host during prerender.
 	const canonical = $derived(absoluteLocale(route.path, route.locale));
@@ -295,14 +299,20 @@
 		name="description"
 		content="Adopt an animal from Ukraine. A joint project of Notpfote & Vet Crew giving rescued dogs and cats a second chance."
 	/>
-	<!-- Built from SITE_ORIGIN, never from page.url.origin: during prerender the
-		 latter is the placeholder host `sveltekit-prerender`. -->
-	<link rel="canonical" href={canonical} />
-	{#each alternates as alternate (alternate.locale)}
-		<link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
-	{/each}
-	<link rel="alternate" hreflang="x-default" href={absoluteLocale(route.path, DEFAULT_LOCALE)} />
-	<meta property="og:url" content={canonical} />
+	{#if hidden}
+		<!-- A hidden route declares the opposite of an indexed one, and it has to be all
+			 of it: `noindex` alone still leaves a canonical inviting the crawler in. -->
+		<meta name="robots" content="noindex, nofollow" />
+	{:else}
+		<!-- Built from SITE_ORIGIN, never from page.url.origin: during prerender the
+			 latter is the placeholder host `sveltekit-prerender`. -->
+		<link rel="canonical" href={canonical} />
+		{#each alternates as alternate (alternate.locale)}
+			<link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+		{/each}
+		<link rel="alternate" hreflang="x-default" href={absoluteLocale(route.path, DEFAULT_LOCALE)} />
+		<meta property="og:url" content={canonical} />
+	{/if}
 	<meta property="og:locale" content={HTML_LANG[route.locale]} />
 	<meta property="og:site_name" content={t('app.title')} />
 	<meta property="og:image" content={absoluteFromRoot(DEFAULT_OG_IMAGE)} />

@@ -6,9 +6,9 @@
 
 <svelte:head>
 	<title>{t('apply.title')} | {t('footer.brand')}</title>
-	<!-- Nothing links here and it duplicates /apply in purpose; it exists so the form
-		 can be brought back, not to be found. -->
-	<meta name="robots" content="noindex, nofollow" />
+	<!-- `noindex` is not written here: this path is in HIDDEN_ROUTES, and the layout
+		 declares it there together with the canonical it must NOT have. Two owners of
+		 one decision is how one of them ends up out of date. -->
 </svelte:head>
 
 <section class="apply-hero">

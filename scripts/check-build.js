@@ -67,6 +67,33 @@ console.log(`Checking ${htmlFiles.length} pages in ${BUILD_DIR}/`);
 // 404.html is the SPA shell and is empty by design.
 const SHELL_PAGES = new Set(['404.html']);
 
+/**
+ * The routes kept out of the index, read from the module that owns the list rather
+ * than copied here (BETA-CHECKLIST-v8 § 4.1). A second copy is a second thing to
+ * update, and the symptom of forgetting is a green run.
+ *
+ * Deliberately NOT treated like 404.html. Excusing a hidden page from every check
+ * because it has no canonical is two lines cheaper and wrong: the page testers
+ * actually use would become the least covered one in the build (§ 5.5).
+ */
+const HIDDEN_ROUTES = (() => {
+	const source = readFileSync('src/lib/config.ts', 'utf-8');
+	const list = source.match(/HIDDEN_ROUTES\s*=\s*\[([^\]]*)\]/)?.[1] ?? '';
+	const routes = [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+	if (routes.length === 0) {
+		console.error('HIDDEN_ROUTES could not be read from src/lib/config.ts — this check is dead.');
+		process.exit(1);
+	}
+	return routes;
+})();
+
+/** `apply/form` and `uk/apply/form` are separate files; both are the same hidden route. */
+const isHiddenPage = (rel) =>
+	HIDDEN_ROUTES.some((route) => {
+		const tail = `${route.replace(/^\//, '')}.html`;
+		return rel === tail || rel.endsWith(`/${tail}`);
+	});
+
 for (const file of htmlFiles) {
 	const rel = relative(BUILD_DIR, file).split(sep).join('/');
 	if (SHELL_PAGES.has(rel)) continue;
@@ -94,7 +121,7 @@ for (const file of htmlFiles) {
 // --- 3. every page carries exactly one absolute canonical -------------------
 for (const file of htmlFiles) {
 	const rel = relative(BUILD_DIR, file).split(sep).join('/');
-	if (SHELL_PAGES.has(rel)) continue;
+	if (SHELL_PAGES.has(rel) || isHiddenPage(rel)) continue;
 
 	const html = readFileSync(file, 'utf-8');
 	const canonicals = [...html.matchAll(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/g)].map(
@@ -168,6 +195,11 @@ if (!existsSync(sitemapPath)) {
 		if (!generated.has(key)) {
 			fail(`sitemap lists ${loc}, but ${key}.html was not generated`);
 		}
+		// And the other direction: the file that invites the crawler must not name a
+		// page the same build tells it to ignore (BETA-CHECKLIST-v8 § 5.5).
+		if (isHiddenPage(`${key}.html`)) {
+			fail(`sitemap lists ${loc}, which is in HIDDEN_ROUTES`);
+		}
 	}
 }
 
@@ -202,6 +234,23 @@ for (const file of htmlFiles) {
 		fail(`${rel}: <html lang="${lang}"> but the URL says "${expected}"`);
 	}
 
+	// A hidden route declares the opposite of an indexed one, and both halves of that
+	// promise are checked separately (BETA-CHECKLIST-v8 § 5.5). `noindex` alone with a
+	// canonical still invites the crawler; a canonical alone without `noindex` is the
+	// page competing with the ones visitors came for.
+	if (isHiddenPage(rel)) {
+		if (!/<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(html)) {
+			fail(`${rel}: hidden route without noindex`);
+		}
+		if (/rel="canonical"/.test(html)) fail(`${rel}: hidden route carries a canonical`);
+		if (/rel="alternate"[^>]+hreflang=/.test(html)) fail(`${rel}: hidden route carries hreflang`);
+		continue;
+	}
+
+	if (/<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(html)) {
+		fail(`${rel}: noindex on a page that is not in HIDDEN_ROUTES`);
+	}
+
 	// The canonical must name this page's own language, not a neighbour's.
 	// Through buildPath, or the base segment reads as the language segment: every
 	// prefixed page then looks English. Same misconfiguration, second half.
@@ -219,6 +268,45 @@ for (const file of htmlFiles) {
 	const missing = [...LOCALES, 'x-default'].filter((l) => !alternates.includes(l));
 	if (missing.length > 0) {
 		fail(`${rel}: missing hreflang alternates: ${missing.join(', ')}`);
+	}
+}
+
+// --- 7A. a hidden route exists in every language and is disallowed -----------
+// The other half of § 5.5: § 7 above proves the pages it finds are hidden properly,
+// this proves they were generated at all. An entries() that stopped emitting the
+// language variants, or a route that was deleted outright, leaves § 7 with nothing to
+// look at and therefore nothing to say.
+for (const route of HIDDEN_ROUTES) {
+	// The slug is typed by hand and a Cyrillic homoglyph in it gives an address that
+	// looks right and never matches (§ 4.2).
+	// eslint-disable-next-line no-control-regex
+	if (/[^\x20-\x7E]/.test(route)) {
+		fail(`hidden route "${route}" is not ASCII — a homoglyph here is invisible in a diff`);
+	}
+
+	const tail = `${route.replace(/^\//, '')}.html`;
+	for (const locale of ['', ...PREFIXED]) {
+		const expected = locale ? `${locale}/${tail}` : tail;
+		if (!existsSync(join(BUILD_DIR, ...expected.split('/')))) {
+			fail(`hidden route ${expected} was not generated — testers would get a 404`);
+		}
+	}
+}
+
+{
+	const robotsPath = join(BUILD_DIR, 'robots.txt');
+	if (!existsSync(robotsPath)) {
+		fail('robots.txt was not generated');
+	} else {
+		const robots = readFileSync(robotsPath, 'utf-8');
+		for (const route of HIDDEN_ROUTES) {
+			for (const locale of ['', ...PREFIXED]) {
+				const path = `${BASE_PATH}${locale ? `/${locale}` : ''}${route}`;
+				if (!robots.includes(`Disallow: ${path}`)) {
+					fail(`robots.txt does not disallow ${path}`);
+				}
+			}
+		}
 	}
 }
 

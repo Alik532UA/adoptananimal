@@ -1,4 +1,4 @@
-import { absoluteLocale } from '$lib/config';
+import { absoluteLocale, isHiddenRoute } from '$lib/config';
 import { DEFAULT_LOCALE, HTML_LANG, LOCALES, type Locale } from '$lib/i18n/locales';
 import { animalService } from '$lib/services/animals';
 
@@ -18,7 +18,10 @@ export function GET() {
 		...STATIC_PATHS,
 		...animalService.cats.map((cat) => `/adopt/cat/${cat.slug}`),
 		...animalService.dogs.map((dog) => `/adopt/dog/${dog.slug}`)
-	];
+		// Stated, not left to STATIC_PATHS happening not to mention them: a page kept
+		// out of the index must not be advertised by the file that invites the crawler
+		// (BETA-CHECKLIST-v8 § 4.1).
+	].filter((path) => !isHiddenRoute(path));
 
 	// Each URL lists every language of the same page through xhtml:link, which is how
 	// a sitemap expresses hreflang. Listing the languages as unrelated URLs instead
