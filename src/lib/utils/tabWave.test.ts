@@ -57,6 +57,28 @@ describe('tabShape', () => {
 		expect(feet[0].y, 'the two feet must sit level with each other').toBe(feet[1].y);
 	});
 
+	it('finishes as a pill, by moving the handles rather than adding points', () => {
+		// Closed, each side is a semicircle on the chord between its two anchors: the
+		// handles sit outside the shape, the anchors line up vertically, and there are still
+		// four of them. With the handles ON the anchors — which is what a zero flare alone
+		// gives — the same four points draw a rectangle.
+		const { path, points } = tabShape(132, 1);
+		const xs = points.map((point) => point.x);
+		const pathXs = [...path.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => Number(m[1]));
+
+		expect(Math.min(...pathXs), 'the left end must bow out past its anchors').toBeLessThan(
+			Math.min(...xs)
+		);
+		expect(Math.max(...pathXs), 'the right end must bow out past its anchors').toBeGreaterThan(
+			Math.max(...xs)
+		);
+
+		// Half the height between the anchors, which is what makes the end a half-circle
+		// rather than an ellipse. 4/3 of that is where a cubic handle has to sit for it.
+		const reach = Math.min(...xs) - Math.min(...pathXs);
+		expect(reach).toBeCloseTo((4 / 3) * (points[0].y / 2), 1);
+	});
+
 	it('has four corners and no more', () => {
 		// The dev overlay draws one dot per point, and a dozen dots on a 132px tab is not
 		// something anyone can point at.

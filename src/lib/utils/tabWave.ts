@@ -61,6 +61,20 @@ const PLATEAU_INSET = 0;
  */
 const LIFT_START = 0.85;
 
+/**
+ * Where the cap has grown to full size, as a share of the eased travel.
+ *
+ * It is not a taste: it is the point at which the flare has shrunk to the cap radius,
+ * `76 * (1 - t) = 48 / 2` → `t = 0.684`. Ramping the cap over exactly that window keeps
+ * it tucked inside the skirt it replaces the whole time, so the tab never bulges wider
+ * than it already was and then comes back — which is what tying the cap to the whole
+ * travel did, out to ±98.5 at mid-scroll against ±92 at the finish.
+ *
+ * After that point the cap holds and the flare finishes falling to zero, so the outline
+ * hands over from one to the other without either of them moving outward.
+ */
+const CAP_FULL = 0.684;
+
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 
 /** Smoothstep, so the shape eases into both ends instead of tracking the scroll linearly. */
@@ -108,46 +122,80 @@ export function tabShape(labelWidth: number, progress: number): TabShape {
 	const plateau = Math.max(12, labelWidth - PLATEAU_INSET);
 	const base = Math.max(12, plateau + 2 * flare);
 
+	// How far the feet stand off the baseline at the end. Never past halfway up, which
+	// only a nonsense value could ask for.
+	const lift = Math.min(lerp(OPEN.lift, CLOSED.lift, tLift), TAB_HEIGHT / 2);
+
+	const h = TAB_HEIGHT;
+
+	/** Where the skirts land. */
+	const foot = h - lift;
+
+	/**
+	 * The ends round off into caps, and they do it by moving the handles rather than by
+	 * gaining points.
+	 *
+	 * With the sides finished vertical the two handles of each side sat ON their anchors,
+	 * so the sides were straight and the closed tab was a rectangle. Pulled sideways they
+	 * bow the same two curves into a semicircle on the chord between the anchors — the
+	 * shape has four points either way.
+	 *
+	 * `cap` is the radius of that semicircle: half the height between the anchors, which
+	 * is what makes the end a half-circle rather than an ellipse. `bow` is where the
+	 * handle has to sit for a cubic to trace it — 4/3 of the radius along the tangent is
+	 * the standard approximation, and it lies OUTSIDE the arc, which is why the box below
+	 * is padded by `bow` and not by `cap`.
+	 */
+	const cap = (foot / 2) * Math.min(1, t / CAP_FULL);
+	const bow = (4 / 3) * cap;
+
 	/**
 	 * The box holds whichever part is widest, and never less than the label it stands
-	 * behind: once the feet lean inward the bottom stops being the widest part, and a box
-	 * measured from it would crop the text.
+	 * behind: while the tab is open that is the splayed bottom, at the finish it is the
+	 * caps, and the label matters in between. A box measured from one of them alone would
+	 * crop the others.
 	 */
-	const totalWidth = Math.max(labelWidth, plateau, base);
+	/**
+	 * How far past the feet the handles reach, and therefore how much padding the box
+	 * needs beyond the bottom edge.
+	 *
+	 * `0.375` because that is the smallest of the four flare multipliers, so it is the
+	 * handle that ends up furthest out once `bow` is subtracted from it — pad for the worst
+	 * one and the other three fit. Padding by `bow` alone was not enough: at mid-scroll the
+	 * flare still carries the handles inward and one of them landed at x = -2.
+	 */
+	const reach = Math.max(0, bow - flare * 0.375);
+
+	const totalWidth = Math.max(labelWidth, plateau, base + 2 * reach);
 
 	// Both parts centred in the box, so the shape stays symmetrical whichever is wider.
 	const plateauX = (totalWidth - plateau) / 2;
 	const footX = (totalWidth - base) / 2;
-
-	const h = TAB_HEIGHT;
-
-	// How far the feet stand off the baseline at the end. Never past halfway up, which
-	// only a nonsense value could ask for.
-	const lift = Math.min(lerp(OPEN.lift, CLOSED.lift, tLift), h / 2);
-
-	/** Where the skirts land. */
-	const foot = h - lift;
 
 	const x1 = plateauX;
 	const x2 = plateauX + plateau;
 	const left = footX;
 	const right = totalWidth - footX;
 
-	// Control points keep the same proportions as the original curve — measured along the
-	// flare, so a negative one mirrors them without any extra case.
-	const c1 = left + flare * 0.5625;
-	const c2 = left + flare * 0.625;
-	const c3 = x2 + flare * 0.375;
-	const c4 = x2 + flare * 0.4375;
+	/*
+	 * Two terms, and they do different jobs. The flare proportions are the open shape and
+	 * are left exactly as they were; `bow` is the cap, and it is the same on both handles
+	 * of a side because a semicircle is symmetrical. Open, `bow` is zero and the curve is
+	 * the original; closed, `flare` is zero and the curve is the cap.
+	 */
+	const c1 = left + flare * 0.5625 - bow;
+	const c2 = left + flare * 0.625 - bow;
+	const c3 = x2 + flare * 0.375 + bow;
+	const c4 = x2 + flare * 0.4375 + bow;
 
 	/**
 	 * The four corners of the outline, in path order — the same numbers the path is built
 	 * from, named.
 	 *
 	 * Four, because that is how many corners the shape has: two feet and the two ends of
-	 * the plateau. The control points that bend the skirts between them are not on the
-	 * outline and are not listed; an overlay that drew those too put a dozen dots on a
-	 * 132px tab, which is not something anyone can point at.
+	 * the plateau. The handles that bend the sides between them are not on the outline and
+	 * are not listed; an overlay that drew those too put a dozen dots on a 132px tab,
+	 * which is not something anyone can point at.
 	 */
 	const points: TabPoint[] = [
 		{ n: 1, x: left, y: foot, name: 'left foot' },
