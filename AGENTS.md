@@ -64,6 +64,10 @@
   `[scope-]<feature>-<role>-<type>` із суфіксами `-btn`, `-link`, `-input`,
   `-modal`, `-card`. Канон — TESTID-AND-NAMING-**v8**; рантайм-перевірка —
   `tests/testids.spec.ts`.
+- **Гарячі клавіші:** `T` тема, `L` меню мов, `Esc` закрити, `V`/`R` — службові
+  жести. Карта, пропущені літери й усі чотири захисти — у докблоці
+  `src/lib/services/keyboard.ts`; гейт — `keyboard.test.ts`. Нову клавішу беруть
+  із канонічної карти HOTKEYS-v8 § 1.1, а не вигадують.
 - **CSS:** BEM-lite (`.block__element--modifier`).
 - **Іменування:** компоненти `PascalCase.svelte` із суфіксом типу
   (`UserCard.svelte`), утиліти `camelCase.ts`, класи з рунами — `.svelte.ts`.
