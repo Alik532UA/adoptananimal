@@ -27,7 +27,15 @@
  * Threshold and window are chosen by the caller: the cost of an accidental
  * trigger differs per gesture, so one shared number would be a coincidence
  * rather than a decision.
+ *
+ * Guards 2 and 5 come from `keyboard.ts` rather than being written again here.
+ * They were: the same `closest` call and the same three modifier flags existed in
+ * both files, which is two places for the selector to gain `[role="textbox"]` in
+ * one of them. Nothing about a run of presses needs its own definition of "the
+ * visitor is typing" — and the invariant in `keyboard.test.ts` can only claim to
+ * cover every window-level handler while there is one definition to cover.
  */
+import { isPlainKey, isTypingTarget } from '$lib/services/keyboard';
 
 /** The minimum a stroke needs. A test does not have to build a real `KeyboardEvent`. */
 export interface KeyStroke {
@@ -63,24 +71,6 @@ export interface KeySequence {
 	readonly count: number;
 	/** Clear the counter and drop the timer. Called on teardown. */
 	reset(): void;
-}
-
-/** Elements whose own keystrokes must not be counted. */
-const TEXT_ENTRY_SELECTOR =
-	'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
-
-/**
- * `closest`, not a `tagName` comparison: inside a `contenteditable` the focus
- * sits on a nested node whose `tagName` is `SPAN`, so a tag check misses it.
- */
-function isTypingTarget(target: EventTarget | null | undefined): boolean {
-	const element = target as HTMLElement | null | undefined;
-	if (!element || typeof element.closest !== 'function') return false;
-	return element.closest(TEXT_ENTRY_SELECTOR) !== null;
-}
-
-function isPlainKey(stroke: KeyStroke): boolean {
-	return !stroke.ctrlKey && !stroke.metaKey && !stroke.altKey;
 }
 
 export function createKeySequence(options: KeySequenceOptions): KeySequence {
