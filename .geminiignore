@@ -1,10 +1,50 @@
+# What an AI assistant should not spend its context on (CI-CD-AND-TOOLS-v8 § 2.2).
+#
+# The rule of thumb from the canon: hide what is large and opaque, keep what is small
+# and descriptive. Every config in the root stays visible on purpose — package.json,
+# svelte.config.js, vite.config.ts, tsconfig.json, eslint.config.js are exactly the
+# files an assistant reads to learn which adapter, which CSP, which base path and which
+# gates this project has. Hiding them saves a few kilobytes and buys a suggestion to
+# "add eslint" to a project that has had it for months.
+
+# Dependencies and build output
 node_modules/
 build/
 dist/
 .svelte-kit/
-.private/
-.read_for_AI/
+
+# Lockfiles: enormous, and nothing in them answers a question about this project
 *.lock
 package-lock.json
+
+# Test and audit artefacts, regenerated on every run
+playwright-report/
+test-results/
+blob-report/
+.lighthouseci/
+
+# Secrets
+.env
+.env.*
+
+# 9 MB of photographs. Nothing in them is readable as text.
+static/images/
+
+# Working files, EXCEPT the documentation.
+#
+# `.private/docs/` is the project's canon — decisions (adr/), specifications (specs/),
+# analyses — and DOCUMENTATION-v8 says plainly that it is context for an assistant, not
+# noise. It was excluded here along with everything else in `.private/`, which meant the
+# 41 files describing why this project is the way it is were invisible to the assistant
+# reading it.
+#
+# The two lines have to be in this order and this shape: gitignore syntax cannot
+# re-include a file whose parent DIRECTORY is excluded, so the exclusion has to name the
+# children (`.private/*`) rather than the folder.
+.private/*
+!.private/docs/
+
+# A read-only copy of a neighbouring project, kept for reference. Not ours to change.
+.read_for_AI/
+
 .git/
-.vscode/

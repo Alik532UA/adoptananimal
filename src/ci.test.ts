@@ -95,6 +95,42 @@ describe('CI', () => {
 		expect(watchers, `watch-режим підвисне поза CI, де немає CI=true`).toEqual([]);
 	});
 
+	it('ignore-файл для AI не ховає ні конфігів, ні документації (§ 2.2)', () => {
+		// Обидві половини правила — з наслідками, які вже ставалися в проєктах пакета.
+		//
+		// Конфіг: асистент дізнається профіль саме з цих файлів — який адаптер, що
+		// дозволено в CSP, які гейти взагалі є. Сховавши їх, отримуєш пораду «додати
+		// eslint» до проєкту, де він стоїть, і правку залежності без правки CSP.
+		//
+		// Документація: `.private/docs/` — це канон рішень цього репозиторію, і канон
+		// прямо каже, що виключається `secrets/`, а не тека цілком.
+		const ignore = readFileSync(join(ROOT, '.geminiignore'), 'utf8');
+		const lines = ignore
+			.split('\n')
+			.map((line) => line.trim())
+			.filter((line) => line && !line.startsWith('#'));
+		expect(lines.length, '.geminiignore порожній — перевірка мертва').toBeGreaterThan(0);
+
+		const CONFIGS = [
+			'package.json',
+			'svelte.config.js',
+			'vite.config.ts',
+			'tsconfig.json',
+			'eslint.config.js'
+		];
+		const hidden = CONFIGS.filter((file) => lines.includes(file));
+		expect(hidden, `конфіги, без яких асистент не бачить проєкту: ${hidden.join(', ')}`).toEqual(
+			[]
+		);
+
+		// Синтаксис gitignore не вміє повернути файл, чия ТЕКА виключена, тож
+		// `.private/` + `!.private/docs/` виглядає правильно й не працює.
+		expect(lines, 'уся .private/ виключена — разом із docs/').not.toContain('.private/');
+		if (lines.some((line) => line.startsWith('.private'))) {
+			expect(lines, 'docs/ не повернуто назад').toContain('!.private/docs/');
+		}
+	});
+
 	it('кожен npm-скрипт із workflow справді існує', () => {
 		// Крок, що кличе неіснуючий скрипт, падає лише на прогоні — тобто вже в
 		// main, і зазвичай разом із деплоєм.
