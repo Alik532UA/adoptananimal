@@ -16,8 +16,8 @@
 ## Що це
 
 Сайт прилаштування тварин: картки котів і собак, сторінка заявки, обране.
-Чотири мови (`uk` типова, `en`, `de`, `nl`), профіль `static`, серверного
-рантайму немає — два наявні ендпоінти пререндеряться у файли.
+Чотири мови (`en` типова й без префікса, `uk`, `de`, `nl` — під префіксом), профіль
+`static`, серверного рантайму немає — два наявні ендпоінти пререндеряться у файли.
 
 ## Архітектура
 
@@ -31,6 +31,8 @@
 - **Маршрути:** мовний префікс — опційний параметр `[[lang=lang]]`.
   Розділи: `adopt/cat`, `adopt/dog`, `adopt/{cat,dog}/[slug]`, `apply`,
   `apply/form`, `favorites`. `robots.txt` і `sitemap.xml` — теж маршрути.
+  Поза індексом — `apply/form` і `beta-test-checklists`: перелік у `HIDDEN_ROUTES`
+  (`src/lib/config.ts`), звідти макет, sitemap і `robots.txt` (PROJECT-CONTEXT § 4.22).
 - **Стилі:** глобальні в `app.css`, базові в `src/lib/styles/base.css`,
   скіни й теми — `src/lib/styles/skins/` і `src/lib/styles/themes/`.
 - **Дані тварин:** TypeScript-файли в `src/lib/data/animals/`.
@@ -68,10 +70,10 @@
 - **Доступність (WCAG 2.2 AA):** семантичний HTML, клавіатурна доступність,
   `aria-label` для кнопок-піктограм, підтримка `prefers-reduced-motion`,
   skip-link у `+layout.svelte`. Автоперевірка — `tests/a11y.spec.ts`.
-- **Тести:** Vitest під `src/`, Playwright — девʼять файлів у `tests/`
-  (`a11y`, `fluid-sizing`, `i18n`, `journey`, `scrollbar`, `testids`, `toast`,
-  `touch-targets`, `ui`). Playwright спершу робить `build`, тобто перевіряє
-  **зібраний** сайт.
+- **Тести:** Vitest під `src/`, Playwright — **дванадцять** файлів у `tests/`
+  (`a11y`, `beta-checklist`, `favorites`, `fluid-sizing`, `i18n`, `journey`, `scrollbar`,
+  `skin-overrides`, `testids`, `toast`, `touch-targets`, `ui`). Playwright спершу робить
+  `build`, тобто перевіряє **зібраний** сайт.
 - **Вердикт `npm run lint` — це код виходу, а не рядок у виводі.** Скрипт це
   `prettier --check . && eslint .`; коли падає prettier, ESLint не запускається,
   і звичного `✖ N problems` у виводі немає взагалі. Тиша тут означає «до лінтера
