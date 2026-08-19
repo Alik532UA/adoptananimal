@@ -14,6 +14,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import LogCopyButton from '$lib/components/LogCopyButton.svelte';
+	import ServiceGestures from '$lib/components/ServiceGestures.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import PageScrollbar from '$lib/components/ui/PageScrollbar.svelte';
 	import Minimap from '$lib/components/ui/Minimap.svelte';
@@ -375,6 +376,13 @@
 <ScrollbarContextMenu />
 
 <Toast />
+
+<!--
+	Renders nothing: it owns the window listener for the `V` and `R` runs. Here rather
+	than inside the badge because in production the badge is not on screen until the `V`
+	run has already fired.
+-->
+<ServiceGestures />
 
 <LogCopyButton />
 

@@ -50,13 +50,31 @@ const sources = walk('src').filter(
 
 const read = (file: string) => readFileSync(file, 'utf8');
 
+/**
+ * The same source with comments removed.
+ *
+ * Used by the `throw '…'` check only, and the asymmetry is deliberate. That check
+ * looks for a CODE construct, so prose is noise — and it produced a false positive
+ * the moment a docblock explained which error a rune would "throw `effect_orphan`":
+ * the backtick right after the word is all the pattern needs. A gate that fails on
+ * an accurate comment teaches people to stop writing comments.
+ *
+ * The empty-`catch` check below deliberately does NOT use this. There a comment is
+ * not noise but the required content: `catch { }` with an explanation inside is a
+ * documented decision, `catch {}` with nothing is the silence the rule forbids.
+ */
+const readCode = (file: string) =>
+	read(file)
+		.replace(/\/\*[\s\S]*?\*\//g, '')
+		.replace(/\/\/.*$/gm, '');
+
 describe('обробка помилок — джерела', () => {
 	it('перевірка жива: джерела знайдено', () => {
 		expect(sources.length, 'сканер шукає не там').toBeGreaterThan(50);
 	});
 
 	it('немає throw рядком (§ 7)', () => {
-		const bad = sources.filter((f) => /throw\s+['"`]/.test(read(f)));
+		const bad = sources.filter((f) => /throw\s+['"`]/.test(readCode(f)));
 		expect(
 			bad,
 			`рядок замість Error — у звіті не буде ні стека, ні місця:\n${bad.join('\n')}`

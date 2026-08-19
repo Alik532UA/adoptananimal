@@ -101,6 +101,15 @@ class LogService {
 	logs = $state<LogEntry[]>([]);
 	errorCount = $state(0);
 
+	/**
+	 * The build number, read here rather than at each place that shows it.
+	 *
+	 * One name, one source: the report below prints it, and so does the service badge.
+	 * A second `typeof __APP_VERSION__ !== 'undefined'` dance in a `.svelte` file also
+	 * trips eslint, which does not know the global outside TypeScript.
+	 */
+	readonly appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'unknown';
+
 	/** Дзеркало вимикається до кінця сесії, щойно сховище відмовило (§ 1.5). */
 	private mirroring = true;
 
@@ -207,7 +216,7 @@ class LogService {
 			// ISO, not toLocaleString(): a report is read by a developer, not by the
 			// user's locale, and an unqualified toLocaleString() differs per machine.
 			`DATE: ${new Date().toISOString()}`,
-			`VERSION: v${__APP_VERSION__}`,
+			`VERSION: v${this.appVersion}`,
 			`URL: ${browser ? maskUrl(window.location.href) : 'N/A'}`,
 			`UA: ${browser ? navigator.userAgent : 'N/A'}`,
 			// DEBUGGING-v8 § 2.3: половина звітів «нічого не працює» пояснюється

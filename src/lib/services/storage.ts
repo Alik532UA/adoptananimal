@@ -1,6 +1,12 @@
 import { browser } from '$app/environment';
 
-const PREFIX = 'adoptananimal_';
+/**
+ * Exported because it is needed outside this module too: the emergency reset
+ * filters cache names by it (`resetService`). A second literal over there would
+ * mean two sources for one name, and they drift silently — the caches would simply
+ * go unswept (STORAGE-NAMESPACE-v8 § step 5).
+ */
+export const PREFIX = 'adoptananimal_';
 
 /**
  * Where the facade reports recoverable problems.
@@ -140,6 +146,32 @@ export const storage = {
 				sessionStorage.removeItem(PREFIX + key);
 			} catch {
 				// nothing to recover
+			}
+		},
+
+		/**
+		 * Prefixed keys only, exactly like the local counterpart above.
+		 *
+		 * Added for the emergency reset, which has to wipe the session mirror of the
+		 * log buffer as well. Never `sessionStorage.clear()`: the origin is shared
+		 * with seven sibling projects, so that call is not "clear my data", it is
+		 * "clear everyone's".
+		 *
+		 * Keys are collected before removal because removing during the walk shifts
+		 * every later index — a plain forward loop with `removeItem` inside skips
+		 * every second key.
+		 */
+		clear(): void {
+			if (!browser) return;
+			try {
+				const doomed: string[] = [];
+				for (let i = 0; i < sessionStorage.length; i++) {
+					const key = sessionStorage.key(i);
+					if (key?.startsWith(PREFIX)) doomed.push(key);
+				}
+				for (const key of doomed) sessionStorage.removeItem(key);
+			} catch {
+				// storage unreachable — there is nothing left to clear
 			}
 		}
 	}

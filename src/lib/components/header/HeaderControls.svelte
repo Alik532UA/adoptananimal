@@ -2,6 +2,7 @@
 	import { withBase, localePath } from '$lib/utils/withBase';
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
+	import { acceptsShortcut } from '$lib/services/keyboard';
 	import { t, type TranslationKey } from '$lib/i18n';
 	import { splitLocale } from '$lib/i18n/locales';
 	import { settings, type Locale, type SiteStyle, type Theme } from '$lib/services/settings.svelte';
@@ -78,6 +79,32 @@
 	});
 
 	/**
+	 * Hotkeys: `T` theme, `L` language menu, `Esc` close (HOTKEYS-v8 § 1.1).
+	 *
+	 * Here rather than in the layout because both need `openMenu`, which this component
+	 * owns; a second owner elsewhere would eventually disagree with the buttons.
+	 *
+	 * `T` cycles but `L` opens the MENU, and that is not taste: the theme is client-side
+	 * and instant, while switching language is NAVIGATION (`localeHref` is an `href`), so
+	 * "next language" would mean up to three page loads to reach the wanted one.
+	 *
+	 * `V` and `R` live in `ServiceGestures.svelte` — they need nothing from here.
+	 */
+	function handleShortcut(event: KeyboardEvent) {
+		if (!acceptsShortcut(event)) return;
+
+		// One `else return` rather than a `preventDefault` per branch: that way the key is
+		// only ever swallowed once something has happened (HOTKEYS-v8 § 2.4). `Escape` with
+		// nothing open falls through here, which is what lets it keep its usual meaning.
+		if (event.code === 'Escape' && openMenu !== null) openMenu = null;
+		else if (event.code === 'KeyT') settings.toggleTheme();
+		else if (event.code === 'KeyL') openMenu = openMenu === 'lang' ? null : 'lang';
+		else return;
+
+		event.preventDefault();
+	}
+
+	/**
 	 * The same page in another language. Built from the current pathname so the reader
 	 * keeps their place instead of being dropped on the home page.
 	 */
@@ -90,6 +117,8 @@
 		return localePath(splitLocale(pathname).path, locale);
 	}
 </script>
+
+<svelte:window onkeydown={handleShortcut} />
 
 <div class="header__controls">
 	<DropdownMenu
