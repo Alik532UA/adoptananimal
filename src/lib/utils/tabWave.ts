@@ -22,12 +22,16 @@ export const SETTLE_DISTANCE = 120;
  * what makes it read as part of the band. Negative leans inward, so the feet sit inside
  * the plateau and the tab stands on a narrow base.
  *
- * It used to be an unsigned `slope`, which could only ever flare out: the closed tab
- * was therefore always at least as wide at the bottom as at the top, and the feet could
- * not come in past the label edge no matter how small the number.
+ * Zero closed, which is the shape asked for: each foot ends exactly under the plateau
+ * corner above it, so the sides finish vertical.
+ *
+ * It stays signed rather than becoming an unsigned distance again. Unsigned it could only
+ * ever flare outward — the closed tab was then always at least as wide at the bottom as
+ * at the top, and zero was the nearest the feet could get. Signed, zero is a value in the
+ * middle of the range rather than the end of it.
  */
 const OPEN = { flare: 76, lift: 0 };
-const CLOSED = { flare: -24, lift: 9 };
+const CLOSED = { flare: 0, lift: 9 };
 
 /**
  * The plateau is the label, and it does NOT change.

@@ -71,8 +71,13 @@ describe('tabShape', () => {
 		for (let i = 1; i < bases.length; i++) {
 			expect(bases[i], `the base grew between step ${i - 1} and ${i}`).toBeLessThan(bases[i - 1]);
 		}
-		// Closed, the feet stand well inside the label rather than level with its edges.
-		expect(bases.at(-1)).toBeLessThan(bases[0] * 0.35);
+		// Closed, the base is the plateau: each foot ends directly under the corner above
+		// it, so the sides finish vertical rather than still splayed.
+		expect(bases.at(-1)).toBeLessThan(bases[0] * 0.5);
+
+		const closed = tabShape(132, 1).points;
+		expect(closed[0].x, 'point 1 must sit under point 2').toBeCloseTo(closed[1].x, 1);
+		expect(closed[3].x, 'point 4 must sit under point 3').toBeCloseTo(closed[2].x, 1);
 
 		// And the box never grows, or the tab would be seen to widen while it closes.
 		const boxes = [0, 0.25, 0.5, 0.75, 1].map((p) => tabShape(132, p).totalWidth);
