@@ -279,7 +279,6 @@ for (const file of htmlFiles) {
 for (const route of HIDDEN_ROUTES) {
 	// The slug is typed by hand and a Cyrillic homoglyph in it gives an address that
 	// looks right and never matches (§ 4.2).
-	// eslint-disable-next-line no-control-regex
 	if (/[^\x20-\x7E]/.test(route)) {
 		fail(`hidden route "${route}" is not ASCII — a homoglyph here is invisible in a diff`);
 	}

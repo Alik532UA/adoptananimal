@@ -42,7 +42,7 @@ export const SITE_BASE = __BASE_PATH__;
  * public and the address works for anyone who types it. It is kept out of the index so
  * a search for an animal does not land on a page for testers.
  */
-export const HIDDEN_ROUTES = ['/apply/form'] as const;
+export const HIDDEN_ROUTES = ['/apply/form', '/beta-test-checklists'] as const;
 
 export const isHiddenRoute = (path: string): boolean =>
 	(HIDDEN_ROUTES as readonly string[]).includes(path);
