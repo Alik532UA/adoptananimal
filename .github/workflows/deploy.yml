@@ -111,7 +111,7 @@ jobs:
       - name: Lighthouse Audit
         run: npx @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: build
 
