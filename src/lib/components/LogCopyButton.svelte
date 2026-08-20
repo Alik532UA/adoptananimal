@@ -5,7 +5,7 @@
 	import { logService } from '$lib/services/logService.svelte';
 	import { copyText } from '$lib/utils/copyText';
 	import { t } from '$lib/i18n';
-	import { ClipboardCheck, AlertCircle, Copy } from 'lucide-svelte';
+	import { Check, Copy } from 'lucide-svelte';
 
 	/**
 	 * The service badge: version number, error count and report copying — ONE element.
@@ -62,7 +62,7 @@
 		if (await copyText(report)) {
 			fallback = '';
 			copied = true;
-			setTimeout(() => (copied = false), 2000);
+			setTimeout(() => (copied = false), 1500);
 			return;
 		}
 
@@ -102,9 +102,8 @@
 			     than replacing it. Otherwise, in dev — where an error is almost always
 			     present — the version would never be on screen at all. -->
 			{#if copied}
-				<ClipboardCheck size={14} class="log-fab__hint" />
+				<Check size={14} class="log-fab__hint" />
 			{:else if logService.errorCount > 0}
-				<AlertCircle size={14} class="log-fab__hint" />
 				<span class="log-fab__count"
 					>{logService.errorCount > 99 ? '99+' : logService.errorCount}</span
 				>
