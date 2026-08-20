@@ -14,7 +14,7 @@ export const GA_ID_PLACEHOLDER = 'G-XXXXXXXXXX';
  * ID лічильника Google Analytics 4.
  * Анотація `: string` обов'язкова, щоб TypeScript не звужував літерал.
  */
-const GA_ID: string = 'G-XXXXXXXXXX';
+const GA_ID: string = 'G-7YQDFQNMT2';
 
 export type AnalyticsEvent =
 	| 'adopt_click'
