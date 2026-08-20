@@ -51,11 +51,17 @@ const config = {
 			mode: 'hash',
 			directives: {
 				'default-src': ['self'],
-				'script-src': ['self', ...inlineScriptHashes],
+				'script-src': ['self', 'https://www.googletagmanager.com', ...inlineScriptHashes],
 				'style-src': ['self', 'unsafe-inline', 'https://fonts.googleapis.com'],
 				'font-src': ['self', 'https://fonts.gstatic.com'],
 				'img-src': ['self', 'data:'],
-				'connect-src': ['self'],
+				'connect-src': [
+					'self',
+					'https://*.google-analytics.com',
+					'https://*.analytics.google.com',
+					'https://*.sentry.io',
+					'https://*.ingest.sentry.io'
+				],
 				// The embedded application form. Without this the iframe is blocked and the
 				// page shows an empty box with nothing in the console to explain it.
 				'frame-src': ['https://docs.google.com'],

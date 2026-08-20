@@ -1,25 +1,46 @@
-import type { HandleClientError } from '@sveltejs/kit';
+import { env } from '$env/dynamic/public';
+import { dev } from '$app/environment';
 import { logService } from '$lib/services/logService.svelte';
+import type { HandleClientError } from '@sveltejs/kit';
 
 /**
- * The last net under everything the browser runs (ERROR-HANDLING-v8 § 2.4).
- *
- * It is not a duplicate of the two nets already in place. `<svelte:boundary>` in the
- * root layout catches what throws while a component renders, and the `error` /
- * `unhandledrejection` listeners catch what throws outside SvelteKit's control. This
- * one catches the gap between them: an exception inside a client-side `load`, inside
- * navigation, or inside hydration itself — none of which reaches either.
- *
- * `error()` and `redirect()` do not pass through here: SvelteKit calls this only for
- * failures nobody expected, which is exactly the level `error` is for (§ 1.3).
- *
- * The empty message is deliberate. `+error.svelte` reads
- * `page.error?.message || t('error.generic')`, so anything returned here would be a
- * fixed English string shown to a Dutch or German visitor — and SvelteKit's own
- * default, `Internal Error`, is exactly that string. Returning nothing to say lets
- * the page say it in the language the visitor is reading.
+ * Telemetry endpoint for CSP validation (OBSERVABILITY-v8 § 1.5):
+ * - https://*.sentry.io
+ * - https://*.ingest.sentry.io
  */
-export const handleError: HandleClientError = ({ error, event }) => {
+const DSN = env.PUBLIC_SENTRY_DSN || '';
+
+const tracker =
+	DSN && !dev
+		? // @ts-ignore - optional telemetry package
+			import('@sentry/sveltekit')
+				.then((Sentry) => {
+					Sentry.init({
+						dsn: DSN,
+						enabled: !dev,
+						tracesSampleRate: 0.1,
+						replaysSessionSampleRate: 0.0,
+						replaysOnErrorSampleRate: 1.0,
+						environment: import.meta.env.MODE,
+						ignoreErrors: ['AbortError', 'Failed to fetch', 'ResizeObserver loop limit exceeded'],
+						beforeSend(event: any) {
+							if (event.request?.headers) {
+								delete event.request.headers['authorization'];
+								delete event.request.headers['cookie'];
+							}
+							return event;
+						}
+					});
+					return Sentry;
+				})
+				.catch(() => null)
+		: null;
+
+export const handleError: HandleClientError = async ({ error, event, status, message }) => {
 	logService.error('app', `Unhandled client error at ${event.url.pathname}: ${error}`);
+	if (tracker) {
+		const Sentry = await tracker;
+		Sentry?.captureException(error, { extra: { route: event.url.pathname, status, message } });
+	}
 	return { message: '' };
 };

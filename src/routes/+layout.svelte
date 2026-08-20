@@ -5,8 +5,9 @@
 	import { HTML_LANG, LOCALES, DEFAULT_LOCALE } from '$lib/i18n/locales';
 	import { untrack } from 'svelte';
 	import { settings } from '$lib/services/settings.svelte';
-	import { onNavigate } from '$app/navigation';
+	import { onNavigate, afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import { trackPageView } from '$lib/services/analytics';
 	import { logService } from '$lib/services/logService.svelte';
 	import { refreshToday } from '$lib/services/clock.svelte';
 	import { scrollbar } from '$lib/services/scrollbar.svelte';
@@ -293,6 +294,10 @@
 	// Three PerformanceObservers and their cleanup are logic, so they live in a
 	// controller; this is just the mount point.
 	$effect(() => webVitals.start());
+
+	afterNavigate((nav) => {
+		trackPageView(nav.to?.url.pathname);
+	});
 </script>
 
 <svelte:head>
