@@ -137,6 +137,22 @@ export default defineConfig(
 	},
 
 	/**
+	 * `.cjs` files are CommonJS by extension, and `require()` is the only import they
+	 * have. The rule is right everywhere else — this package is `"type": "module"` — so
+	 * the exemption is bounded by the extension rather than switched off globally
+	 * (CODE-QUALITY-v8 § 6.4.1: an `off` names its reason and its boundary).
+	 *
+	 * There is one such file, `lighthouserc.cjs`, and it has to be CommonJS because that
+	 * is how lhci loads its config. It is `.cjs` rather than `.json` so the reason behind
+	 * each threshold can sit next to the number.
+	 */
+	{
+		files: ['**/*.cjs'],
+		languageOptions: { sourceType: 'commonjs' },
+		rules: { '@typescript-eslint/no-require-imports': 'off' }
+	},
+
+	/**
 	 * STORAGE-NAMESPACE-v8, Крок 3: прямий доступ до Web Storage заборонений.
 	 *
 	 * Origin спільний із сусідніми проєктами, тож ключ без префікса — це не

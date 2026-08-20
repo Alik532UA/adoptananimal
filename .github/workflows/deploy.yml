@@ -104,8 +104,12 @@ jobs:
       # install of a project whose whole runtime is two packages, for a tool that runs
       # once per deploy and never touches the bundle. § 1.1 counts those 321 as 321
       # risks. Recorded in PROJECT-CONTEXT.md § 4.24; bumped as its own commit.
+      #
+      # `--config` is explicit rather than left to discovery: lhci looks for a list of
+      # filenames in order, and a `lighthouserc.json` left behind beside the `.cjs` one
+      # would win silently on some versions and not others.
       - name: Lighthouse Audit
-        run: npx @lhci/cli@0.15.1 autorun
+        run: npx @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
 
       - uses: actions/upload-pages-artifact@v3
         with:
