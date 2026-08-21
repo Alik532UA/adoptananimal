@@ -21,6 +21,19 @@ export function GET() {
 User-agent: *
 ${disallowLines}
 
+# AI Search Crawlers
+User-agent: GPTBot
+Allow: /
+${disallowLines}
+
+User-agent: PerplexityBot
+Allow: /
+${disallowLines}
+
+User-agent: ClaudeBot
+Allow: /
+${disallowLines}
+
 Sitemap: ${SITE_ORIGIN}${SITE_BASE}/sitemap.xml
 `;
 

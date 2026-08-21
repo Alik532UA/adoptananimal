@@ -9,12 +9,18 @@ import type { HandleClientError } from '@sveltejs/kit';
  * - https://*.ingest.sentry.io
  */
 const DSN = env.PUBLIC_SENTRY_DSN || '';
+const sentryPkg = '@sentry/sveltekit';
 
-const tracker =
+interface SentryClient {
+	init: (options: Record<string, unknown>) => void;
+	captureException: (error: unknown, context?: Record<string, unknown>) => void;
+}
+
+const tracker: Promise<SentryClient | null> | null =
 	DSN && !dev
-		? // @ts-ignore - optional telemetry package
-			import('@sentry/sveltekit')
-				.then((Sentry) => {
+		? import(/* @vite-ignore */ sentryPkg)
+				.then((module: unknown) => {
+					const Sentry = module as SentryClient;
 					Sentry.init({
 						dsn: DSN,
 						enabled: !dev,

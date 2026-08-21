@@ -1,0 +1,23 @@
+# Adopt an Animal (Ukraine)
+
+> A joint humanitarian adoption project by Notpfote Animal Rescue e.V. and Vet Crew providing rescued dogs and cats from Ukraine with loving forever homes across Europe.
+
+## Main Pages
+
+- [Home Page](https://adoptananimal.github.io/adoptananimal/): Browse rescued animals looking for a home with detailed profiles, photo galleries, and adoption statuses.
+- [Adopt Dogs](https://adoptananimal.github.io/adoptananimal/adopt/dog): Dogs and puppies rescued in Ukraine ready for international adoption.
+- [Adopt Cats](https://adoptananimal.github.io/adoptananimal/adopt/cat): Cats and kittens rescued from conflict zones and shelters.
+- [Adoption Process](https://adoptananimal.github.io/adoptananimal/process): Step-by-step guidance on how the international adoption workflow operates.
+- [Partners & Shelters](https://adoptananimal.github.io/adoptananimal/partners): Partner animal shelters, veterinarians, and volunteer organizations in Ukraine.
+- [About Us & Contacts](https://adoptananimal.github.io/adoptananimal/about): Mission statement, legal background, and direct contact details.
+
+## Key Features
+
+- Multilingual support (English, German, Ukrainian, Dutch).
+- Comprehensive medical and behavioral profiles for all rescued animals (vaccination status, age, compatibility with other pets and kids).
+- Transparent adoption process handled by certified European animal rescue organizations (Notpfote Animal Rescue e.V. & Vet Crew).
+- Search and filter capabilities by animal type, age group, size, and location.
+
+## Additional Resources
+
+- [Sitemap](https://adoptananimal.github.io/adoptananimal/sitemap.xml): XML index of all public routes and animal profiles.

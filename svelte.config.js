@@ -72,6 +72,8 @@ const config = {
 		},
 
 		prerender: {
+			entries: ['*', '/robots.txt', '/sitemap.xml'],
+			handleUnseenRoutes: 'ignore',
 			handleHttpError: ({ path, message }) => {
 				// Ignore 404s for missing animal images during build
 				if (path.startsWith('/images/animals/') && message.includes('404')) {
