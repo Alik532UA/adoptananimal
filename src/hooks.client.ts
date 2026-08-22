@@ -29,10 +29,13 @@ const tracker: Promise<SentryClient | null> | null =
 						replaysOnErrorSampleRate: 1.0,
 						environment: import.meta.env.MODE,
 						ignoreErrors: ['AbortError', 'Failed to fetch', 'ResizeObserver loop limit exceeded'],
-						beforeSend(event: any) {
-							if (event.request?.headers) {
-								delete event.request.headers['authorization'];
-								delete event.request.headers['cookie'];
+						// `any` тут валив `@typescript-eslint/no-explicit-any`, тож
+						// заголовки звужуються явно — так само, як у решті репозиторіїв.
+						beforeSend(event: Record<string, unknown>) {
+							const req = event.request as Record<string, Record<string, unknown>> | undefined;
+							if (req?.headers) {
+								delete req.headers['authorization'];
+								delete req.headers['cookie'];
 							}
 							return event;
 						}

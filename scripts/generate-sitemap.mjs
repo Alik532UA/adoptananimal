@@ -27,7 +27,9 @@ for (const file of htmlFiles(BUILD)) {
 	const canonical = html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/)?.[1];
 	if (!canonical) continue;
 
-	const alternates = [...html.matchAll(/<link[^>]+rel="alternate"[^>]+hreflang="([^"]+)"[^>]+href="([^"]+)"/g)]
+	const alternates = [
+		...html.matchAll(/<link[^>]+rel="alternate"[^>]+hreflang="([^"]+)"[^>]+href="([^"]+)"/g)
+	]
 		.map((m) => ({ lang: m[1], href: m[2] }))
 		.filter((alt) => alt.lang !== 'x-default');
 
@@ -43,7 +45,9 @@ if (pages.length === 0) {
 	const urls = pages
 		.map(({ canonical, alternates, isHome }) => {
 			const links = alternates
-				.map((alt) => `\t\t<xhtml:link rel="alternate" hreflang="${alt.lang}" href="${alt.href}" />`)
+				.map(
+					(alt) => `\t\t<xhtml:link rel="alternate" hreflang="${alt.lang}" href="${alt.href}" />`
+				)
 				.join('\n');
 			const priority = isHome ? '1.0' : '0.8';
 			return `\t<url>\n\t\t<loc>${canonical}</loc>\n${links ? links + '\n' : ''}\t\t<priority>${priority}</priority>\n\t</url>`;

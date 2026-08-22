@@ -37,7 +37,10 @@ describe('аналітика: гарди (ANALYTICS-v8 § 5)', () => {
 		track('language_change');
 		trackPageView();
 
-		expect((window as unknown as { gtag?: unknown }).gtag, 'у dev `gtag` не має з’являтися').toBeUndefined();
+		expect(
+			(window as unknown as { gtag?: unknown }).gtag,
+			'у dev `gtag` не має з’являтися'
+		).toBeUndefined();
 	});
 
 	it('без браузера мовчить — prerender не має слати подій', async () => {

@@ -36,6 +36,9 @@ export function initAnalytics() {
 
 	window.dataLayer = window.dataLayer || [];
 	window.gtag = function gtag() {
+		// gtag.js reads the raw `arguments` object back off the queue, so this
+		// cannot be an arrow function taking rest parameters.
+		// eslint-disable-next-line prefer-rest-params
 		window.dataLayer.push(arguments);
 	};
 	window.gtag('js', new Date());

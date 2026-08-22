@@ -73,7 +73,21 @@ const config = {
 
 		prerender: {
 			entries: ['*', '/robots.txt', '/sitemap.xml'],
-			handleUnseenRoutes: 'ignore',
+
+			/*
+			 * `warn`, а не `ignore`.
+			 *
+			 * «Небачений маршрут» — це маршрут, до якого краулер prerender не
+			 * дійшов за посиланнями й якого немає в `entries`. Тобто рівно той
+			 * клас дефекту, про який SEO-v8 § 1.5: сторінка існує в коді, але у
+			 * `build/` її немає, і виявляється це вже в індексі — порожнім
+			 * результатом. `ignore` прибирає єдиний сигнал про це.
+			 *
+			 * Не `fail` лише тому, що службові й параметризовані маршрути тут
+			 * навмисно не пререндеряться, і падіння збірки на них було б хибною
+			 * тривогою. Попередження лишається в логу прогону, де його видно.
+			 */
+			handleUnseenRoutes: 'warn',
 			handleHttpError: ({ path, message }) => {
 				// Ignore 404s for missing animal images during build
 				if (path.startsWith('/images/animals/') && message.includes('404')) {

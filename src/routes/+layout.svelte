@@ -312,7 +312,10 @@
 	{:else}
 		<!-- Built from SITE_ORIGIN, never from page.url.origin: during prerender the
 			 latter is the placeholder host `sveltekit-prerender`. -->
-		<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+		<meta
+			name="robots"
+			content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+		/>
 		<link rel="canonical" href={canonical} />
 		{#each alternates as alternate (alternate.locale)}
 			<link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />

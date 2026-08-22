@@ -60,7 +60,7 @@
 | AI-PROVIDERS        | ні           | проєкт не звертається до LLM                                              |
 | CLOUD-DATABASE      | ні           | бази немає взагалі: усі дані — TypeScript-файли в репозиторії             |
 | CUSTOM-DOMAIN       | ні           | адреса на `alik532ua.github.io`, `CNAME` у `static/` немає                |
-| ANALYTICS           | так          | GA4 (`G-7YQDFQNMT2`), рантайм-інжект, відключено в dev                   |
+| ANALYTICS           | так          | GA4 (`G-7YQDFQNMT2`), рантайм-інжект, відключено в dev                    |
 | OBSERVABILITY       | ні           | див. § 4                                                                  |
 | INPUT-TOOLS         | ні           | шість полів вводу, з них п'ять — одноразова контактна форма               |
 
@@ -74,6 +74,7 @@
 `send_page_view: false` вимикає автоматичні перегляди сторінок; `trackPageView()` викликається в `afterNavigate` кореневого layout.
 
 #### Реєстр кастомних подій (ANALYTICS-v8 § 3.1)
+
 - `adopt_click`: клік по кнопці «Взяти тварину»
 - `animal_filter`: застосування фільтрів за типом/статтю/розміром тварини
 - `form_open`: відкриття форми усиновлення
