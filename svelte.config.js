@@ -55,13 +55,7 @@ const config = {
 				'style-src': ['self', 'unsafe-inline', 'https://fonts.googleapis.com'],
 				'font-src': ['self', 'https://fonts.gstatic.com'],
 				'img-src': ['self', 'data:'],
-				'connect-src': [
-					'self',
-					'https://*.google-analytics.com',
-					'https://*.analytics.google.com',
-					'https://*.sentry.io',
-					'https://*.ingest.sentry.io'
-				],
+				'connect-src': ['self', 'https://*.google-analytics.com', 'https://*.analytics.google.com'],
 				// The embedded application form. Without this the iframe is blocked and the
 				// page shows an empty box with nothing in the console to explain it.
 				'frame-src': ['https://docs.google.com'],
