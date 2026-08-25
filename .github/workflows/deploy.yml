@@ -35,6 +35,43 @@ jobs:
       - run: npm run lint
       - run: npm test
 
+      # The browsers do not arrive with `npm ci`, and downloading them is the longest
+      # step in this job. Keyed on the lockfile, because that is what decides which
+      # version of Playwright is asking for them.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # Without this step Playwright fails with "Executable doesn't exist".
+      - run: npx playwright install --with-deps chromium
+
+      # BEFORE the deploy build, and that order is load-bearing.
+      #
+      # `playwright.config.ts` starts its own server with `npm run build && npm run
+      # preview`, and that build lands in the same `build/` — with none of the env
+      # below, so `BASE_PATH` is empty and `SITE_ORIGIN` falls back to its default.
+      # Run after the deploy build, it silently REPLACED it: `check:build` had
+      # already passed over the right pages, `upload-pages-artifact` then shipped the
+      # wrong ones, and every canonical and every `<loc>` in the sitemap pointed at
+      # https://alik532ua.github.io/ — the neighbouring site's root, not this one.
+      # 229 pages advertised as 404s, and no gate in this file could see it: each one
+      # measured a directory that was correct at the time it looked.
+      #
+      # The old note here said this run is "unaffected by the one above", which was
+      # true and beside the point — the direction that mattered was the other one.
+      # `src/ci.test.ts` now holds the invariant instead of the comment: nothing that
+      # writes `build/` may sit between the deploy build and the upload.
+      - run: npm run test:e2e
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
       # A project site is served from https://<owner>.github.io/<repo>/, a user site
       # from the domain root. Deriving it here keeps the path out of the source.
       - name: Resolve base path
@@ -46,7 +83,10 @@ jobs:
             echo "path=/${{ github.event.repository.name }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - run: npm run build
+      # The last step that writes `build/`. Everything after it reads that directory,
+      # and the artefact upload ships it.
+      - id: build
+        run: npm run build
         env:
           BASE_PATH: ${{ steps.base.outputs.path }}
           SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
@@ -70,28 +110,6 @@ jobs:
       # every diff, having been re-committed by everyone who ever ran a build.
       - name: The build leaves tracked files alone
         run: git diff --exit-code
-
-      # The browsers do not arrive with `npm ci`, and downloading them is the longest
-      # step in this job. Keyed on the lockfile, because that is what decides which
-      # version of Playwright is asking for them.
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      # Without this step Playwright fails with "Executable doesn't exist".
-      - run: npx playwright install --with-deps chromium
-
-      # Runs against its own fresh build, so it is unaffected by the one above.
-      - run: npm run test:e2e
-
-      - if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
 
       # Version pinned on purpose. `npx @lhci/cli` without one resolves to whatever is
       # latest at the moment the job runs — which is `latest` in a version field, the
