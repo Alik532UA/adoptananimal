@@ -4,7 +4,32 @@ import { readFileSync } from 'node:fs';
 
 // GitHub Pages project sites live under /<repo>/, user sites and custom domains under /.
 // The value comes from the deploy workflow; locally and for root hosting it stays empty.
-const base = process.env.BASE_PATH ?? '';
+const rawBase = process.env.BASE_PATH ?? '';
+
+/*
+ * Checked here rather than left to SvelteKit, and narrowed for the type checker in
+ * the same move.
+ *
+ * SvelteKit does validate this, but its message names the option, not the value it
+ * got — which is a long way from the actual mistake. That already cost an afternoon:
+ * `BASE_PATH=/adoptananimal` typed into Git Bash on Windows arrives as
+ * `C:/Program Files/Git/adoptananimal`, because MSYS rewrites anything that looks
+ * like an absolute path. The message said the option must start with `/`, and the
+ * value did — after MSYS was done with it, it started with `C`.
+ *
+ * The type annotation is the second half. `process.env` gives `string`, and a widened
+ * `string` here is what kept this file's two type errors invisible until
+ * `src/csp-hash.test.ts` imported it and pulled it under `svelte-check` for the
+ * first time.
+ */
+if (rawBase !== '' && !/^\/[^/](?:.*[^/])?$/.test(rawBase)) {
+	throw new Error(
+		`BASE_PATH must be empty or start-but-not-end with "/", got ${JSON.stringify(rawBase)}. ` +
+			'On Git Bash for Windows, MSYS rewrites /foo into a filesystem path — use PowerShell or MSYS_NO_PATHCONV=1.'
+	);
+}
+
+const base = /** @type {'' | `/${string}`} */ (rawBase);
 
 /**
  * SHA-256 of every inline <script> in app.html, computed from the file rather than
@@ -22,12 +47,24 @@ const base = process.env.BASE_PATH ?? '';
  * and data-style, and the page rendered with no palette and every corner square until
  * hydration caught up. It works in CI, which checks out LF — which is the worst way
  * for it to be broken.
+ *
+ * The pattern matches any <script> WITHOUT src, not only the attribute-less form it
+ * used to. The narrow form was a trap with no symptom in the source: add `defer` or
+ * `type="module"` to the script below and it stops matching, no hash is computed, and
+ * the policy blocks it — leaving exactly the blank-palette first frame described
+ * above, for a change that looks unrelated to CSP. `src/csp-hash.test.ts` scans with
+ * this same wider definition and fails on any inline script whose browser hash is
+ * missing from the policy, so the two cannot drift apart silently.
  */
 const inlineScriptHashes = [
-	...readFileSync('src/app.html', 'utf-8').matchAll(/<script>([\s\S]*?)<\/script>/g)
+	...readFileSync('src/app.html', 'utf-8').matchAll(
+		/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g
+	)
 ].map(
 	(match) =>
-		`sha256-${createHash('sha256').update(match[1].replace(/\r\n/g, '\n')).digest('base64')}`
+		/** @type {`sha256-${string}`} */ (
+			`sha256-${createHash('sha256').update(match[1].replace(/\r\n/g, '\n')).digest('base64')}`
+		)
 );
 
 /** @type {import('@sveltejs/kit').Config} */
