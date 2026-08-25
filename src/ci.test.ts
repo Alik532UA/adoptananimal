@@ -81,6 +81,53 @@ const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
 	scripts?: Record<string, string>;
 };
 
+type Step = {
+	/** `run:`/`uses:` рядки кроку — те, за чим його впізнають. */
+	command: string;
+	/** Умова кроку без обгортки `${{ }}`, або порожній рядок, якщо її немає. */
+	condition: string;
+};
+
+/**
+ * Кроки job'а рядками, без YAML-парсера.
+ *
+ * Залежності на `yaml` тут немає, і заводити її під один інваріант — це 1 пакет у
+ * `devDependencies` проти 20 рядків розбору (DEPENDENCIES-v8 § 1.1). Розбір
+ * тримається на одному факті: крок — це елемент списку на тому ж відступі, що й
+ * перший елемент після `steps:`. Усе між двома такими рядками належить першому.
+ *
+ * Коментарі зрізаються до розбору — рівно з тієї причини, що описана вище над
+ * `all`: речення в коментарі не є кроком і не має відповідати на греп.
+ */
+function parseSteps(text: string): Step[] {
+	const lines = text.split('\n').filter((line) => !/^\s*#/.test(line));
+	const stepsAt = lines.findIndex((line) => /^\s*steps:\s*$/.test(line));
+	if (stepsAt === -1) return [];
+
+	const indent = lines
+		.slice(stepsAt + 1)
+		.find((line) => /^\s*- /.test(line))
+		?.match(/^\s*/)?.[0];
+	if (indent === undefined) return [];
+
+	const opensStep = (line: string) => line.startsWith(`${indent}- `);
+	const steps: Step[] = [];
+
+	for (let i = stepsAt + 1; i < lines.length; i++) {
+		if (!opensStep(lines[i])) continue;
+		let end = i + 1;
+		while (end < lines.length && !opensStep(lines[end])) end++;
+		const block = lines.slice(i, end);
+		steps.push({
+			command: block.filter((line) => /(^|\s)(run|uses):/.test(line)).join('\n'),
+			condition: block.find((line) => /(^|\s)if:/.test(line))?.replace(/^.*?if:\s*/, '') ?? ''
+		});
+		i = end - 1;
+	}
+
+	return steps;
+}
+
 describe('CI', () => {
 	it('перевірка жива: workflow узагалі знайдено', () => {
 		expect(files.length, 'немає жодного workflow — сканер шукає не там').toBeGreaterThan(0);
@@ -257,6 +304,73 @@ describe('CI', () => {
 		if (lines.some((line) => line.startsWith('.private'))) {
 			expect(lines, 'docs/ не повернуто назад').toContain('!.private/docs/');
 		}
+	});
+
+	describe('впала перевірка не забирає звіт у решти (§ 1.8)', () => {
+		/*
+		 * Клас дефекту: гейти є, падіння лишає слід — і про стан проєкту все одно не
+		 * відомо нічого. GitHub за замовчуванням не запускає кроки після червоного,
+		 * тож `npm audit` на трьох low забирав звіт у типів, перекладів, лінта і 322
+		 * юніт-тестів. У переліку кроків це один рядок «audit», який читається як
+		 * «одна проблема», а означає «одна проблема плюс чотири невідомості».
+		 *
+		 * Перелік гейтів заданий командами, а не назвами: кроки тут переважно без
+		 * `name:`, і назва, виведена GitHub'ом із команди, не існує в файлі. Перелік
+		 * явний — щоб новий гейт треба було внести сюди руками, а не щоб він тихо
+		 * випав із перевірки.
+		 */
+		const GATE =
+			/npm audit|npm run check|npm run lint|npm test\b|npm run test:e2e|npm run build|git diff --exit-code|lhci/;
+
+		/** Кроки з побічним ефектом — саме їм `!cancelled()` протипоказаний. */
+		const SIDE_EFFECT = /upload-pages-artifact|deploy-pages/;
+
+		it('перевірка жива: гейти в workflow узагалі знайдено', () => {
+			const gates = workflows.flatMap((w) =>
+				parseSteps(w.text).filter((s) => GATE.test(s.command))
+			);
+			expect(gates.length, 'жодного гейта — розбір кроків шукає не там').toBeGreaterThan(3);
+		});
+
+		it('кожен гейт після першого несе !cancelled()', () => {
+			const naked: string[] = [];
+			for (const { name, text } of workflows) {
+				const gates = parseSteps(text).filter((step) => GATE.test(step.command));
+				// Першому `if` не потрібен: до нього ніщо не падало.
+				for (const step of gates.slice(1)) {
+					if (!/!cancelled\(\)/.test(step.condition)) {
+						naked.push(`${name} → ${step.command.trim()}`);
+					}
+				}
+			}
+			expect(
+				naked,
+				`гейт без !cancelled() — його падіння забере звіт у наступних:\n${naked.join('\n')}`
+			).toEqual([]);
+		});
+
+		it('крок із побічним ефектом !cancelled() НЕ несе', () => {
+			// Дзеркальна половина, і без неї перша половина небезпечна: `!cancelled()`
+			// на вивантаженні артефакту або на деплої означає публікацію після
+			// червоного гейта — тобто рівно те, від чого гейти й захищають.
+			const armed: string[] = [];
+			for (const { name, text } of workflows) {
+				for (const step of parseSteps(text)) {
+					if (SIDE_EFFECT.test(step.command) && /!cancelled\(\)|always\(\)/.test(step.condition)) {
+						armed.push(`${name} → ${step.command.trim()}`);
+					}
+				}
+			}
+			expect(armed, `деплой виконається після впалого гейта:\n${armed.join('\n')}`).toEqual([]);
+		});
+
+		it('continue-on-error не вживається — він робить гейт незначущим', () => {
+			// Не мʼякша версія правила, а протилежна: job зеленіє при червоному гейті.
+			expect(
+				/continue-on-error:\s*true/.test(all),
+				'гейт із continue-on-error нічого не гейтує'
+			).toBe(false);
+		});
 	});
 
 	it('між збіркою для деплою й вивантаженням артефакту ніхто не перезаписує build/', () => {

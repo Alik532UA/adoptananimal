@@ -29,23 +29,43 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+
+      # Every gate below the first carries `if: ${{ !cancelled() }}`
+      # (CI-CD-AND-TOOLS-v8 § 1.8). Without it GitHub stops at the first red step,
+      # and one failing line reads as "one problem" when it means "one problem plus
+      # four unknowns" — `audit` going red used to leave types, translations, lint
+      # and 322 unit tests unrun and unreported.
+      #
+      # `!cancelled()`, not `always()`: after `cancel-in-progress` or a manual stop
+      # there is nothing to learn, only runner minutes to burn. And no
+      # `continue-on-error` anywhere — that makes the job GREEN with a red gate,
+      # which is the opposite of this rule, not a softer version of it.
+      #
+      # The steps with a side effect (`upload-pages-artifact`, `deploy-pages`) do NOT
+      # get it: deploying after a failed gate is the thing the gates exist to stop.
       - run: npm audit --omit=dev --audit-level=high
-      - run: npm run check
-      - run: npm run check:i18n
-      - run: npm run lint
-      - run: npm test
+      - if: ${{ !cancelled() }}
+        run: npm run check
+      - if: ${{ !cancelled() }}
+        run: npm run check:i18n
+      - if: ${{ !cancelled() }}
+        run: npm run lint
+      - if: ${{ !cancelled() }}
+        run: npm test
 
       # The browsers do not arrive with `npm ci`, and downloading them is the longest
       # step in this job. Keyed on the lockfile, because that is what decides which
       # version of Playwright is asking for them.
       - name: Cache Playwright browsers
+        if: ${{ !cancelled() }}
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       # Without this step Playwright fails with "Executable doesn't exist".
-      - run: npx playwright install --with-deps chromium
+      - if: ${{ !cancelled() }}
+        run: npx playwright install --with-deps chromium
 
       # BEFORE the deploy build, and that order is load-bearing.
       #
@@ -63,7 +83,8 @@ jobs:
       # true and beside the point — the direction that mattered was the other one.
       # `src/ci.test.ts` now holds the invariant instead of the comment: nothing that
       # writes `build/` may sit between the deploy build and the upload.
-      - run: npm run test:e2e
+      - if: ${{ !cancelled() }}
+        run: npm run test:e2e
 
       - if: failure()
         uses: actions/upload-artifact@v7
@@ -76,6 +97,7 @@ jobs:
       # from the domain root. Deriving it here keeps the path out of the source.
       - name: Resolve base path
         id: base
+        if: ${{ !cancelled() }}
         run: |
           if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
             echo "path=" >> "$GITHUB_OUTPUT"
@@ -86,15 +108,24 @@ jobs:
       # The last step that writes `build/`. Everything after it reads that directory,
       # and the artefact upload ships it.
       - id: build
+        if: ${{ !cancelled() }}
         run: npm run build
         env:
           BASE_PATH: ${{ steps.base.outputs.path }}
           SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
 
+      # The four gates below read `build/`, so they carry the build's outcome as well
+      # as `!cancelled()`. `!cancelled()` alone would be worse than nothing here: a
+      # failed build leaves the PREVIOUS contents of `build/` — the one Playwright
+      # made without a base path — and each of these would then measure that and
+      # could pass. A green gate over a stale directory is the § 1.6 defect, reached
+      # by way of § 1.8.
+      #
       # The same base the build used. The checker turns sitemap and canonical URLs
       # back into file paths, and the build directory IS the base — without this it
       # measures against the wrong root and every page looks missing at once.
-      - run: npm run check:build
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: npm run check:build
         env:
           BASE_PATH: ${{ steps.base.outputs.path }}
 
@@ -102,13 +133,15 @@ jobs:
       # `entry` folder the canon names: in this SvelteKit version that folder holds
       # 2 KB and the application lives in the chunks beside it, so the reference
       # script would report "2 KB of 150" forever.
-      - run: npm run check:bundle
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: npm run check:bundle
 
       # The only machine check of "a build artefact is not committed"
       # (VERSIONING-v8 § 1.4). It costs a second and it is the difference between
       # noticing a generated file on the first push and finding it months later in
       # every diff, having been re-committed by everyone who ever ran a build.
       - name: The build leaves tracked files alone
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: git diff --exit-code
 
       # Version pinned on purpose. `npx @lhci/cli` without one resolves to whatever is
@@ -127,6 +160,7 @@ jobs:
       # filenames in order, and a `lighthouserc.json` left behind beside the `.cjs` one
       # would win silently on some versions and not others.
       - name: Lighthouse Audit
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: npx @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
 
       - uses: actions/upload-pages-artifact@v5
