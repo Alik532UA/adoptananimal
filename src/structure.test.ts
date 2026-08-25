@@ -91,6 +91,74 @@ describe('§ 4.3 — a file that exists reads as work that was done', () => {
 		).toEqual([]);
 	});
 
+	it('every script in scripts/ is reached by something that runs', () => {
+		/*
+		 * The same rule as the components above, on the directory where it costs more.
+		 * § 4.3 says it in as many words: "the same goes for localisation keys, CSS
+		 * classes and package.json scripts — existing is not being used".
+		 *
+		 * It costs more here because of the names. `scripts/` held eleven files called
+		 * `check-adopted-images`, `check-folders`, `check-image-dimensions`,
+		 * `check-order`, `check-traits`, `verify-mapping` — one-offs from the content
+		 * import that read `.temp/`, a directory long gone, so they could not run at
+		 * all. Anyone counting this project's gates, a person or an agent, reads six
+		 * more `check-*` than exist. That is the § 4.3 failure at its most direct: the
+		 * quality report comes out wrong, and nothing looks broken.
+		 *
+		 * The worst of them was not a `check-*`. `generate-sitemap.mjs` was a second,
+		 * DIVERGENT sitemap generator — no `changefreq`, its own priority rule, no
+		 * hidden-route filter, and `/adoptananimal/` hard-coded — sitting beside the
+		 * live one in `src/routes/sitemap.xml/+server.ts`. Run once by anyone who
+		 * believed the name, it would have overwritten the real file with a worse one.
+		 *
+		 * Reachable means: named by a `package.json` script, named in a workflow, or
+		 * imported by a file that is itself reachable (`check-geo.js` arrives that way,
+		 * through `check-build.js`).
+		 */
+		const dir = 'scripts';
+		const scripts = readdirSync(resolve(ROOT, dir))
+			.filter((name) => /\.(js|mjs|cjs|ts|ps1)$/.test(name))
+			.map((name) => `${dir}/${name}`);
+
+		expect(scripts.length, 'scripts/ is empty — the walker is looking elsewhere').toBeGreaterThan(
+			0
+		);
+
+		const pkg = read('package.json');
+		const workflowDir = resolve(ROOT, '.github/workflows');
+		const workflows = readdirSync(workflowDir)
+			.filter((name) => /\.ya?ml$/.test(name))
+			.map((name) => read(`.github/workflows/${name}`))
+			.join('\n');
+
+		// Entry points first, then anything they import, transitively. A fixed point
+		// rather than one pass: a chain three deep is not visible to a single sweep.
+		const reachable = new Set(
+			scripts.filter((path) => {
+				const name = basename(path);
+				return pkg.includes(name) || workflows.includes(name);
+			})
+		);
+
+		for (let added = true; added; ) {
+			added = false;
+			for (const path of scripts) {
+				if (reachable.has(path)) continue;
+				const name = basename(path);
+				if ([...reachable].some((from) => read(from).includes(name))) {
+					reachable.add(path);
+					added = true;
+				}
+			}
+		}
+
+		const orphans = scripts.filter((path) => !reachable.has(path));
+		expect(
+			orphans,
+			`run by nobody — a name that promises a gate is worse than no file:\n${orphans.join('\n')}`
+		).toEqual([]);
+	});
+
 	it('runes live only in .svelte and .svelte.ts', () => {
 		// The compiler does not process runes outside those two extensions. It does
 		// not complain either: `$state(0)` in a plain .ts is an undefined function
