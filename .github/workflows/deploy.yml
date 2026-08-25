@@ -94,16 +94,30 @@ jobs:
           retention-days: 7
 
       # A project site is served from https://<owner>.github.io/<repo>/, a user site
-      # from the domain root. Deriving it here keeps the path out of the source.
-      - name: Resolve base path
-        id: base
+      # from the domain root. Deriving both here keeps them out of the source.
+      #
+      # The owner is lower-cased, the repository name is NOT, and the asymmetry is the
+      # point: a URL's host is case-insensitive, its path is not (RFC 3986 § 3.2.2,
+      # § 6.2.2.1). GitHub returns `repository_owner` as the owner typed it —
+      # `Alik532UA` — so every canonical, og:url and sitemap <loc> would carry a
+      # capitalised host: not a 404, just the site advertising itself under a spelling
+      # that appears in no link anywhere. Lower-casing the repo name instead would be a
+      # real 404 the day a repository has a capital in it.
+      #
+      # The user-site comparison is case-insensitive for the same reason — the repo of
+      # a user site is named after the host.
+      - name: Resolve base path and origin
+        id: site
         if: ${{ !cancelled() }}
         run: |
-          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
-            echo "path=" >> "$GITHUB_OUTPUT"
+          owner=$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          repo='${{ github.event.repository.name }}'
+          if [ "$(printf '%s' "$repo" | tr '[:upper:]' '[:lower:]')" = "$owner.github.io" ]; then
+            echo "base=" >> "$GITHUB_OUTPUT"
           else
-            echo "path=/${{ github.event.repository.name }}" >> "$GITHUB_OUTPUT"
+            echo "base=/$repo" >> "$GITHUB_OUTPUT"
           fi
+          echo "origin=https://$owner.github.io" >> "$GITHUB_OUTPUT"
 
       # The last step that writes `build/`. Everything after it reads that directory,
       # and the artefact upload ships it.
@@ -111,8 +125,8 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run build
         env:
-          BASE_PATH: ${{ steps.base.outputs.path }}
-          SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
+          BASE_PATH: ${{ steps.site.outputs.base }}
+          SITE_ORIGIN: ${{ steps.site.outputs.origin }}
 
       # The four gates below read `build/`, so they carry the build's outcome as well
       # as `!cancelled()`. `!cancelled()` alone would be worse than nothing here: a
@@ -127,7 +141,7 @@ jobs:
       - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: npm run check:build
         env:
-          BASE_PATH: ${{ steps.base.outputs.path }}
+          BASE_PATH: ${{ steps.site.outputs.base }}
 
       # PERFORMANCE-v8 § 10.1. Measured from the generated pages, not from the
       # `entry` folder the canon names: in this SvelteKit version that folder holds

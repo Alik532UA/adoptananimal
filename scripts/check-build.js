@@ -148,6 +148,43 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 4A. every absolute URL names the host in lower case ---------------------
+//
+// The host of a URL is case-insensitive, its path is not (RFC 3986 § 3.2.2, § 6.2.2.1),
+// so a capitalised host is not a 404 — which is exactly why it needs a gate. Nothing
+// breaks and nothing complains; the site simply advertises itself under a spelling
+// that appears nowhere else. Search Console and any tool that treats a URL as an
+// opaque string then sees two sites where there is one.
+//
+// This is not hypothetical here. The deploy workflow derives the origin from
+// `github.repository_owner`, and GitHub returns it as the owner typed it — `Alik532UA`.
+// It was invisible until now for the wrong reason: the artefact that shipped came from
+// Playwright's own build, which used the lower-case default in `vite.config.ts` and
+// threw away the workflow's value along with the base path. Fixing that (a135ea1)
+// un-masked this, so the gate and the fix arrive together.
+//
+// Scoped to the host on purpose. The path stays case-sensitive, and SEO-v8 § 1.5 is
+// about exactly that: a slug whose case differs from the file is a 404 on Linux.
+{
+	const absoluteUrl = /https?:\/\/[^"'\s<>]+/g;
+	const files = [...htmlFiles, join(BUILD_DIR, 'sitemap.xml'), join(BUILD_DIR, 'robots.txt')];
+
+	for (const file of files) {
+		if (!existsSync(file)) continue;
+		const text = readFileSync(file, 'utf-8');
+		const offenders = new Set();
+
+		for (const [url] of text.matchAll(absoluteUrl)) {
+			const host = url.replace(/^https?:\/\//, '').split(/[/?#]/)[0];
+			if (host !== host.toLowerCase()) offenders.add(host);
+		}
+
+		for (const host of offenders) {
+			fail(`${relative(BUILD_DIR, file)}: host is not lower case — "${host}"`);
+		}
+	}
+}
+
 // --- 5. the sitemap lists pages that were actually generated ----------------
 const sitemapPath = join(BUILD_DIR, 'sitemap.xml');
 if (!existsSync(sitemapPath)) {
