@@ -48,8 +48,20 @@ jobs:
         run: npm run check
       - if: ${{ !cancelled() }}
         run: npm run check:i18n
+      # Два кроки, а не `npm run lint`, і це § 1.8 на рівень нижче за кроки.
+      #
+      # Скрипт `lint` — це `prettier --check . && eslint .`, тож prettier падає
+      # першим і ESLint не запускається ВЗАГАЛІ. Саме так і вийшло: один файл із
+      # чотирирядковим `expect()`, який уміщається в 100 колонок, дав червоний крок,
+      # у логу якого про ESLint не було жодного слова. Той самий «одна проблема плюс
+      # N невідомостей», лише всередині одного npm-скрипта, де умова кроку не
+      # допомагає.
+      #
+      # `npm run lint` лишається для локального прогону — там послідовність зручна.
       - if: ${{ !cancelled() }}
-        run: npm run lint
+        run: npm run lint:format
+      - if: ${{ !cancelled() }}
+        run: npm run lint:code
       - if: ${{ !cancelled() }}
         run: npm test
 

@@ -413,6 +413,88 @@ describe('CI', () => {
 			expect(armed, `деплой виконається після впалого гейта:\n${armed.join('\n')}`).toEqual([]);
 		});
 
+		it('крок CI не кличе скрипт, у якому два гейти зчеплені через &&', () => {
+			/*
+			 * Те саме маскування, лише на рівень нижче за кроки, де `if:` не допомагає.
+			 *
+			 * `lint` був `prettier --check . && eslint .`. Prettier падає першим, і
+			 * ESLint не запускається ВЗАГАЛІ — тобто червоний крок «Lint» означав «одна
+			 * проблема плюс невідомо скільки». Стало 2026-08-26: один файл із
+			 * чотирирядковим `expect()`, що вміщається в 100 колонок, і в логу кроку про
+			 * ESLint жодного слова.
+			 *
+			 * Прерогатива тут не в тому, щоб забороняти `&&`, а в тому, щоб не зчіплювати
+			 * два НЕЗАЛЕЖНІ гейти. `npm run check` — це `svelte-kit sync && svelte-check`,
+			 * і там зчеплення правильне: перше не гейт, а передумова другого. Тому
+			 * перелік команд-гейтів заданий явно й видний у diff, а рахуються саме вони.
+			 *
+			 * Правило діє лише на скрипти, які кличе WORKFLOW. Локальний `npm run lint`
+			 * лишається послідовним — там зручність важливіша за повноту звіту.
+			 *
+			 * ВКЛАДЕНІ `npm run` РОЗГОРТАЮТЬСЯ, і цей абзац оплачено: перша редакція
+			 * читала лише буквальні команди, і зворотний експеримент (§ 1.1) показав, що
+			 * вона лишається ЗЕЛЕНОЮ на тому самому дефекті. Після поділу `lint` став
+			 * `npm run lint:format && npm run lint:code` — два гейти, але жоден із них
+			 * не команда-гейт буквально, тож перевірка бачила нуль. Тобто вона
+			 * заперечувала не зчеплення гейтів, а лише один спосіб його записати — і
+			 * найдешевший обхід був би саме тим, що я щойно й зробив.
+			 */
+			const GATE_COMMAND = [
+				/\bprettier\b[^&|]*--check/,
+				/\beslint\b/,
+				/\bsvelte-check\b/,
+				/\bvitest\b/,
+				/\bplaywright\b[^&|]*\btest\b/,
+				/\bnpm audit\b/
+			];
+
+			const scripts = pkg.scripts ?? {};
+
+			/**
+			 * Команди-гейти скрипта, з розгорнутими `npm run <name>`.
+			 *
+			 * `seen` — не про елегантність: `"a": "npm run b"`, `"b": "npm run a"` дає
+			 * нескінченну рекурсію, і тест підвис би замість почервоніти.
+			 */
+			const gatesOf = (body: string, seen = new Set<string>()): string[] =>
+				body.split('&&').flatMap((raw) => {
+					const part = raw.trim();
+					const nested = /^npm run ([a-z0-9:_-]+)/.exec(part)?.[1];
+
+					if (nested) {
+						if (seen.has(nested) || !scripts[nested]) return [];
+						return gatesOf(scripts[nested], new Set([...seen, nested]));
+					}
+
+					return GATE_COMMAND.some((pattern) => pattern.test(part)) ? [part] : [];
+				});
+
+			const called = [
+				...new Set([...all.matchAll(/run:\s*npm run ([a-z0-9:_-]+)/g)].map((m) => m[1]))
+			];
+			expect(
+				called.length,
+				'у workflow немає жодного npm run — сканер шукає не там'
+			).toBeGreaterThan(0);
+
+			const chained: string[] = [];
+			for (const name of called) {
+				const body = scripts[name];
+				if (!body) continue;
+
+				const gates = gatesOf(body, new Set([name]));
+				if (gates.length > 1) {
+					chained.push(`${name}: ${gates.join(' && ')}`);
+				}
+			}
+
+			expect(
+				chained,
+				`скрипт зчіплює незалежні гейти — перший червоний з'їдає звіт решти, ` +
+					`і умова кроку тут не допоможе. Розділіть на окремі кроки:\n${chained.join('\n')}`
+			).toEqual([]);
+		});
+
 		it('continue-on-error не вживається — він робить гейт незначущим', () => {
 			// Не мʼякша версія правила, а протилежна: job зеленіє при червоному гейті.
 			expect(
