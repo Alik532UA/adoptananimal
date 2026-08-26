@@ -314,6 +314,29 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 4D. one image per page carries the priority hint, not several -----------
+//
+// PERFORMANCE-v8 § 3.1: `fetchpriority="high"` on more than one image means none
+// of them is prioritised — the browser is told everything is first. Counted here
+// rather than in the sources because "how many are on a page" is not a property of
+// any single component: the listing pages get theirs from the first card, the
+// detail page from its own hero, and a layout that ever grew one would collide with
+// both without either file changing.
+//
+// A page with NONE is not reported. The rule is about spending the hint twice, and
+// several pages here legitimately have no hero at all — an empty favourites page is
+// a heading and two buttons. Naming the pages that must have one would mean a list
+// of paths in this file, which is the drift PROJECT-CONTEXT § 4.22 is about.
+for (const file of htmlFiles) {
+	const rel = relative(BUILD_DIR, file).split(sep).join('/');
+	if (SHELL_PAGES.has(rel)) continue;
+
+	const hints = readFileSync(file, 'utf-8').match(/fetchpriority="high"/g) ?? [];
+	if (hints.length > 1) {
+		fail(`${rel}: ${hints.length} images carry fetchpriority="high" — the hint is spent twice`);
+	}
+}
+
 // --- 5. the sitemap lists pages that were actually generated ----------------
 const sitemapPath = join(BUILD_DIR, 'sitemap.xml');
 if (!existsSync(sitemapPath)) {

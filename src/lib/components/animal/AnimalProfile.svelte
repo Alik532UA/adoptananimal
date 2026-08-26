@@ -127,6 +127,23 @@
 			</div>
 		{/if}
 		<div class="detail__layout">
+			<!--
+				This photograph is what LCP is measured by on 200 pages: it is the largest
+				thing above the fold and the reason someone opened the page. The hints on
+				the tag below say so.
+
+				`eager` was already the behaviour — the attribute was absent, and absent
+				means eager — but stating it is the half that survives a later edit; the
+				list cards next door carry `loading` explicitly for the same reason.
+				`fetchpriority="high"` is the part that was genuinely missing: without it
+				the browser discovers this image at its default priority, behind the
+				stylesheet and the fonts, and the same fix applied to the first list card
+				in 3453d81 stopped at the listing.
+
+				One per page, and that is the whole value of it (PERFORMANCE-v8 § 3.1): a
+				second high-priority image would mean neither is prioritised. The gate is
+				`check-build.js` § 4D.
+			-->
 			<div class="detail__image-area">
 				<div class="detail__image">
 					{#if !imageFailed}
@@ -136,6 +153,9 @@
 							class="detail__photo"
 							style={animal.imagePosition ? `object-position: ${animal.imagePosition}` : undefined}
 							onerror={() => (imageFailed = true)}
+							loading="eager"
+							fetchpriority="high"
+							decoding="sync"
 						/>
 					{/if}
 					<div class="detail__emoji" style={imageFailed ? '' : 'display: none;'}>
