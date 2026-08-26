@@ -1,11 +1,9 @@
-import { absoluteLocale, isHiddenRoute } from '$lib/config';
+import { absoluteLocale, INDEXED_PATHS, isHiddenRoute } from '$lib/config';
 import { DEFAULT_LOCALE, HTML_LANG, LOCALES, type Locale } from '$lib/i18n/locales';
 import { animalService } from '$lib/services/animals';
 
 // Written at build time like every other page, so the file exists on a static host.
 export const prerender = true;
-
-const STATIC_PATHS = ['/', '/adopt/cat', '/adopt/dog', '/apply', '/favorites'];
 
 // Same builder as the canonical tags, so the two can never disagree about a URL.
 const url = (path: string, locale: Locale) => absoluteLocale(path, locale);
@@ -15,7 +13,7 @@ const priorityOf = (path: string) =>
 
 export function GET() {
 	const paths = [
-		...STATIC_PATHS,
+		...INDEXED_PATHS,
 		...animalService.cats.map((cat) => `/adopt/cat/${cat.slug}`),
 		...animalService.dogs.map((dog) => `/adopt/dog/${dog.slug}`)
 		// Stated, not left to STATIC_PATHS happening not to mention them: a page kept

@@ -24,13 +24,24 @@ import { join } from 'node:path';
 export const SEARCH_AGENTS = ['OAI-SearchBot', 'ChatGPT-User', 'PerplexityBot', 'ClaudeBot'];
 
 /**
+ * Одна група `robots.txt`: агенти, яких вона стосується, і її правила.
+ *
+ * @typedef {{ agents: string[], allow: string[], disallow: string[] }} RobotsGroup
+ */
+
+/**
  * Групи `robots.txt` у порядку появи.
  *
  * Кілька `User-agent` підряд утворюють ОДНУ групу — це не деталь формату, а
  * єдиний спосіб не порахувати другого агента групою без правил.
+ *
+ * @param {string} text вміст `robots.txt`
+ * @returns {RobotsGroup[]}
  */
 export function parseRobots(text) {
+	/** @type {RobotsGroup[]} */
 	const groups = [];
+	/** @type {RobotsGroup | null} */
 	let current = null;
 	let lastWasAgent = false;
 
@@ -59,7 +70,13 @@ export function parseRobots(text) {
 	return groups;
 }
 
-/** Усі .html у зібраному сайті. */
+/**
+ * Усі .html у зібраному сайті.
+ *
+ * @param {string} dir
+ * @param {string[]} out
+ * @returns {string[]}
+ */
 function htmlFiles(dir, out = []) {
 	for (const entry of readdirSync(dir)) {
 		const full = join(dir, entry);
@@ -146,7 +163,30 @@ export function checkGeo(buildDir, options = {}) {
 			problems.push('llms.txt: не вдалося знайти canonical головної — адреси нема з чим звіряти');
 		} else {
 			const root = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`;
+			/** @param {string} p */
 			const isFile = (p) => existsSync(p) && statSync(p).isFile();
+
+			/*
+			 * ЖОДНОЇ власної адреси — це не «усі посилання зовнішні», а файл, який
+			 * нічого не каже про цей сайт. І доти, доки цього рядка не було, саме
+			 * так виглядав повний провал перевірки нижче: у `static/llms.txt`
+			 * стояв хост `adoptananimal.github.io` замість `alik532ua.github.io`,
+			 * тож поблажка «чужі домени не наша відповідальність» пропускала
+			 * ВСІ сім адрес, і гейт звітував успіх над файлом, у якому кожне
+			 * посилання віддавало 404.
+			 *
+			 * Поблажка сама по собі правильна — репозиторій і соцмережі справді
+			 * не наша справа. Помилковим було припущення, що серед решти хоч
+			 * щось лишиться.
+			 */
+			const ours = [...new Set(urls)].filter((url) => url.startsWith(root));
+			if (ours.length === 0) {
+				problems.push(
+					`llms.txt: жодна з ${urls.length} адрес не веде на цей сайт (корінь ${root}) — ` +
+						'імовірно, у файлі стоїть чужий хост, і перевірка існування сторінок не перевіряє нічого'
+				);
+			}
+
 			for (const url of new Set(urls)) {
 				// Чужі домени (репозиторій, соцмережі) не наша відповідальність.
 				if (!url.startsWith(root)) continue;

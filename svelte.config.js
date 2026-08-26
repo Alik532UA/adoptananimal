@@ -103,7 +103,7 @@ const config = {
 		},
 
 		prerender: {
-			entries: ['*', '/robots.txt', '/sitemap.xml'],
+			entries: ['*', '/robots.txt', '/sitemap.xml', '/llms.txt'],
 
 			/*
 			 * `warn`, а не `ignore`.

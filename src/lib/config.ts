@@ -49,6 +49,18 @@ export const isHiddenRoute = (path: string): boolean =>
 	(HIDDEN_ROUTES as readonly string[]).includes(path);
 
 /**
+ * The pages that exist independently of the data — everything except an animal's
+ * own page, which comes from `animalService`.
+ *
+ * Here rather than in the sitemap because it is no longer the sitemap's alone:
+ * `llms.txt` walks the same list. Written out twice, the second copy is what
+ * eventually names a page that does not exist — which is precisely how `llms.txt`
+ * came to advertise `/process`, `/partners` and `/about`, none of which this site
+ * has ever had.
+ */
+export const INDEXED_PATHS = ['/', '/adopt/cat', '/adopt/dog', '/apply', '/favorites'] as const;
+
+/**
  * Contact addresses, in one place. They used to be typed out in the footer and again
  * in the apply form, which is how two copies of the same address start to differ.
  */
