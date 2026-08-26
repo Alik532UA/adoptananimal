@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { animalService } from '$lib/services/animals';
+import { absoluteFromRoot } from '$lib/config';
 import { PREFIXED_LOCALES } from '$lib/i18n/locales';
 import type { EntryGenerator, PageLoad } from './$types';
 
@@ -21,5 +22,12 @@ export const load: PageLoad = async ({ params }) => {
 		throw error(404, 'Dog not found');
 	}
 
-	return { animal };
+	/*
+	 * The link preview belongs to the animal, and it is declared HERE rather than in
+	 * the page's own `<svelte:head>` because `<svelte:head>` appends: a tag written
+	 * there landed BESIDE the layout's default, not instead of it, and the Open Graph
+	 * reader takes the first — so every shared animal link previewed the shelter logo.
+	 * The layout owns the tag and reads this.
+	 */
+	return { animal, ogImage: absoluteFromRoot(animal.image), ogImageAlt: animal.name };
 };

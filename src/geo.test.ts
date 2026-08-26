@@ -107,6 +107,23 @@ describe('the llms.txt gate', () => {
 	});
 });
 
+/** A build of pages carrying the given head tags, checked without the llms.txt half. */
+function pageBuild(pages: Record<string, string>): string[] {
+	dir = mkdtempSync(join(tmpdir(), 'geo-'));
+	writeFileSync(join(dir, 'robots.txt'), 'User-agent: *\nDisallow: /private\n');
+
+	for (const [name, head] of Object.entries(pages)) {
+		const target = join(dir, name);
+		mkdirSync(dirname(target), { recursive: true });
+		writeFileSync(target, `<html><head>${head}</head><body></body></html>`);
+	}
+
+	return checkGeo(dir, { expectsLlmsTxt: false, searchAgents: [] });
+}
+
+const description = (text: string) => `<meta name="description" content="${text}"/>`;
+const NOINDEX = '<meta name="robots" content="noindex, nofollow"/>';
+
 /**
  * The `<meta name="description">` count, which is the `robots` rule beside it applied
  * to the tag that was actually broken.
@@ -123,23 +140,6 @@ describe('the llms.txt gate', () => {
  * `noindex` condition reddens `a hidden page needs none — nothing ever reads it`.
  */
 describe('the meta description count', () => {
-	/** A page carrying the given head tags, with the descriptions asked for. */
-	function pageBuild(pages: Record<string, string>): string[] {
-		dir = mkdtempSync(join(tmpdir(), 'geo-'));
-		writeFileSync(join(dir, 'robots.txt'), 'User-agent: *\nDisallow: /private\n');
-
-		for (const [name, head] of Object.entries(pages)) {
-			const target = join(dir, name);
-			mkdirSync(dirname(target), { recursive: true });
-			writeFileSync(target, `<html><head>${head}</head><body></body></html>`);
-		}
-
-		return checkGeo(dir, { expectsLlmsTxt: false, searchAgents: [] });
-	}
-
-	const description = (text: string) => `<meta name="description" content="${text}"/>`;
-	const NOINDEX = '<meta name="robots" content="noindex, nofollow"/>';
-
 	it('passes one description per indexed page', () => {
 		expect(pageBuild({ 'index.html': description('The site.') })).toEqual([]);
 	});
@@ -165,5 +165,55 @@ describe('the meta description count', () => {
 	/* The SPA shell has an empty body by design and nothing to describe. */
 	it('404.html is exempt', () => {
 		expect(pageBuild({ '404.html': '<title>Not found</title>' })).toEqual([]);
+	});
+});
+
+/**
+ * Open Graph properties, which is the same append trap on the tag that costs the most.
+ *
+ * The layout wrote `og:image` unconditionally; the animal page added its own
+ * photograph. Both shipped, the logo first, and an Open Graph reader takes the FIRST —
+ * so every animal link shared to Facebook, Telegram, WhatsApp or Slack previewed the
+ * shelter logo instead of the animal, on the 200 pages where the photograph is the
+ * whole reason to share the link. The only place it was ever visible is a link
+ * preview, which no build generates.
+ *
+ * The rule is deliberately stricter than the specification: Open Graph does allow a
+ * repeated `og:image` to describe a gallery. There is no gallery here, so a repeat
+ * means a tag was appended rather than replaced — and that mechanism has now cost this
+ * project three different tags.
+ *
+ * Reverse experiment: removing the `count > 1` branch reddens `two og:image tags is
+ * the layout-plus-page defect again` and nothing else.
+ */
+describe('the Open Graph property count', () => {
+	const og = (key: string, value: string) => `<meta property="og:${key}" content="${value}"/>`;
+
+	it('passes one of each property', () => {
+		expect(
+			pageBuild({
+				'index.html': description('A page.') + og('image', '/logo.webp') + og('title', 'A page')
+			})
+		).toEqual([]);
+	});
+
+	it('two og:image tags is the layout-plus-page defect again', () => {
+		const problems = pageBuild({
+			'adopt/cat/basti.html':
+				description('BASTI.') + og('image', '/logo.webp') + og('image', '/basti.jpg')
+		});
+
+		expect(problems).toEqual([
+			'adopt/cat/basti.html: <meta property="og:image"> знайдено 2, очікується 1 — читач бере перший'
+		]);
+	});
+
+	/* Different properties are not duplicates of one another. */
+	it('does not confuse og:image with og:image:alt', () => {
+		expect(
+			pageBuild({
+				'index.html': description('A page.') + og('image', '/a.jpg') + og('image:alt', 'A')
+			})
+		).toEqual([]);
 	});
 });

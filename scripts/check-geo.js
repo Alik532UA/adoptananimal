@@ -170,6 +170,44 @@ export function checkGeo(buildDir, options = {}) {
 		}
 	}
 
+	/*
+	 * --- жодна властивість Open Graph не повторюється на сторінці ---
+	 *
+	 * Третій випадок того самого механізму, і найдорожчий із трьох: макет виводив
+	 * `og:image` беззастережно, сторінка тварини додавала до нього своє фото — і
+	 * читач Open Graph бере ПЕРШИЙ. Тобто кожне посилання на тварину, поділене у
+	 * Facebook, Telegram, WhatsApp чи Slack, показувало логотип притулку замість
+	 * тварини — саме на тих 200 сторінках, де фото і є причиною ділитися.
+	 *
+	 * Формально `og:image` повторювати можна: так описують галерею. Тут галереї
+	 * немає й не планується, тож повтор означає не намір, а дописування. Правило
+	 * навмисно суворіше за специфікацію, і причина в тому, що коштувало це вже
+	 * один раз.
+	 *
+	 * Перевіряється в `build/`, бо «скільки їх на сторінці» не є властивістю
+	 * жодного окремого файлу: тег макета й тег сторінки живуть у різних файлах і
+	 * поодинці обидва правильні.
+	 */
+	if (metaDescription) {
+		for (const file of htmlFiles(buildDir)) {
+			const html = readFileSync(file, 'utf8');
+			const counts = new Map();
+
+			for (const [, key] of html.matchAll(/<meta[^>]+property="(og:[^"]+)"/g)) {
+				counts.set(key, (counts.get(key) ?? 0) + 1);
+			}
+
+			for (const [key, count] of counts) {
+				if (count > 1) {
+					problems.push(
+						`${relPath(buildDir, file)}: <meta property="${key}"> знайдено ${count}, ` +
+							'очікується 1 — читач бере перший'
+					);
+				}
+			}
+		}
+	}
+
 	// --- llms.txt (§ 7.1) ---
 	const llmsPath = join(buildDir, 'llms.txt');
 	if (!existsSync(llmsPath)) {

@@ -105,8 +105,11 @@
 		content={animal.description[settings.locale][0] || animal.description.en[0]}
 	/>
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content={photo} />
-	<meta property="og:image:alt" content={animal.name} />
+	<!--
+		No `og:image` here. It is the layout's tag, fed by `ogImage` from this route's
+		`load` — see the comment there. Written in this block it did not replace the
+		layout's default, it joined it, and the first tag is the one a link preview uses.
+	-->
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- payload is JSON.stringify of our own data, with "<" escaped -->
 	{@html jsonLdTag}
 </svelte:head>

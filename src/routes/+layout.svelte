@@ -6,6 +6,7 @@
 	import { untrack } from 'svelte';
 	import { settings } from '$lib/services/settings.svelte';
 	import { onNavigate, afterNavigate } from '$app/navigation';
+	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { trackPageView } from '$lib/services/analytics';
 	import { logService } from '$lib/services/logService.svelte';
@@ -335,7 +336,27 @@
 	{/if}
 	<meta property="og:locale" content={HTML_LANG[route.locale]} />
 	<meta property="og:site_name" content={t('app.title')} />
-	<meta property="og:image" content={absoluteFromRoot(DEFAULT_OG_IMAGE)} />
+	<!--
+		One `og:image` per page, chosen here, and the page says which through its data.
+
+		It used to be this default alone, unconditionally — while the animal page added
+		its own photograph from its own `<svelte:head>`. Appending again: both tags
+		shipped, the logo first, and an Open Graph reader takes the FIRST. Every animal
+		link shared to Facebook, Telegram, WhatsApp or Slack therefore previewed the
+		shelter logo instead of the animal, on the 200 pages where the photograph is the
+		reason anyone shares the link at all.
+
+		Through `page.data` rather than the page's head because that is the only
+		direction that can REPLACE rather than add. It works for this tag and not for
+		the description beside it because an image URL does not depend on the reader's
+		language: `t()` in a `load` would read the previous page's locale during a
+		sequential prerender (SVELTE-CORE § 5.1), and an image has nothing to translate.
+
+		`og:image:alt` travels with it: an alt belongs to the image above it, and the
+		two drift apart the moment they are written in different files.
+	-->
+	<meta property="og:image" content={page.data.ogImage ?? absoluteFromRoot(DEFAULT_OG_IMAGE)} />
+	<meta property="og:image:alt" content={page.data.ogImageAlt ?? t('app.title')} />
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
