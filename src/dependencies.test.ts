@@ -55,20 +55,62 @@ describe('залежності', () => {
 		expect(floating, `невідтворювані версії: ${floating.join(', ')}`).toEqual([]);
 	});
 
-	it('engines.node оголошено і збігається з версією в CI (§ 2.3)', () => {
-		// Без цього рядка версія Node існує лише у workflow, і локальна збірка на
-		// іншій мажорній може поводитися інакше, ніж та, що поїде на хостинг.
+	/**
+	 * Версія Node у ТРЬОХ місцях, а не у двох (§ 2.3, CI-CD-AND-TOOLS-v8 § 1.2).
+	 *
+	 * Доти тут звірялися лише `engines.node` і `node-version` у workflow, а
+	 * `.nvmrc` у проєкті не було зовсім — єдиний такий випадок із восьми
+	 * репозиторіїв. Хвиля «версія Node у трьох місцях і під гейтом» (23.08)
+	 * пройшла по сусідах і сіла тут на два місця.
+	 *
+	 * Чому третє місце не косметика: `engines` — це лише ПОРІГ, який npm за
+	 * замовчуванням не примушує, а `node-version` живе в CI. Локальна версія при
+	 * цьому не звіряється ні з чим, і розбіжність дає найнеприємніший клас
+	 * падіння: у CI зелено, локально не відтворюється, бо локально стоїть третя
+	 * версія. `.nvmrc` — те єдине, що читають `nvm`, `fnm` і `volta`.
+	 *
+	 * Форма `engines.node` — `">=X"` чи `">=X.Y.Z"`: порівнюються МАЖОРИ, а не
+	 * рядки, інакше `">=22"` і `">=22.12.0"` читалися б як розбіжність.
+	 */
+	it('engines.node, .nvmrc і node-version у CI називають той самий мажор (§ 2.3)', () => {
 		const declared = pkg.engines?.node;
 		expect(declared, 'engines.node не оголошено').toBeDefined();
 
-		const workflow = readFileSync(join(ROOT, '.github/workflows/deploy.yml'), 'utf8');
-		const inCi = /node-version:\s*'?(\d+)/.exec(workflow)?.[1];
-		expect(inCi, 'у workflow немає node-version — перевірка мертва').toBeDefined();
+		const majorOfRange = (range: string): number | null => {
+			const m = /^>=\s*(\d+)/.exec(range.trim());
+			return m ? Number(m[1]) : null;
+		};
+		const enginesMajor = majorOfRange(declared as string);
+		expect(enginesMajor, `engines.node="${declared}" не у формі ">=X"`).not.toBeNull();
 
-		const floor = /(\d+)/.exec(declared as string)?.[1];
 		expect(
-			floor,
-			`engines.node каже «${declared}», а CI ставить Node ${inCi} — збірка перевіряється не тією версією`
-		).toBe(inCi);
+			existsSync(join(ROOT, '.nvmrc')),
+			'немає .nvmrc — локальна версія ні з чим не звіряється'
+		).toBe(true);
+		const nvmrcMajor = Number(
+			readFileSync(join(ROOT, '.nvmrc'), 'utf8').trim().replace(/^v/, '').split('.')[0]
+		);
+		expect(nvmrcMajor, '.nvmrc не містить номера версії').not.toBeNaN();
+
+		// Усі згадки, а не перша: два кроки на різних мажорах — це саме те
+		// розходження, яке ця перевірка мусить бачити, а `exec` побачив би лише один.
+		const workflow = readFileSync(join(ROOT, '.github/workflows/deploy.yml'), 'utf8');
+		const ciMajors = [...workflow.matchAll(/node-version:\s*["']?v?(\d+)/g)].map((m) =>
+			Number(m[1])
+		);
+		expect(
+			ciMajors.length,
+			'у workflow немає node-version — перевірка мертва'
+		).toBeGreaterThan(0);
+
+		const mismatch = [...new Set(ciMajors.filter((v) => v !== nvmrcMajor))];
+		expect(
+			mismatch,
+			`node-version у CI (${mismatch.join(', ')}) розходиться з .nvmrc (${nvmrcMajor})`
+		).toEqual([]);
+		expect(
+			nvmrcMajor,
+			`.nvmrc ${nvmrcMajor} не збігається з мажором engines.node "${declared}"`
+		).toBe(enginesMajor);
 	});
 });

@@ -48,3 +48,11 @@ read_for_AI/
 .temp
 # Lighthouse CI writes its reports here on every run.
 .lighthouseci/
+
+# Робочі копії інструментів, не вихідний код. Паралельна сесія кладе сюди
+# git-worktree з ПОВНОЮ копією проєкту разом із `tsconfig.json`; eslint тут
+# читає ігнори саме з цього файлу (`includeIgnoreFile`), тож без цього рядка
+# `eslint .` розбирав би чужу копію як свою. Заміряно 26.08 у `Slovko`, де
+# такого рядка не було: один файл із worktree дав `Parsing error`, і гейт став
+# червоний на коді, якого в проєкті немає.
+.claude/
