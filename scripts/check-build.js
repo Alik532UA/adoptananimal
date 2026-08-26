@@ -227,6 +227,93 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 4C. no address of ours is one the server would redirect -----------------
+//
+// § 4A is about a URL that is spelled wrong. This is about one that is spelled
+// right and still is not the address the server serves — the distinction being
+// that a redirect looks like success to everything except the crawler reading it.
+//
+// A static host answers a DIRECTORY URL without the trailing slash with a 301 to
+// the one that has it, and answers a FILE URL with a trailing slash with a 404.
+// Neither shows up in `build/`: both paths resolve to the same bytes here, and
+// every check in this file resolves a URL by taking the slash off first.
+//
+// This is not hypothetical. `absoluteLocale()` guarded the trailing slash by
+// comparing the URL against the ORIGIN, which is the whole address only when
+// `BASE_PATH` is empty — i.e. never in production. The deployed site therefore
+// named `https://alik532ua.github.io/adoptananimal` as its own canonical, its
+// `og:url`, its `x-default`, its `hreflang="en"` on all four language home pages
+// and its sitemap entry with priority 1.0. That URL answers 301. Sweeping all 220
+// live `<loc>` values found exactly one non-200, and it was this one.
+//
+// Only OUR addresses are judged: a URL under the base path, or — when no base is
+// configured — one on the same host as the home page's canonical. Neighbouring
+// sites share this origin under their own prefixes, and their trailing slashes are
+// their business. A path that names nothing in `build/` is left alone too; § 5 and
+// § 8 own that, and guessing here would turn one defect into two reports.
+{
+	const homeCanonical =
+		readFileSync(join(BUILD_DIR, 'index.html'), 'utf-8').match(
+			/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/
+		)?.[1] ?? '';
+	let ownHost = '';
+	try {
+		ownHost = new URL(homeCanonical).host;
+	} catch {
+		fail('index.html has no usable canonical — the redirect check has no host to compare against');
+	}
+
+	const isFile = (p) => existsSync(p) && statSync(p).isFile();
+	const isDir = (p) => existsSync(p) && statSync(p).isDirectory();
+	const files = [
+		...htmlFiles,
+		join(BUILD_DIR, 'sitemap.xml'),
+		join(BUILD_DIR, 'robots.txt'),
+		join(BUILD_DIR, 'llms.txt')
+	];
+
+	for (const file of files) {
+		if (!existsSync(file) || !ownHost) continue;
+		const rel = relative(BUILD_DIR, file).split(sep).join('/');
+		const offenders = new Set();
+
+		for (const [raw] of readFileSync(file, 'utf-8').matchAll(/https?:\/\/[^"'\s<>)]+/g)) {
+			let url;
+			try {
+				url = new URL(raw);
+			} catch {
+				continue;
+			}
+			if (url.host !== ownHost) continue;
+
+			const path = url.pathname;
+			if (BASE_PATH && path !== BASE_PATH && !path.startsWith(`${BASE_PATH}/`)) continue;
+
+			const inside = BASE_PATH ? path.slice(BASE_PATH.length) : path;
+			const target = inside.replace(/^\/+/, '').replace(/\/$/, '');
+			const slashed = inside.endsWith('/');
+
+			// The build root. `index.html` answers it, and only with the slash.
+			if (target === '') {
+				if (!slashed) offenders.add(`${raw} — the site root is a directory and 301s without "/"`);
+				continue;
+			}
+
+			const asPage = isFile(join(BUILD_DIR, `${target}.html`));
+			const asAsset = isFile(join(BUILD_DIR, ...target.split('/')));
+			const asIndex = isFile(join(BUILD_DIR, ...target.split('/'), 'index.html'));
+
+			if (asPage || asAsset) {
+				if (slashed) offenders.add(`${raw} — names a file, and a file URL 404s with "/"`);
+			} else if (asIndex || isDir(join(BUILD_DIR, ...target.split('/')))) {
+				if (!slashed) offenders.add(`${raw} — names a directory and 301s without "/"`);
+			}
+		}
+
+		for (const offender of offenders) fail(`${rel}: ${offender}`);
+	}
+}
+
 // --- 5. the sitemap lists pages that were actually generated ----------------
 const sitemapPath = join(BUILD_DIR, 'sitemap.xml');
 if (!existsSync(sitemapPath)) {

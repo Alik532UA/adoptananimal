@@ -80,16 +80,44 @@ export const absoluteFromRoot = (path: string): string =>
 	`${SITE_ORIGIN}${SITE_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 
 /**
+ * Same URL, built from its parts instead of from the module constants.
+ *
+ * Split out so the rule below can be tested at all. `SITE_BASE` is empty in every
+ * environment except the deploy build — `BASE_PATH` is only ever set by the
+ * workflow — and the trailing slash matters *only* when it is not. A test that
+ * calls `absoluteLocale()` therefore exercises the one case that was already
+ * right, which is how the defect below survived three audits with every gate green.
+ */
+export const localeUrl = (origin: string, base: string, path: string, locale: Locale): string => {
+	const root = `${origin}${base}`;
+	const url = `${root}${localeSegment(locale)}${path === '/' ? '' : path}`;
+
+	/*
+	 * The site root is a directory, and a static host answers a directory URL
+	 * without the trailing slash with a 301 to the one that has it. Verified
+	 * against the live server: `https://alik532ua.github.io/adoptananimal`
+	 * redirects, `…/adoptananimal/` is the page.
+	 *
+	 * A canonical, an `og:url`, an `x-default` or a sitemap `<loc>` naming the
+	 * redirecting form is the page telling a crawler an address that the server
+	 * then tells it is wrong — the site's own declaration is the one thing
+	 * discarded. It stood on the four language home pages and on the sitemap
+	 * entry with priority 1.0.
+	 *
+	 * The rule this replaces compared the URL against the ORIGIN, so it covered
+	 * the case only while `base` was empty. Written against the root, it covers
+	 * both, and the empty-base case reduces to exactly what was there before.
+	 */
+	return url === root ? `${root}/` : url;
+};
+
+/**
  * Absolute URL of a page in a given language, from a locale-free path such as
  * `/adopt/cat`. Used for canonical and for the hreflang alternates, which have to
  * be absolute to mean anything to a crawler.
  */
-export const absoluteLocale = (path: string, locale: Locale): string => {
-	const tail = path === '/' ? '' : path;
-	const url = `${SITE_ORIGIN}${SITE_BASE}${localeSegment(locale)}${tail}`;
-	// Root of a language with no base configured would otherwise be a bare origin.
-	return url === SITE_ORIGIN ? `${SITE_ORIGIN}/` : url;
-};
+export const absoluteLocale = (path: string, locale: Locale): string =>
+	localeUrl(SITE_ORIGIN, SITE_BASE, path, locale);
 
 /**
  * The scrollbar modes, in one place (SCROLLBAR-v8 § 2.2).
