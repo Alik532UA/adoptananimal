@@ -98,10 +98,7 @@ describe('залежності', () => {
 		const ciMajors = [...workflow.matchAll(/node-version:\s*["']?v?(\d+)/g)].map((m) =>
 			Number(m[1])
 		);
-		expect(
-			ciMajors.length,
-			'у workflow немає node-version — перевірка мертва'
-		).toBeGreaterThan(0);
+		expect(ciMajors.length, 'у workflow немає node-version — перевірка мертва').toBeGreaterThan(0);
 
 		const mismatch = [...new Set(ciMajors.filter((v) => v !== nvmrcMajor))];
 		expect(
