@@ -57,6 +57,32 @@ const hiddenPattern = `(?:${HIDDEN_ROUTES.map((route) => route.replace(/^\//, ''
  */
 const HIDDEN_SEO_CEILING = 0.69;
 
+/*
+ * READ THIS BEFORE "FIXING" THE NUMBER ABOVE.
+ *
+ * The URLs below end in `.html`, and they have to: lhci serves the build with
+ * `express.static` (`src/collect/fallback-server.js`), whose extension fallback is off,
+ * so `/beta-test-checklists` is a 404 there. The only alternative,
+ * `isSinglePageApplication: true`, answers every path with `index.html` — every page
+ * would then be measured as the home page.
+ *
+ * On a `.html` URL the app hydrates the hidden pages as ORDINARY routes, because
+ * `isHiddenRoute()` matches `/beta-test-checklists`, not `/beta-test-checklists.html`.
+ * The head is then rebuilt client-side with the default `index, follow` and a canonical,
+ * so `is-crawlable` passes and the SEO score comes out near 1.0 instead of 0.69.
+ *
+ * That is fine — `minScore` is a floor, so a higher score passes — and it is NOT a
+ * defect in the noindex mechanism. Checked at the real URL shape, served under the base
+ * path the way GitHub Pages does: `/adoptananimal/beta-test-checklists` and
+ * `/adoptananimal/apply/form` both keep `noindex, nofollow`, no canonical and no
+ * hreflang after hydration. No link on the site, and no sitemap entry, uses `.html`.
+ *
+ * So the number stays where the measurement put it, and the pages stay on the list:
+ * BETA-CHECKLIST-v8 § 5.5 is explicit that the page testers use most must not become
+ * the least audited one, and its accessibility and performance audits are unaffected by
+ * any of this.
+ */
+
 /**
  * The pages Lighthouse measures, listed rather than discovered.
  *
