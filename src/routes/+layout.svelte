@@ -301,10 +301,20 @@
 </script>
 
 <svelte:head>
-	<meta
-		name="description"
-		content="Adopt an animal from Ukraine. A joint project of Notpfote & Vet Crew giving rescued dogs and cats a second chance."
-	/>
+	<!--
+		No `description` here, and that is the fix rather than an omission.
+
+		`<svelte:head>` APPENDS to the head; it does not replace what is already in it.
+		A tag written here therefore does not become the default that a page overrides
+		— it becomes a second tag beside the page's own, and 208 of the 229 built pages
+		carried both, with this generic one first. It was hardcoded English as well, so
+		`/uk`, `/de` and `/nl` all described themselves in a language they are not
+		written in.
+
+		A description belongs to the page, like the `<title>` beside it (SEO-v8 § 4.1),
+		and is written where `t()` knows the reader's language. The two hidden routes
+		have none on purpose: they are `noindex`, so nothing ever reads it.
+	-->
 	{#if hidden}
 		<!-- A hidden route declares the opposite of an indexed one, and it has to be all
 			 of it: `noindex` alone still leaves a canonical inviting the crawler in. -->

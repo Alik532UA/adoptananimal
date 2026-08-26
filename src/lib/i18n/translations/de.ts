@@ -227,5 +227,13 @@ export const de = {
 	'detail.prevAnimal': 'Vorheriges Tier ansehen',
 	'footer.openSite': 'Website öffnen',
 	'footer.play': 'Spielen',
-	'footer.orderSite': 'Website bestellen'
+	'footer.orderSite': 'Website bestellen',
+	// Meta-Beschreibungen — eine pro Seite, in der Seite selbst, nicht im Layout.
+	'meta.home.description':
+		'Ein Tier aus der Ukraine adoptieren. Ein gemeinsames Projekt von Notpfote & Vet Crew, das geretteten Hunden und Katzen eine zweite Chance gibt.',
+	'meta.apply.description':
+		'Wie die Adoption abläuft, in welche Länder wir sie vermitteln, und das Antragsformular selbst.',
+	'meta.favorites.description':
+		'Die Tiere, die Sie beim Stöbern markiert haben — gespeichert in Ihrem eigenen Browser.',
+	'meta.animal.description': '{name}: {breed} aus der Ukraine sucht ein Zuhause. {story}'
 } as const;

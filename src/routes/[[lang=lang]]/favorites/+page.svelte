@@ -57,6 +57,7 @@
 
 <svelte:head>
 	<title>{t('nav.favorites')} | AdoptAnAnimal</title>
+	<meta name="description" content={t('meta.favorites.description')} />
 </svelte:head>
 
 <section class="favs-hero">

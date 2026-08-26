@@ -17,6 +17,7 @@
 
 <svelte:head>
 	<title>{t('apply.title')} | {t('footer.brand')}</title>
+	<meta name="description" content={t('meta.apply.description')} />
 </svelte:head>
 
 <section class="apply-hero">

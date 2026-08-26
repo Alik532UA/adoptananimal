@@ -18,10 +18,24 @@
  * очима цього не видно — тут це рядок звіту.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 /** Агенти, від яких залежить видимість у відповідях AI (SEO-v8 § 7.2). */
 export const SEARCH_AGENTS = ['OAI-SearchBot', 'ChatGPT-User', 'PerplexityBot', 'ClaudeBot'];
+
+/**
+ * Шлях відносно кореня збірки, у прямих слешах.
+ *
+ * Повідомлення про сторінку має називати сторінку — `adopt/cat.html`, а не
+ * `C:/…/build/adopt/cat.html`. Раніше тут заміняли лише роздільники, не
+ * відкидаючи кореня, і в CI, де збірка лежить за довгим абсолютним шляхом, рядок
+ * звіту складався переважно з нього.
+ *
+ * @param {string} buildDir
+ * @param {string} file
+ * @returns {string}
+ */
+const relPath = (buildDir, file) => relative(buildDir, file).split(/[\\/]/).join('/');
 
 /**
  * Одна група `robots.txt`: агенти, яких вона стосується, і її правила.
@@ -88,7 +102,7 @@ function htmlFiles(dir, out = []) {
 
 /**
  * @param {string} buildDir каталог зібраного сайту
- * @param {{ expectsLlmsTxt?: boolean, searchAgents?: string[], robotsMeta?: boolean, spaFallback?: boolean }} options
+ * @param {{ expectsLlmsTxt?: boolean, searchAgents?: string[], robotsMeta?: boolean, metaDescription?: boolean, spaFallback?: boolean }} options
  * @returns {string[]} перелік проблем; порожній — усе гаразд
  */
 export function checkGeo(buildDir, options = {}) {
@@ -96,6 +110,7 @@ export function checkGeo(buildDir, options = {}) {
 		expectsLlmsTxt = true,
 		searchAgents = SEARCH_AGENTS,
 		robotsMeta = true,
+		metaDescription = true,
 		// `true` для профілю, де `adapter-static` віддає фолбек на всі адреси:
 		// власного HTML у маршруту там немає за побудовою.
 		spaFallback = false
@@ -113,9 +128,45 @@ export function checkGeo(buildDir, options = {}) {
 		for (const file of htmlFiles(buildDir)) {
 			const tags = readFileSync(file, 'utf8').match(/<meta[^>]+name="robots"/g) ?? [];
 			if (tags.length > 1) {
-				const rel = file.split(/[\\/]/).join('/');
+				const rel = relPath(buildDir, file);
 				problems.push(`${rel}: <meta name="robots"> знайдено ${tags.length} разів, очікується 1`);
 			}
+		}
+	}
+
+	/*
+	 * --- рівно ОДИН <meta name="description"> на індексованій сторінці ---
+	 *
+	 * Той самий механізм, що й вище, і саме тому цей рядок мав би стояти поряд від
+	 * початку: `<svelte:head>` ДОПИСУЄ. Тег у макеті не стає значенням за
+	 * замовчуванням, яке сторінка перевизначає, — він стає другим тегом поруч із
+	 * її власним. У цьому проєкті так вийшло на 208 із 229 зібраних сторінок, і
+	 * першим щоразу йшов загальний, англійський, — на сторінках усіх чотирьох мов.
+	 *
+	 * `robots` перевірявся, `description` — ні, хоча ламаються вони однаково.
+	 * Різниця лише в тому, що суперечливий `robots` видно як помилку, а два описи
+	 * виглядають як робоча сторінка: жоден гейт, жодне попередження збірки, жоден
+	 * симптом у браузері. Видно це тільки в `build/` і тільки якщо порахувати.
+	 *
+	 * Приховані сторінки (`noindex`) опису не мають і не потребують: його ніхто
+	 * ніколи не прочитає. Тому для них правило — «не більше одного», а не «рівно».
+	 */
+	for (const file of metaDescription ? htmlFiles(buildDir) : []) {
+		const html = readFileSync(file, 'utf8');
+		const rel = relPath(buildDir, file);
+		const tags = html.match(/<meta[^>]+name="description"/g) ?? [];
+
+		if (tags.length > 1) {
+			problems.push(`${rel}: <meta name="description"> знайдено ${tags.length}, очікується 1`);
+			continue;
+		}
+
+		// Оболонка SPA описувати нічого не може: у неї порожнє тіло за побудовою.
+		const isShell = rel.endsWith('/404.html') || rel === '404.html';
+		const noindex = /<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(html);
+
+		if (tags.length === 0 && !noindex && !isShell) {
+			problems.push(`${rel}: сторінка в індексі без <meta name="description">`);
 		}
 	}
 

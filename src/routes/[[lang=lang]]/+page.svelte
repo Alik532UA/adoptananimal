@@ -83,6 +83,7 @@
 
 <svelte:head>
 	<title>{t('app.title.full')}</title>
+	<meta name="description" content={t('meta.home.description')} />
 </svelte:head>
 
 <!-- Featured Carousel (Moved to the very beginning) -->

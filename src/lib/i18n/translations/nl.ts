@@ -222,5 +222,13 @@ export const nl = {
 	'detail.prevAnimal': 'Bekijk de vorige',
 	'footer.openSite': 'Website openen',
 	'footer.play': 'Spelen',
-	'footer.orderSite': 'Website bestellen'
+	'footer.orderSite': 'Website bestellen',
+	// Meta-beschrijvingen — één per pagina, in de pagina zelf, niet in de layout.
+	'meta.home.description':
+		'Adopteer een dier uit Oekraïne. Een gezamenlijk project van Notpfote & Vet Crew dat geredde honden en katten een tweede kans geeft.',
+	'meta.apply.description':
+		'Hoe de adoptie verloopt, naar welke landen wij die regelen, en het aanvraagformulier zelf.',
+	'meta.favorites.description':
+		'De dieren die u tijdens het bladeren hebt gemarkeerd, bewaard in uw eigen browser.',
+	'meta.animal.description': '{name}: {breed} uit Oekraïne zoekt een thuis. {story}'
 } as const;

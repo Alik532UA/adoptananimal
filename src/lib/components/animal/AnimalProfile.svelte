@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { withBase } from '$lib/utils/withBase';
-	import { t } from '$lib/i18n';
+	import { t, tFormat } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
@@ -37,6 +37,23 @@
 	const heroColour = $derived(kind === 'cat' ? 'var(--cat-hero)' : 'var(--dog-hero)');
 
 	const photo = $derived(absoluteFromRoot(animal.image));
+
+	/**
+	 * The snippet a search result shows, so it is written in the language the page is.
+	 *
+	 * It used to read `animal.breed.en` and `animal.description.en[0]` — English on
+	 * every one of the four language versions, while `og:description` in the same
+	 * head block already localised the same sentence. The JSON-LD keeps English on
+	 * purpose and that is a different case: `additionalProperty` is read by machines,
+	 * this is read by a person deciding whether to click.
+	 */
+	const metaDescription = $derived(
+		tFormat('meta.animal.description', {
+			name: animal.name,
+			breed: animal.breed[settings.locale] || animal.breed.en,
+			story: animal.description[settings.locale]?.[0] || animal.description.en[0]
+		})
+	);
 
 	/**
 	 * Schema.org description of the animal. Rendered with {@html} because Svelte does
@@ -81,11 +98,7 @@
 
 <svelte:head>
 	<title>{animal.name} | {listLabel}</title>
-	<meta
-		name="description"
-		content="Meet {animal.name}, a {animal.breed.en} {kind} rescued from Ukraine. {animal
-			.description.en[0]}"
-	/>
+	<meta name="description" content={metaDescription} />
 	<meta property="og:title" content="{animal.name} - {listLabel}" />
 	<meta
 		property="og:description"

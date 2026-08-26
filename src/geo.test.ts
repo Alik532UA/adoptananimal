@@ -58,7 +58,7 @@ function build(llms: string, pages: string[] = []): string[] {
 
 	// Isolated to the llms.txt half: the robots.txt group rules are exercised by
 	// check-build over the real file, and a missing agent group here would be noise.
-	return checkGeo(dir, { robotsMeta: false, searchAgents: [] });
+	return checkGeo(dir, { robotsMeta: false, metaDescription: false, searchAgents: [] });
 }
 
 const link = (name: string, url: string) => `- [${name}](${url}): what it is.`;
@@ -104,5 +104,66 @@ describe('the llms.txt gate', () => {
 		const problems = build(file(link('Home', `${ROOT}/`), link('About', `${ROOT}/about`)));
 
 		expect(problems).toEqual([`llms.txt: адреси немає в build/ — ${ROOT}/about`]);
+	});
+});
+
+/**
+ * The `<meta name="description">` count, which is the `robots` rule beside it applied
+ * to the tag that was actually broken.
+ *
+ * `<svelte:head>` appends rather than replaces, so a description in the layout does
+ * not become a default that a page overrides — it becomes a second tag next to the
+ * page's own. 208 of the 229 built pages carried two, generic English first, on all
+ * four languages. Nothing anywhere said so: the build was green, the browser showed
+ * a working page, and only counting the tags in `build/` revealed it.
+ *
+ * Reverse experiment: dropping the `tags.length > 1` branch reddens `two description
+ * tags on one page is the layout-plus-page defect`; dropping the `tags.length === 0`
+ * branch reddens `an indexed page with no description at all`; and removing the
+ * `noindex` condition reddens `a hidden page needs none — nothing ever reads it`.
+ */
+describe('the meta description count', () => {
+	/** A page carrying the given head tags, with the descriptions asked for. */
+	function pageBuild(pages: Record<string, string>): string[] {
+		dir = mkdtempSync(join(tmpdir(), 'geo-'));
+		writeFileSync(join(dir, 'robots.txt'), 'User-agent: *\nDisallow: /private\n');
+
+		for (const [name, head] of Object.entries(pages)) {
+			const target = join(dir, name);
+			mkdirSync(dirname(target), { recursive: true });
+			writeFileSync(target, `<html><head>${head}</head><body></body></html>`);
+		}
+
+		return checkGeo(dir, { expectsLlmsTxt: false, searchAgents: [] });
+	}
+
+	const description = (text: string) => `<meta name="description" content="${text}"/>`;
+	const NOINDEX = '<meta name="robots" content="noindex, nofollow"/>';
+
+	it('passes one description per indexed page', () => {
+		expect(pageBuild({ 'index.html': description('The site.') })).toEqual([]);
+	});
+
+	it('two description tags on one page is the layout-plus-page defect', () => {
+		const problems = pageBuild({
+			'index.html': description('The whole site.') + description('This page.')
+		});
+
+		expect(problems).toEqual(['index.html: <meta name="description"> знайдено 2, очікується 1']);
+	});
+
+	it('an indexed page with no description at all', () => {
+		expect(pageBuild({ 'index.html': '<title>Nothing else</title>' })).toEqual([
+			'index.html: сторінка в індексі без <meta name="description">'
+		]);
+	});
+
+	it('a hidden page needs none — nothing ever reads it', () => {
+		expect(pageBuild({ 'apply/form.html': NOINDEX })).toEqual([]);
+	});
+
+	/* The SPA shell has an empty body by design and nothing to describe. */
+	it('404.html is exempt', () => {
+		expect(pageBuild({ '404.html': '<title>Not found</title>' })).toEqual([]);
 	});
 });

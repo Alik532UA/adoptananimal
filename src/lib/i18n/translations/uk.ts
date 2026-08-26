@@ -224,5 +224,13 @@ export const uk = {
 	'detail.prevAnimal': 'Дивитися попереднього',
 	'footer.openSite': 'Відкрити сайт',
 	'footer.play': 'Грати',
-	'footer.orderSite': 'Замовити сайт'
+	'footer.orderSite': 'Замовити сайт',
+	// Мета-описи — по одному на сторінку, у самій сторінці, а не в макеті.
+	'meta.home.description':
+		'Прихисти тварину з України. Спільний проєкт Notpfote та Vet Crew, що дає врятованим собакам і котам другий шанс.',
+	'meta.apply.description':
+		'Як відбувається прихисток, у які країни ми його влаштовуємо, і сама форма заявки.',
+	'meta.favorites.description':
+		'Тварини, яких ви позначили під час перегляду, збережені у вашому браузері.',
+	'meta.animal.description': '{name}: {breed} з України шукає дім. {story}'
 } as const;

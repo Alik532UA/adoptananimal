@@ -225,7 +225,16 @@ export const en = {
 	'detail.prevAnimal': 'See the previous one',
 	'footer.openSite': 'Open the website',
 	'footer.play': 'Play',
-	'footer.orderSite': 'Order a website'
+	'footer.orderSite': 'Order a website',
+	// Meta descriptions. One per page and authored where the page is, not in the
+	// layout: <svelte:head> APPENDS, so a layout-wide tag plus a page's own gave 208
+	// of 229 built pages two of them, generic English first.
+	'meta.home.description':
+		'Adopt an animal from Ukraine. A joint project of Notpfote & Vet Crew giving rescued dogs and cats a second chance.',
+	'meta.apply.description':
+		'How adoption works, which countries we arrange it to, and the application form itself.',
+	'meta.favorites.description': 'The animals you marked while browsing, kept in your own browser.',
+	'meta.animal.description': '{name}: a {breed} from Ukraine looking for a home. {story}'
 } as const;
 
 export type TranslationKey = keyof typeof en;
