@@ -7,10 +7,14 @@
 
 <aside class="apply__sidebar">
 	<div class="glass-card apply__info-card">
-		<h3 class="info-card__title">
+		<!-- h2, not h3: the page's own h1 is directly above and nothing sits between,
+			 so h3 skips a level. `heading-order` is tagged `best-practice` in axe, so the
+			 WCAG-tagged sweep never ran it — Lighthouse does, and counts it against 0.95.
+			 Size comes from `.info-card__title`, so nothing moves visually. -->
+		<h2 class="info-card__title">
 			<Icon name="idea" size="1.5rem" />
 			{t('apply.process.title')}
-		</h3>
+		</h2>
 		<ol class="apply__steps">
 			<li>
 				<span class="step-number">1</span>
@@ -36,10 +40,10 @@
 	</div>
 
 	<div class="glass-card apply__info-card apply__info-card--contact">
-		<h3 class="info-card__title">
+		<h2 class="info-card__title">
 			<Icon name="email" size="1.5rem" />
 			{t('apply.contact.title')}
-		</h3>
+		</h2>
 		<p class="contact-text">{t('apply.contact.text')}</p>
 		<!-- Stays an <a href="mailto:"> so it still works without JS; the handler
 						 copies the address and offers to open the mail app instead. -->

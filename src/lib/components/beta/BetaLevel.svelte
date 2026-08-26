@@ -16,10 +16,14 @@
 
 {#if checks.length > 0}
 	<section class="level level--{coverage}" data-testid="beta-level-{coverage}-section">
-		<h3 class="level__title">
+		<!-- h2, not h3: on /beta-test-checklists the page h1 is directly above and the tab
+			 strip between them is buttons, not headings — so h3 skipped a level. Caught by the
+			 `heading-order` run beside the axe sweep, which exists because that rule is tagged
+			 `best-practice` and the WCAG tag set never ran it. Size comes from the class. -->
+		<h2 class="level__title">
 			{pick(BETA_UI.levels[coverage], locale)}
 			<span class="level__count">{checks.length}</span>
-		</h3>
+		</h2>
 
 		{#if coverage === 'covered'}
 			<!-- § 3: this level is the control group. A failure here is a report about the

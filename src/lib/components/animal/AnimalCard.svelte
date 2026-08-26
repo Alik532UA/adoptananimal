@@ -108,7 +108,26 @@
 	</div>
 	<div class="animal-card__body">
 		<div class="animal-card__header">
-			<h3 class="animal-card__name">{animal.name}</h3>
+			<!--
+				h2, not h3. On both listing pages and on /favorites the page's own h1 sits
+				directly above these cards, so an h3 skips a level — axe's `heading-order`
+				calls it invalid and Lighthouse scores it, which is what took
+				/adopt/dog.html to 0.94 accessibility against a threshold of 0.95.
+
+				It stayed invisible because the e2e axe sweep asks for WCAG tags only, and
+				`heading-order` is tagged `best-practice`: the rule never ran. There is now
+				a test for exactly that rule beside the sweep.
+
+				h2 is right on the carousel of the home page too, where the card is the
+				FIRST heading on the page: `heading-order` compares each heading with the
+				one before it, so the first is unconstrained, and h2 beside the section
+				headings below it reads better than h3 did.
+
+				Same reasoning as the note about h3-not-h4 in the home page's about section
+				— the level follows the document, not the type size. Size comes from
+				`.animal-card__name` below, so nothing moves visually.
+			-->
+			<h2 class="animal-card__name">{animal.name}</h2>
 			<!--
 			<Badge variant={animal.type === 'cat' ? 'cat' : 'dog'}>
 				{t(animal.type === 'cat' ? 'detail.cat' : 'detail.dog')}

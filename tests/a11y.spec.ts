@@ -13,6 +13,11 @@ const STYLES = ['modern', 'minimal', 'playful'] as const;
 const PAGES = [
 	'/',
 	'/adopt/cat',
+	// The dog listing is not a copy of the cat one with other pictures — it holds
+	// different data, and the whole point of the note above is that the page nobody
+	// audits is the page that fails. Lighthouse measured it for the first time on
+	// 2026-08-26 and found two violations; this list is why neither showed up here.
+	'/adopt/dog',
 	'/adopt/cat/basti',
 	'/apply',
 	'/apply/form',
@@ -123,6 +128,47 @@ for (const path of PAGES) {
 			results.violations.length,
 			`${path}: more violations than the baseline allows\n${report}`
 		).toBeLessThanOrEqual(baselineFor(path));
+	});
+}
+
+/*
+ * The rules Lighthouse scores and the sweep above does not run.
+ *
+ * `audit()` asks for WCAG tags, which is the right default: those are the rules a
+ * failure of which is a conformance failure. But Lighthouse's accessibility category
+ * is NOT the WCAG tag set — it includes axe rules tagged `best-practice`, and their
+ * weight counts against the 0.95 the deploy asserts.
+ *
+ * `heading-order` is one of them, and it cost a deploy. `/adopt/dog.html` scored 0.94:
+ * the page's h1 sat directly above cards whose name was an h3, and the sweep above
+ * could not see it because the rule never ran. Two audits with different scopes, and
+ * the narrower one was read as complete — the same mistake as auditing one page and
+ * calling it the site.
+ *
+ * Added rule by rule rather than by turning on the whole `best-practice` tag: that
+ * would drag in a dozen unrelated rules at once, and a gate that arrives red is a gate
+ * that gets switched off (ACCESSIBILITY § 10.1.1). Each id here is one Lighthouse
+ * weighs, checked on every page, at zero tolerance because that is where it starts.
+ */
+const LIGHTHOUSE_EXTRA_RULES = ['heading-order'];
+
+for (const path of PAGES) {
+	test(`${path} keeps the heading levels Lighthouse also scores`, async ({ page }) => {
+		await page.goto(path);
+		await page.waitForLoadState('networkidle');
+
+		const results = await new AxeBuilder({ page })
+			.exclude(NOT_OURS)
+			.withRules(LIGHTHOUSE_EXTRA_RULES)
+			.analyze();
+
+		const report = results.violations
+			.flatMap((v) => v.nodes.map((n) => `${v.id}: ${n.target.join(' ')}`))
+			.join('\n');
+
+		expect(results.violations, `${path}: Lighthouse counts this against 0.95\n${report}`).toEqual(
+			[]
+		);
 	});
 }
 
