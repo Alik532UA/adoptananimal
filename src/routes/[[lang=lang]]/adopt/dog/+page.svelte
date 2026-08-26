@@ -99,8 +99,13 @@
 		<FilterBar {gender} {size} {status} {search} onchange={handleFilterChange} />
 
 		<div class="grid grid--4" data-testid="dogs-list">
-			{#each filteredDogs as dog (dog.slug)}
-				<AnimalCard animal={dog} />
+			<!-- The first card is the LCP element on this page, measured: Lighthouse named
+				 `a#card-gracie > img.animal-card__photo` and scored `lcp-lazy-loaded` at 0,
+				 with LCP at 9.4 s against a 2.5 s target. `priority` is exactly what the prop
+				 exists for, and this page never passed it. Only the first: eager-loading more
+				 would trade the LCP win for bandwidth the visitor may not need. -->
+			{#each filteredDogs as dog, i (dog.slug)}
+				<AnimalCard animal={dog} priority={i === 0} />
 			{/each}
 		</div>
 

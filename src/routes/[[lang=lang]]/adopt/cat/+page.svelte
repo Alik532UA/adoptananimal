@@ -97,8 +97,11 @@
 		<FilterBar {gender} {status} {search} size="" showSize={false} onchange={handleFilterChange} />
 
 		<div class="grid grid--4" data-testid="cats-list">
-			{#each filteredCats as cat (cat.slug)}
-				<AnimalCard animal={cat} />
+			<!-- Same as the dog listing: the first card's photo is the LCP element. This page
+				 was not in the Lighthouse sample, so the number comes from its twin — which is
+				 the argument for fixing both rather than the one that was measured. -->
+			{#each filteredCats as cat, i (cat.slug)}
+				<AnimalCard animal={cat} priority={i === 0} />
 			{/each}
 		</div>
 
