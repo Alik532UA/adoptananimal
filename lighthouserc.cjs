@@ -57,6 +57,65 @@ const hiddenPattern = `(?:${HIDDEN_ROUTES.map((route) => route.replace(/^\//, ''
  */
 const HIDDEN_SEO_CEILING = 0.69;
 
+/**
+ * The pages Lighthouse measures, listed rather than discovered.
+ *
+ * WHY THIS LIST EXISTS. `staticDistDir` with no `url` turns on autodiscovery, which
+ * takes the first `maxAutodiscoverUrls` (default 5) HTML files it walks into. The
+ * sample that produced was `404`, `apply`, `beta-test-checklists`, `de`, `favorites`
+ * — and both halves of that were wrong:
+ *
+ *   - `index.html` sorts after `favorites.html`, so THE HOME PAGE HAD NO BUDGET AT
+ *     ALL. The most important address on the site was the one address nobody
+ *     measured, and the sample would shift again the day a page with an earlier name
+ *     arrived.
+ *   - `404.html` is not a page. It is the SPA fallback shell: an empty `<body>` plus
+ *     the base-prefixed absolute script paths it needs, because GitHub Pages serves
+ *     it from arbitrary depths. lhci's static server serves the build at the ROOT,
+ *     so those paths 404, nothing renders, and Lighthouse dies on the whole run with
+ *     `NO_FCP` — "The page did not paint any content".
+ *
+ * That second half only started failing when the deploy build stopped being thrown
+ * away (a135ea1). Before then Lighthouse audited Playwright's build, made with no
+ * base path, where `404.html`'s absolute paths happened to resolve at the root: the
+ * shell hydrated, painted, and got audited as though it were a page. So the green
+ * Lighthouse step was measuring an artefact that never shipped, and the red one is
+ * the honest result.
+ *
+ * Every path here is verified against `build/` by `scripts/check-build.js`, together
+ * with the rule that `404.html` may never be on the list. A typo would otherwise be
+ * a 404 that Lighthouse scores, which is a low score with no defect behind it.
+ */
+const URLS = [
+	// The home page. Added the day this list arrived; see above.
+	'/index.html',
+	// The heaviest page in the build: the full dog listing, every card with an image.
+	// If a performance budget breaks anywhere, it breaks here first.
+	'/adopt/dog.html',
+	// Carries its own best-practices threshold (0.78) because of the embedded Google
+	// form. Dropping it from the sample would leave that number asserting nothing.
+	'/apply.html',
+	// The one page whose content comes from storage rather than from the build.
+	'/favorites.html',
+	// A localised home, so `<html lang>` and the hreflang set get audited too, not
+	// only the English tree.
+	'/de.html',
+
+	/*
+	 * The hidden routes, and the reason HIDDEN_SEO_CEILING exists. Same argument as
+	 * `/apply.html`: a threshold nobody measures is not a threshold. And
+	 * BETA-CHECKLIST-v8 § 5.5 puts it the other way round — the page testers spend
+	 * the most time on must not become the least audited one.
+	 *
+	 * DERIVED, not typed out, and the existing invariant in `src/ci.test.ts` caught
+	 * the first draft of this list doing the latter. It is right to: a literal
+	 * `/beta-test-checklists.html` here would be the fourth copy of that list, and a
+	 * hidden route added later would silently get no budget. Derived, it gets one the
+	 * moment it lands in `src/lib/config.ts`.
+	 */
+	...HIDDEN_ROUTES.map((route) => `${route}.html`)
+];
+
 /** Everything except SEO is the same everywhere; only the reason for SEO differs. */
 const shared = {
 	'categories:performance': ['warn', { minScore: 0.8 }],
@@ -68,7 +127,25 @@ module.exports = {
 	ci: {
 		collect: {
 			staticDistDir: './build',
-			maxAutodiscoverIsolate: 1
+
+			/*
+			 * Relative paths are the documented form and they work: lhci resolves each
+			 * entry with `new URL(raw, 'http://localhost')` and then overwrites the port
+			 * with its own server's (`src/collect/collect.js`). Read from the package at
+			 * 0.15.1 rather than assumed — an unverified change to this file cannot be
+			 * tried locally, because Lighthouse itself does not run on this machine
+			 * (`EPERM` on its own temp directory, PROJECT-CONTEXT.md § 5).
+			 */
+			url: URLS
+
+			/*
+			 * `maxAutodiscoverIsolate: 1` used to sit here and it was never an option.
+			 * No such key exists anywhere in `@lhci/cli@0.15.1` — the real ones are
+			 * `maxAutodiscoverUrls` and `autodiscoverUrlBlocklist` — so it was read by
+			 * nothing and limited nothing, while looking like the knob that kept the
+			 * sample small. Removed rather than corrected: with `url` set, autodiscovery
+			 * never runs at all (`if (!urls.length)`), so both keys would be inert.
+			 */
 		},
 		assert: {
 			/*

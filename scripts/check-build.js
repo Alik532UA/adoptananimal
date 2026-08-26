@@ -12,6 +12,7 @@
 
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { createRequire } from 'node:module';
 import { checkGeo } from './check-geo.js';
 
 const BUILD_DIR = process.argv[2] ?? 'build';
@@ -181,6 +182,47 @@ for (const file of htmlFiles) {
 
 		for (const host of offenders) {
 			fail(`${relative(BUILD_DIR, file)}: host is not lower case — "${host}"`);
+		}
+	}
+}
+
+// --- 4B. every page Lighthouse is told to measure exists ---------------------
+//
+// `lighthouserc.cjs` now names its pages instead of letting lhci discover them, and a
+// named path that does not exist is worse than a missing budget: lhci's static server
+// answers 404, Lighthouse scores the 404, and the step goes red with no defect behind
+// it. Checked here because only this script knows what `build/` actually contains.
+//
+// The list is READ FROM THE REAL CONFIG, not copied. A copy is how the four other
+// duplicated lists in this project started, and PROJECT-CONTEXT.md § 4.22 is about
+// exactly that.
+//
+// `404.html` is called out separately because it is not a missing file but the wrong
+// KIND of file: the SPA fallback shell, empty `<body>` plus base-prefixed absolute
+// script paths. Served at the root by lhci those paths 404, nothing paints, and the
+// whole Lighthouse run dies on `NO_FCP`. It was on the autodiscovered sample for
+// weeks and only surfaced once the deploy build stopped being overwritten.
+{
+	const config = createRequire(import.meta.url)(join(process.cwd(), 'lighthouserc.cjs'));
+	const urls = config?.ci?.collect?.url ?? [];
+
+	if (urls.length === 0) {
+		fail('lighthouserc.cjs names no pages — autodiscovery would pick 404.html again');
+	}
+
+	for (const url of urls) {
+		const rel = new URL(url, 'http://localhost').pathname.replace(/^\/+/, '');
+
+		if (rel === '404.html') {
+			fail(
+				'lighthouserc.cjs measures 404.html — the SPA shell cannot paint at the server root, ' +
+					'and Lighthouse fails the whole run with NO_FCP'
+			);
+			continue;
+		}
+
+		if (!existsSync(join(BUILD_DIR, rel))) {
+			fail(`lighthouserc.cjs measures "${rel}", which the build does not contain`);
 		}
 	}
 }

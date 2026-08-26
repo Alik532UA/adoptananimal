@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 
 /**
  * CI-CD-AND-TOOLS-v8 § 3 — workflow теж код, і його стан перевіряється.
@@ -272,6 +273,50 @@ describe('CI', () => {
 			existsSync(join(ROOT, 'lighthouserc.json')),
 			'лишився старий lighthouserc.json — discovery може взяти його замість .cjs'
 		).toBe(false);
+	});
+
+	it('кожна сторінка Lighthouse потрапляє рівно в один набір порогів', () => {
+		/*
+		 * `lighthouserc.cjs` попереджає про це коментарем із першого дня: lhci
+		 * застосовує ВСІ записи `assertMatrix`, чий шаблон збігся, тож вони мусять
+		 * бути взаємовиключними. Дві збіжності означають, що діє суворіший порог, і
+		 * ніде цього не видно — крок просто червоніє з числом, якого в конфізі для цієї
+		 * сторінки не написано.
+		 *
+		 * Перевірити це стало можливо тільки тепер: доки адреси знаходило
+		 * автовиявлення lhci, пари «адреса × шаблон» не існувало до прогону. Явний
+		 * `collect.url` (§ 4.29) робить її статичною — і одразу ж перевірною.
+		 *
+		 * Нуль збіжностей ловиться тим самим твердженням і не менш важливий: сторінка
+		 * без жодного набору не має порогів узагалі, тобто міряється й нічого не
+		 * гейтить.
+		 */
+		const config = createRequire(import.meta.url)(join(ROOT, 'lighthouserc.cjs')) as {
+			ci: {
+				collect: { url?: string[] };
+				assert: { assertMatrix: Array<{ matchingUrlPattern: string }> };
+			};
+		};
+
+		const urls = config.ci.collect.url ?? [];
+		const matrix = config.ci.assert.assertMatrix;
+
+		expect(
+			urls.length,
+			'у конфізі немає переліку адрес — автовиявлення візьме 404.html'
+		).toBeGreaterThan(0);
+		expect(matrix.length, 'assertMatrix порожній — перевірка мертва').toBeGreaterThan(1);
+
+		// Порт довільний: lhci підставляє свій, а шаблони на нього не дивляться.
+		const wrong = urls
+			.map((path) => {
+				const url = `http://localhost:41234${path}`;
+				const hits = matrix.filter((entry) => new RegExp(entry.matchingUrlPattern).test(url));
+				return hits.length === 1 ? null : `${path}: ${hits.length} наборів замість одного`;
+			})
+			.filter(Boolean);
+
+		expect(wrong, `пороги накладаються або відсутні:\n${wrong.join('\n')}`).toEqual([]);
 	});
 
 	it('ignore-файл для AI не ховає ні конфігів, ні документації (§ 2.2)', () => {
