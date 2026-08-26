@@ -102,14 +102,14 @@ function htmlFiles(dir, out = []) {
 
 /**
  * @param {string} buildDir каталог зібраного сайту
- * @param {{ expectsLlmsTxt?: boolean, searchAgents?: string[], robotsMeta?: boolean, metaDescription?: boolean, spaFallback?: boolean }} options
+ * @param {{ expectsLlmsTxt?: boolean, searchAgents?: string[], duplicateMetaTags?: boolean, metaDescription?: boolean, spaFallback?: boolean }} options
  * @returns {string[]} перелік проблем; порожній — усе гаразд
  */
 export function checkGeo(buildDir, options = {}) {
 	const {
 		expectsLlmsTxt = true,
 		searchAgents = SEARCH_AGENTS,
-		robotsMeta = true,
+		duplicateMetaTags = true,
 		metaDescription = true,
 		// `true` для профілю, де `adapter-static` віддає фолбек на всі адреси:
 		// власного HTML у маршруту там немає за побудовою.
@@ -117,94 +117,80 @@ export function checkGeo(buildDir, options = {}) {
 	} = options;
 	const problems = [];
 
-	// --- рівно ОДИН <meta name="robots"> на сторінку (§ 7.3) ---
-	//
-	// `<svelte:head>` ДОПИСУЄ до `<head>`, а не заміщує в ньому. Тег в
-	// `app.html` і тег зі сторінки співіснують, і два теги з протилежним
-	// змістом («index, follow» і «noindex») — це не помилка збірки й не
-	// попередження: що переможе, вирішує краулер. Саме так `noindex` службової
-	// сторінки одного разу вже поїхав у прод разом із дозволом на індексацію.
-	if (robotsMeta) {
-		for (const file of htmlFiles(buildDir)) {
-			const tags = readFileSync(file, 'utf8').match(/<meta[^>]+name="robots"/g) ?? [];
-			if (tags.length > 1) {
-				const rel = relPath(buildDir, file);
-				problems.push(`${rel}: <meta name="robots"> знайдено ${tags.length} разів, очікується 1`);
-			}
-		}
-	}
-
 	/*
-	 * --- рівно ОДИН <meta name="description"> на індексованій сторінці ---
+	 * --- ЖОДЕН тег `<meta>` не трапляється на сторінці двічі (§ 7.3) ---
 	 *
-	 * Той самий механізм, що й вище, і саме тому цей рядок мав би стояти поряд від
-	 * початку: `<svelte:head>` ДОПИСУЄ. Тег у макеті не стає значенням за
-	 * замовчуванням, яке сторінка перевизначає, — він стає другим тегом поруч із
-	 * її власним. У цьому проєкті так вийшло на 208 із 229 зібраних сторінок, і
-	 * першим щоразу йшов загальний, англійський, — на сторінках усіх чотирьох мов.
+	 * `<svelte:head>` ДОПИСУЄ до `<head>`, а не заміщує в ньому. Тег у макеті не
+	 * стає значенням за замовчуванням, яке сторінка перевизначає, — він стає
+	 * ДРУГИМ тегом поруч із її власним, і виграє той, що йде першим. Це стосується
+	 * будь-якого ключа, і саме тому правило тут одне на всі, а не по одному на тег.
 	 *
-	 * `robots` перевірявся, `description` — ні, хоча ламаються вони однаково.
-	 * Різниця лише в тому, що суперечливий `robots` видно як помилку, а два описи
-	 * виглядають як робоча сторінка: жоден гейт, жодне попередження збірки, жоден
-	 * симптом у браузері. Видно це тільки в `build/` і тільки якщо порахувати.
+	 * Ціна цього механізму в цьому проєкті, три рази поспіль:
 	 *
-	 * Приховані сторінки (`noindex`) опису не мають і не потребують: його ніхто
-	 * ніколи не прочитає. Тому для них правило — «не більше одного», а не «рівно».
+	 *   robots       два теги з протилежним змістом («index, follow» і «noindex»);
+	 *                що переможе, вирішує краулер. Службова сторінка одного разу
+	 *                поїхала в прод із дозволом на індексацію.
+	 *   description  208 із 229 сторінок; першим ішов загальний, англійський —
+	 *                на сторінках усіх чотирьох мов.
+	 *   og:image     200 сторінок тварин; першим ішов логотип притулку, тож кожне
+	 *                поділене посилання показувало логотип замість тварини.
+	 *
+	 * Перші два мали власні правила, третій — ні, і з'ясувалося це лише
+	 * підрахунком тегів у `build/`. Три однакові поломки — це не привід написати
+	 * третє правило; загальне правило коштує стільки ж і закриває клас.
+	 *
+	 * Формально `og:image` повторювати МОЖНА: так описують галерею. Тут галереї
+	 * немає й не планується, тож повтор означає не намір, а дописування — і
+	 * правило свідомо суворіше за специфікацію, бо це вже коштувало.
+	 *
+	 * Рахується у `build/`, бо «скільки їх на сторінці» не є властивістю жодного
+	 * окремого файлу: тег макета й тег сторінки живуть у різних файлах і поодинці
+	 * обидва правильні.
 	 */
-	for (const file of metaDescription ? htmlFiles(buildDir) : []) {
-		const html = readFileSync(file, 'utf8');
-		const rel = relPath(buildDir, file);
-		const tags = html.match(/<meta[^>]+name="description"/g) ?? [];
-
-		if (tags.length > 1) {
-			problems.push(`${rel}: <meta name="description"> знайдено ${tags.length}, очікується 1`);
-			continue;
-		}
-
-		// Оболонка SPA описувати нічого не може: у неї порожнє тіло за побудовою.
-		const isShell = rel.endsWith('/404.html') || rel === '404.html';
-		const noindex = /<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(html);
-
-		if (tags.length === 0 && !noindex && !isShell) {
-			problems.push(`${rel}: сторінка в індексі без <meta name="description">`);
-		}
-	}
-
-	/*
-	 * --- жодна властивість Open Graph не повторюється на сторінці ---
-	 *
-	 * Третій випадок того самого механізму, і найдорожчий із трьох: макет виводив
-	 * `og:image` беззастережно, сторінка тварини додавала до нього своє фото — і
-	 * читач Open Graph бере ПЕРШИЙ. Тобто кожне посилання на тварину, поділене у
-	 * Facebook, Telegram, WhatsApp чи Slack, показувало логотип притулку замість
-	 * тварини — саме на тих 200 сторінках, де фото і є причиною ділитися.
-	 *
-	 * Формально `og:image` повторювати можна: так описують галерею. Тут галереї
-	 * немає й не планується, тож повтор означає не намір, а дописування. Правило
-	 * навмисно суворіше за специфікацію, і причина в тому, що коштувало це вже
-	 * один раз.
-	 *
-	 * Перевіряється в `build/`, бо «скільки їх на сторінці» не є властивістю
-	 * жодного окремого файлу: тег макета й тег сторінки живуть у різних файлах і
-	 * поодинці обидва правильні.
-	 */
-	if (metaDescription) {
+	if (duplicateMetaTags) {
 		for (const file of htmlFiles(buildDir)) {
-			const html = readFileSync(file, 'utf8');
+			const head = readFileSync(file, 'utf8').split('</head>')[0];
 			const counts = new Map();
 
-			for (const [, key] of html.matchAll(/<meta[^>]+property="(og:[^"]+)"/g)) {
-				counts.set(key, (counts.get(key) ?? 0) + 1);
+			for (const [, attr, key] of head.matchAll(/<meta[^>]+(name|property)="([^"]+)"/g)) {
+				const id = `${attr}="${key}"`;
+				counts.set(id, (counts.get(id) ?? 0) + 1);
 			}
 
-			for (const [key, count] of counts) {
+			for (const [id, count] of counts) {
 				if (count > 1) {
 					problems.push(
-						`${relPath(buildDir, file)}: <meta property="${key}"> знайдено ${count}, ` +
+						`${relPath(buildDir, file)}: <meta ${id}> знайдено ${count}, ` +
 							'очікується 1 — читач бере перший'
 					);
 				}
 			}
+		}
+	}
+
+	/*
+	 * --- індексована сторінка має опис ---
+	 *
+	 * Друга половина правила про `description`: та, що вище, забороняє два теги,
+	 * ця вимагає одного. Розділені, бо це різні дефекти з різними причинами —
+	 * дублікат приходить від дописування, відсутність від того, що сторінці його
+	 * просто не написали.
+	 *
+	 * Приховані сторінки (`noindex`) опису не мають і не потребують НАВМИСНО: його
+	 * ніхто ніколи не прочитає. Оболонка SPA описувати нічого не може — у неї
+	 * порожнє тіло за побудовою.
+	 */
+	for (const file of metaDescription ? htmlFiles(buildDir) : []) {
+		const head = readFileSync(file, 'utf8').split('</head>')[0];
+		const rel = relPath(buildDir, file);
+
+		if (/<meta[^>]+name="description"/.test(head)) continue;
+
+		const isShell = rel.endsWith('/404.html') || rel === '404.html';
+		const noindex = /<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(head);
+
+		if (!noindex && !isShell) {
+			problems.push(`${rel}: сторінка в індексі без <meta name="description">`);
 		}
 	}
 
