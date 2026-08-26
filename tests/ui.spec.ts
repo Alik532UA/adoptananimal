@@ -993,6 +993,45 @@ test.describe('the footer aside links', () => {
 			await expect(link).toHaveAttribute('rel', /noopener/);
 		}
 	});
+
+	/*
+	 * The language the reader is in goes with them.
+	 *
+	 * Both of those sites serve Ukrainian at their bare path, so the two links used to
+	 * open in Ukrainian no matter which language this page was in — a reader on the
+	 * German page clicked a German-labelled icon and landed on a Ukrainian site.
+	 *
+	 * Checked against the WHOLE address, not against a substring. The old assertion
+	 * above matches `/VetCrewGames/` inside every one of these URLs, right and wrong
+	 * alike, which is precisely why it passed throughout the defect.
+	 *
+	 * Ukrainian is the one language that cannot appear in the path, because neither
+	 * neighbour prefixes the language it serves bare. It rides in `?lang=` instead —
+	 * without it the bare path means "no choice made" over there, and a saved choice
+	 * from an earlier visit would win over the language being read here.
+	 *
+	 * Against the built site, so these are the addresses that ship: this is exactly
+	 * the class of defect that only the prerendered HTML shows, since the footer
+	 * renders above the language layout (`+layout.ts`).
+	 */
+	test('opens the other sites in the language being read', async ({ page }) => {
+		const expected = {
+			'/': { games: '/VetCrewGames/en/', 'order-site': '/DigitalWorkshop/en/' },
+			'/uk': { games: '/VetCrewGames/?lang=uk', 'order-site': '/DigitalWorkshop/?lang=uk' },
+			'/de': { games: '/VetCrewGames/de/', 'order-site': '/DigitalWorkshop/de/' },
+			'/nl': { games: '/VetCrewGames/nl/', 'order-site': '/DigitalWorkshop/nl/' }
+		} as const;
+
+		for (const [path, links] of Object.entries(expected)) {
+			await page.goto(path);
+			for (const [id, tail] of Object.entries(links)) {
+				await expect(
+					page.getByTestId(`footer-${id}-link`),
+					`${path} sends the reader to the wrong language`
+				).toHaveAttribute('href', `https://alik532ua.github.io${tail}`);
+			}
+		}
+	});
 });
 
 test.describe('close buttons', () => {

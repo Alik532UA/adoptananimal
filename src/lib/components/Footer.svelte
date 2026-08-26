@@ -3,6 +3,8 @@
 	import OrgLogos from '$lib/components/OrgLogos.svelte';
 	import { t } from '$lib/i18n';
 	import { SIDE_PROJECTS } from '$lib/config';
+	import { siblingUrl } from '$lib/siblings';
+	import { settings } from '$lib/services/settings.svelte';
 
 	/** How long the two names stay up after the footer comes into view. */
 	const NAMING_MS = 3000;
@@ -53,12 +55,17 @@
 <footer class="footer" class:footer--naming={naming}>
 	<div class="footer__content" bind:this={content}>
 		<!-- Two links to the shelter's other sites. Icons only, and barely there until
-			 someone comes down here — see .footer__aside in the styles. -->
+			 someone comes down here — see .footer__aside in the styles.
+
+			 The href carries the language being read, so the other site opens in it
+			 rather than in whatever it serves at its own bare path. `settings.locale`
+			 is what is on screen right now, which is the whole of the promise: the
+			 reader keeps reading in the language they were reading in. -->
 		<div class="footer__aside">
 			{#each SIDE_PROJECTS as project (project.id)}
 				<a
 					class="footer__aside-link control-shape"
-					href={project.url}
+					href={siblingUrl(project.site, settings.locale)}
 					target="_blank"
 					rel="noopener noreferrer"
 					data-testid="footer-{project.id}-link"

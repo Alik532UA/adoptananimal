@@ -1,4 +1,5 @@
 import { localeSegment, type Locale } from '$lib/i18n/locales';
+import type { SiblingId } from '$lib/siblings';
 import type { TranslationKey } from '$lib/i18n/translations/en';
 import type { ScrollbarMode } from '$lib/services/scrollbar.svelte';
 import type { IconName } from '$lib/components/ui/icons';
@@ -110,23 +111,28 @@ export const SCROLLBAR_MODES: { id: ScrollbarMode; key: TranslationKey }[] = [
  * Deliberately understated: they are not what someone came here for, and a visitor
  * looking for an animal should not be advertised at. See the opacity rules on
  * `.footer__aside` in Footer.svelte.
+ *
+ * `site` rather than a written-out `url`, because the address depends on the language
+ * the visitor is reading and only `siblingUrl` knows how each neighbour spells that.
+ * A literal here was the whole defect: both links pointed at a bare path, and a bare
+ * path is Ukrainian on both of those sites regardless of where the reader came from.
  */
 export const SIDE_PROJECTS = [
 	{
 		id: 'games',
-		url: 'https://alik532ua.github.io/VetCrewGames/',
+		site: 'vetcrewgames',
 		icon: 'gamepad',
 		key: 'footer.play'
 	},
 	{
 		id: 'order-site',
-		url: 'https://alik532ua.github.io/DigitalWorkshop/',
+		site: 'digitalworkshop',
 		icon: 'plus',
 		key: 'footer.orderSite'
 	}
 ] as const satisfies readonly {
 	id: string;
-	url: string;
+	site: SiblingId;
 	icon: IconName;
 	key: TranslationKey;
 }[];

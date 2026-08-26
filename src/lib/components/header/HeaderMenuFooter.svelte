@@ -3,6 +3,8 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import OrgLogos from '$lib/components/OrgLogos.svelte';
 	import { SIDE_PROJECTS } from '$lib/config';
+	import { siblingUrl } from '$lib/siblings';
+	import { settings } from '$lib/services/settings.svelte';
 
 	/**
 	 * The foot of the site's footer, repeated at the foot of the open mobile menu.
@@ -23,9 +25,12 @@
 	</div>
 
 	<div class="header__nav-projects">
+		<!-- Same address the footer builds, language and all: these are the same two
+			 links, and a phone finding them here rather than at the bottom of the page
+			 is no reason to arrive on a different site. -->
 		{#each SIDE_PROJECTS as project (project.id)}
 			<a
-				href={project.url}
+				href={siblingUrl(project.site, settings.locale)}
 				target="_blank"
 				rel="noopener noreferrer"
 				class="header__nav-project control-shape"
