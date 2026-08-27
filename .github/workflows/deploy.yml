@@ -62,6 +62,14 @@ jobs:
         run: npm run lint:format
       - if: ${{ !cancelled() }}
         run: npm run lint:code
+
+      # BEFORE `npm test`, and that order is the whole point: this step answers
+      # "does the runner still pick up every check file", and the summary of the
+      # next step is worth reading only once it has. Narrowing the vitest glob by
+      # one directory drops seventeen files and still prints a green
+      # "Test Files 25 passed (25)" — see scripts/check-test-discovery.js.
+      - if: ${{ !cancelled() }}
+        run: npm run check:discovery
       - if: ${{ !cancelled() }}
         run: npm test
 

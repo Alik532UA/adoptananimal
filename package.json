@@ -23,6 +23,7 @@
 		"check:i18n": "tsx src/lib/i18n/validator.ts",
 		"check:build": "node scripts/check-build.js",
 		"check:bundle": "node scripts/check-bundle.js",
+		"check:discovery": "node scripts/check-test-discovery.js",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"version:minor": "npm version minor --no-git-tag-version"
 	},
