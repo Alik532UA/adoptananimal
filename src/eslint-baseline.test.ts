@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { existsSync } from 'node:fs';
 import { ESLint } from 'eslint';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -56,6 +57,16 @@ const DOCUMENTED_EXCEPTIONS = ['svelte/no-navigation-without-resolve'] as const;
 /**
  * Файл-зразок мусить бути `.svelte`: частина правил (`svelte/*`) живе лише в
  * overrides-блоці для цього розширення, і на `.ts` їх у зібраному конфігу немає.
+ *
+ * Існування файлу перевіряється окремим тестом нижче, і ось чому. ESLint
+ * розвʼязує конфіг за ІМЕНЕМ шляху, а не за вмістом диска: заміряно 2026-08-28,
+ * `calculateConfigForFile('src/routes/+does-not-exist.svelte')` спокійно віддає
+ * 503 правила, серед них `svelte/no-at-html-tags: [2]`. Тобто перейменований або
+ * видалений `+layout.svelte` не зробив би цей файл червоним — усі п'ятнадцять
+ * перевірок лишилися б зеленими, доводячи щось про неіснуючий шлях.
+ *
+ * Це той самий клас, що й «перевірка жива» у другій половині файлу: гейт мусить
+ * червоніти, коли міряти стало нічого, а не звітувати про порожнечу.
  */
 const SAMPLE = 'src/routes/+layout.svelte';
 
@@ -94,6 +105,14 @@ function levelOf(entry: unknown): string | number | undefined {
 
 describe('базовий набір ESLint (CODE-QUALITY-v8 § 6.4.1)', () => {
 	let rules: Record<string, unknown>;
+
+	it('перевірка жива: файл-зразок існує', () => {
+		expect(
+			existsSync(SAMPLE),
+			`${SAMPLE} немає на диску — ESLint усе одно віддасть конфіг за розширенням, ` +
+				'і решта перевірок цього блоку доводитиме щось про неіснуючий шлях'
+		).toBe(true);
+	});
 
 	beforeAll(async () => {
 		const config = (await new ESLint().calculateConfigForFile(SAMPLE)) as {
