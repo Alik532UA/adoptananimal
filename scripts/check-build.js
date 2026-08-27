@@ -499,33 +499,64 @@ for (const route of HIDDEN_ROUTES) {
 	}
 }
 
-// --- 8. internal links and assets point at something that exists -------------
+// --- 8. internal links and assets are base-absolute and point at real files ---
+//
 // This replaces svelte/no-navigation-without-resolve, which the project turns off
 // because it routes through withBase() rather than SvelteKit's typed resolve().
-const EXTERNAL = /^(https?:|mailto:|tel:|data:|#|\/\/)/;
+//
+// **The rule used to be the other way round, and that was the defect.** It required
+// every internal URL to be RELATIVE and failed the build on a root-absolute one, on
+// the reasoning that an absolute path bypasses the base. True of `/images/x` — and
+// false of `/adoptananimal/images/x`, which is the base spelled out.
+//
+// A relative URL is only valid for the address the document was served at, and this
+// is a single-page app: the header and footer are never re-created, so their
+// attributes keep whatever the prerendered page put there while the address
+// underneath changes. `../images/logo/…` on /adopt/cat became a request for
+// /adoptananimal/adopt/images/logo/… on /adopt/cat/cucumber — 27 broken images in
+// the chrome, and a reload "fixed" it. `paths.relative: false` in svelte.config.js
+// ends that, and this check now states the invariant that keeps it ended.
+//
+// What is still checked, and it is the half that mattered: a root-absolute URL that
+// does NOT carry the base is the original 404-on-a-project-site bug. That half only
+// has teeth when the script is told the base — with `BASE_PATH` empty every path is
+// trivially "under" it. Same shape as § 4C: the deploy configuration is the one this
+// cannot exercise locally, so CI is where it counts.
+const EXTERNAL = /^(https?:|mailto:|tel:|data:|#|\/\/|\?)/;
 
 for (const file of htmlFiles) {
 	const rel = relative(BUILD_DIR, file).split(sep).join('/');
 	if (SHELL_PAGES.has(rel)) continue;
 
 	const html = readFileSync(file, 'utf-8');
-	const dir = file.slice(0, file.lastIndexOf(sep));
 
 	for (const [, attr, value] of html.matchAll(/\s(href|src)="([^"]*)"/g)) {
 		if (value === '' || EXTERNAL.test(value)) continue;
-		// An absolute path bypasses the base entirely — the exact bug this catches.
-		if (value.startsWith('/')) {
-			fail(`${rel}: ${attr}="${value}" is root-absolute and ignores the base path`);
+
+		const [target] = value.split(/[?#]/);
+		if (target === '') continue;
+
+		if (!target.startsWith('/')) {
+			fail(
+				`${rel}: ${attr}="${value}" is relative — it resolves against whatever address ` +
+					'the page is at, and the header and footer outlive navigation'
+			);
 			continue;
 		}
 
-		const [target] = value.split(/[?#]/);
-		if (target === '' || target === './') continue;
+		if (BASE_PATH && target !== BASE_PATH && !target.startsWith(`${BASE_PATH}/`)) {
+			fail(`${rel}: ${attr}="${value}" is root-absolute and misses the base "${BASE_PATH}"`);
+			continue;
+		}
+
+		// The build directory IS the base, so what is left after it is the path inside.
+		const inside = target.slice(BASE_PATH.length).replace(/^\/+/, '');
+		if (inside === '') continue;
 
 		const candidates = [
-			join(dir, target),
-			join(dir, `${target}.html`),
-			join(dir, target, 'index.html')
+			join(BUILD_DIR, inside),
+			join(BUILD_DIR, `${inside}.html`),
+			join(BUILD_DIR, inside, 'index.html')
 		];
 		if (!candidates.some((c) => existsSync(c))) {
 			fail(`${rel}: ${attr}="${value}" points at a file that was not generated`);

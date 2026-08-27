@@ -9,8 +9,15 @@ import { settings } from '$lib/services/settings.svelte';
  * inside the app use `localePath()` below, which keeps the reader in the language
  * they are already reading.
  *
- * The result is relative once prerendered, so it must never be concatenated into an
- * absolute URL — `absoluteFromRoot()` in `$lib/config` exists for that.
+ * The result is root-absolute — `/adoptananimal/images/x.webp` — and identical on
+ * every page, because `paths.relative` is `false` (see svelte.config.js). It used to
+ * be relative, and that was a defect rather than a detail: this helper reads nothing
+ * reactive, so Svelte writes its attributes once and never again, while the header
+ * and footer that hold them survive every navigation. A prefix computed for the
+ * address the document arrived at then went stale the moment the address changed.
+ *
+ * Still not something to concatenate into an absolute URL: that needs the origin as
+ * well, and `absoluteFromRoot()` in `$lib/config` exists for it.
  */
 export const withBase = (path: string): string => {
 	if (path.startsWith('http') || path.startsWith('mailto:') || path.startsWith('#')) return path;

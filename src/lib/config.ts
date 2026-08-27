@@ -18,10 +18,15 @@ export const SITE_ORIGIN = __SITE_ORIGIN__;
 /**
  * Base path as a literal string.
  *
- * Deliberately not `base` from `$app/paths`: SvelteKit rewrites that one to a
- * *relative* prefix in prerendered HTML, so `SITE_ORIGIN + resolve(path)` comes out
- * as `https://example.com/../../images/x.jpg`. Relative is right for links inside
- * the page and wrong for anything a crawler reads as an absolute URL.
+ * A literal rather than `base` from `$app/paths`, and still a literal now that
+ * `paths.relative` is `false` and the two agree.
+ *
+ * They did not agree before: SvelteKit rewrote `base` to a *relative* prefix in
+ * prerendered HTML, so `SITE_ORIGIN + base + path` came out as
+ * `https://example.com/../../images/x.jpg` — an absolute URL with a relative middle,
+ * which every crawler reads as a different address. That is fixed at the source now,
+ * but this constant stays independent of the setting on purpose: an origin-prefixed
+ * URL must not quietly change meaning if `paths.relative` is ever flipped back.
  */
 export const SITE_BASE = __BASE_PATH__;
 

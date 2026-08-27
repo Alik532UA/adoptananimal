@@ -79,7 +79,35 @@ const config = {
 			fallback: '404.html'
 		}),
 		paths: {
-			base
+			base,
+
+			/*
+			 * Absolute paths in the output, not relative ones. The default is `true`.
+			 *
+			 * A relative URL is only valid for the address the document was served at, and
+			 * this is a single-page app: the header and the footer are never re-created,
+			 * so whatever they were rendered with stays in the DOM while the address
+			 * underneath them changes. Land on /adopt/cat, click through to
+			 * /adopt/cat/cucumber, and the footer's `../images/logo/…` — correct one
+			 * moment earlier — now resolves against /adopt/cat/ and asks for
+			 * /adoptananimal/adopt/images/logo/…, which is a 404. Twenty-seven images in
+			 * the header and footer, every time the depth changes.
+			 *
+			 * The links next to them survived only by accident: `localePath()` reads
+			 * `settings.locale`, which is `$state` and is reassigned on every navigation,
+			 * so Svelte re-evaluated those attributes with the client's own base.
+			 * `withBase()` reads nothing reactive, so its attributes were written once at
+			 * hydration and never again. Two helpers, one line apart, and only one of them
+			 * happened to be reactive.
+			 *
+			 * Reloading fixed it, which is what made it look intermittent: the fresh
+			 * document arrives with a prefix computed for the address it was requested at.
+			 *
+			 * The cost of `false` is that the built site can no longer be moved to another
+			 * base without rebuilding. It never could: `BASE_PATH` is baked in at build
+			 * time and `SITE_ORIGIN` + `SITE_BASE` are compiled into every canonical.
+			 */
+			relative: false
 		},
 
 		// hash, not nonce: a nonce has to be generated per response, and a prerendered
