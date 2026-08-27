@@ -173,7 +173,9 @@ describe('no meta tag appears on a page twice', () => {
 	});
 
 	it('catches two robots tags saying the opposite of each other', () => {
-		expect(pageBuild({ 'apply/form.html': INDEX + NOINDEX })).toEqual([
+		// Carries a description too, or the page trips the presence rule below as well
+		// and this case would be asserting two findings instead of the one it is about.
+		expect(pageBuild({ 'apply/form.html': description('A form.') + INDEX + NOINDEX })).toEqual([
 			'apply/form.html: <meta name="robots"> знайдено 2, очікується 1 — читач бере перший'
 		]);
 	});
@@ -194,26 +196,41 @@ describe('no meta tag appears on a page twice', () => {
  * Separate because they are different defects with different causes — a duplicate comes
  * from appending, an absence from nobody having written the tag for that page.
  *
- * Reverse experiment: removing the `noindex` condition reddens `a hidden page needs
- * none`; removing the shell condition reddens `404.html is exempt`.
+ * A `noindex` page is NOT exempt, and the exemption that used to be here is the reason
+ * this comment exists. "Nothing indexes it, so nobody reads the description" is true of
+ * search engines and false of everything else: a link preview shows it, and Lighthouse
+ * scores its absence as a failed audit. Measured on this project's two hidden pages,
+ * that one audit is the difference between 0.63 and 0.54 — so the exemption cost a
+ * calibrated CI threshold to save writing two strings.
+ *
+ * Reverse experiment: removing the `404.html` condition reddens `the SPA shell is
+ * exempt`; removing the whole loop reddens the two cases above it.
  */
-describe('an indexed page carries a description', () => {
+describe('every page carries a description', () => {
 	it('passes a page that has one', () => {
 		expect(pageBuild({ 'index.html': description('The site.') })).toEqual([]);
 	});
 
 	it('reports a page that has none', () => {
 		expect(pageBuild({ 'index.html': '<title>Nothing else</title>' })).toEqual([
-			'index.html: сторінка в індексі без <meta name="description">'
+			'index.html: сторінка без <meta name="description">'
 		]);
 	});
 
-	it('a hidden page needs none — nothing ever reads it', () => {
-		expect(pageBuild({ 'apply/form.html': NOINDEX })).toEqual([]);
+	it('a hidden page is not exempt — a preview still shows its description', () => {
+		expect(pageBuild({ 'apply/form.html': NOINDEX })).toEqual([
+			'apply/form.html: сторінка без <meta name="description">'
+		]);
+	});
+
+	it('a hidden page with one passes', () => {
+		expect(pageBuild({ 'apply/form.html': NOINDEX + description('The fallback form.') })).toEqual(
+			[]
+		);
 	});
 
 	/* The SPA shell has an empty body by design and nothing to describe. */
-	it('404.html is exempt', () => {
+	it('the SPA shell is exempt', () => {
 		expect(pageBuild({ '404.html': '<title>Not found</title>' })).toEqual([]);
 	});
 });

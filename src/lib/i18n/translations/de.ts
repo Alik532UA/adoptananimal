@@ -235,5 +235,7 @@ export const de = {
 		'Wie die Adoption abläuft, in welche Länder wir sie vermitteln, und das Antragsformular selbst.',
 	'meta.favorites.description':
 		'Die Tiere, die Sie beim Stöbern markiert haben — gespeichert in Ihrem eigenen Browser.',
+	'meta.form.description':
+		'Das seiteneigene Adoptionsformular als Rückfallebene. Anträge werden über das Google-Formular auf der Antragsseite gesammelt.',
 	'meta.animal.description': '{name}: {breed} aus der Ukraine sucht ein Zuhause. {story}'
 } as const;

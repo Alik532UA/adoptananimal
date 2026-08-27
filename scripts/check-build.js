@@ -211,18 +211,31 @@ for (const file of htmlFiles) {
 	}
 
 	for (const url of urls) {
-		const rel = new URL(url, 'http://localhost').pathname.replace(/^\/+/, '');
+		/*
+		 * The URLs are now full addresses against the preview server, carrying the base
+		 * and no `.html` — the shape the site is actually served at. Turning one back
+		 * into a file therefore means taking the base off and putting the extension on,
+		 * which is exactly what the server does in the other direction.
+		 */
+		const pathname = new URL(url, `http://localhost`).pathname;
+		const inside =
+			BASE_PATH && (pathname === BASE_PATH || pathname.startsWith(`${BASE_PATH}/`))
+				? pathname.slice(BASE_PATH.length)
+				: pathname;
+		const rel = inside.replace(/^\/+/, '').replace(/\/$/, '');
 
-		if (rel === '404.html') {
+		if (rel === '404' || rel === '404.html') {
 			fail(
-				'lighthouserc.cjs measures 404.html — the SPA shell cannot paint at the server root, ' +
+				'lighthouserc.cjs measures 404.html — the SPA shell has an empty body by design, ' +
 					'and Lighthouse fails the whole run with NO_FCP'
 			);
 			continue;
 		}
 
-		if (!existsSync(join(BUILD_DIR, rel))) {
-			fail(`lighthouserc.cjs measures "${rel}", which the build does not contain`);
+		// `/` is the base itself, answered by index.html.
+		const file = rel === '' ? 'index.html' : `${rel}.html`;
+		if (!existsSync(join(BUILD_DIR, ...file.split('/')))) {
+			fail(`lighthouserc.cjs measures "${url}", and ${file} is not in the build`);
 		}
 	}
 }

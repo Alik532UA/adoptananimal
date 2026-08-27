@@ -15,6 +15,16 @@ import type { Localized } from './types';
  */
 export const BETA_UI = {
 	title: { uk: 'Чеклист бета-тестування', en: 'Beta testing checklist' },
+	/*
+	 * The page's `<meta name="description">`. Here rather than in the dictionary for
+	 * the same reason as everything else on this page — and it is not decoration: a
+	 * page without one loses an SEO audit, which on a `noindex` page is the difference
+	 * between the measured ceiling of 0.63 and 0.54 (lighthouserc.cjs).
+	 */
+	description: {
+		uk: 'Службовий чеклист для бета-тестування сайту. Не в меню й не в пошуку.',
+		en: 'Internal checklist for beta testing the site. Not in the menu and not in search.'
+	},
 	intro: {
 		uk: 'Пройдіть пункти по черзі й позначте кожен. Позначки лишаються у вашому браузері й нікуди не надсилаються; наприкінці натисніть «Скопіювати звіт» і надішліть текст.',
 		en: 'Walk the items in order and mark each one. Marks stay in your browser and are sent nowhere; at the end press «Copy report» and send the text.'

@@ -230,5 +230,7 @@ export const nl = {
 		'Hoe de adoptie verloopt, naar welke landen wij die regelen, en het aanvraagformulier zelf.',
 	'meta.favorites.description':
 		'De dieren die u tijdens het bladeren hebt gemarkeerd, bewaard in uw eigen browser.',
+	'meta.form.description':
+		'Het eigen adoptieformulier van de site, bewaard als terugvaloptie. Aanvragen worden verzameld via het Google-formulier op de aanvraagpagina.',
 	'meta.animal.description': '{name}: {breed} uit Oekraïne zoekt een thuis. {story}'
 } as const;

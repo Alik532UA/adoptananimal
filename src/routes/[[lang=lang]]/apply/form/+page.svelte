@@ -6,6 +6,10 @@
 
 <svelte:head>
 	<title>{t('apply.title')} | {t('footer.brand')}</title>
+	<!-- A description even though the page is `noindex`. Nothing indexes it, but it is
+		 still the page's own summary — a link preview shows it, and Lighthouse scores
+		 its absence. Leaving it out to save a string was the first draft's mistake. -->
+	<meta name="description" content={t('meta.form.description')} />
 	<!-- `noindex` is not written here: this path is in HIDDEN_ROUTES, and the layout
 		 declares it there together with the canonical it must NOT have. Two owners of
 		 one decision is how one of them ends up out of date. -->

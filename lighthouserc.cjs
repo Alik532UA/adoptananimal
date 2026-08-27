@@ -34,53 +34,75 @@ const HIDDEN_ROUTES = (() => {
 	return routes;
 })();
 
-/** `apply/form.html` and `uk/apply/form.html` are the same hidden route, two files. */
-const hiddenPattern = `(?:${HIDDEN_ROUTES.map((route) => route.replace(/^\//, '').replace(/[/-]/g, (c) => `\\${c}`)).join('|')})\\.html$`;
+/**
+ * `/apply/form` and `/uk/apply/form` are the same hidden route at two addresses.
+ *
+ * No `.html` any more: the pages are measured at the addresses the site actually
+ * serves rather than at raw filenames — see `startServerCommand` below.
+ */
+const hiddenPattern = `(?:${HIDDEN_ROUTES.map((route) => route.replace(/^\//, '').replace(/[/-]/g, (c) => `\\${c}`)).join('|')})$`;
 
 /**
  * The SEO ceiling of a page that is deliberately `noindex`.
  *
- * Measured, not chosen: in the run that made this file necessary the ONLY failing SEO
- * audit on `/beta-test-checklists` was `is-crawlable` — "Page is blocked from indexing",
- * weight 4.04 of 13.04. Every other audit passed, so the score was 0.69 and no amount
- * of work on the page could raise it. The assertion asked for 0.9, so the step could
- * only ever fail, and it sits above `upload-pages-artifact`: nothing had deployed since
- * the checklist page landed.
+ * Measured, not chosen. The only failing SEO audit on `/beta-test-checklists` is
+ * `is-crawlable` — "Page is blocked from indexing", weight 4.04 — which is the whole
+ * point of the page being hidden and can never be fixed. A hidden page also draws no
+ * `canonical` and no `hreflang`, so those two audits come back "not applicable" and
+ * drop out of the total: 11.04 of weight is scored, 4.04 of it lost, giving
+ * 7/11.04 = 0.634.
  *
- * Set AT the ceiling with no slack, which is what keeps it a gate rather than an excuse:
- * one more failing SEO audit on a hidden page — a lost `<title>`, a broken `hreflang` —
- * costs at least 1/13 and lands below 0.69. This is the ACCESSIBILITY § 10.1.1 pattern:
- * a measured number that may only rise, never a threshold nobody can meet.
+ * The number here was 0.69, and it had been measured against a page in a state the
+ * site never serves. lhci used to serve the build at the SERVER ROOT, so pages were
+ * audited at `/beta-test-checklists.html` — an address with an extension, which the
+ * client router does not recognise as a hidden route. The page hydrated as an ordinary
+ * one, grew a canonical and an hreflang, and 9/13.04 came out at 0.69. Measured at the
+ * address production serves, with lighthouse 12.6.1 — the version `@lhci/cli@0.15.1`
+ * bundles — it is 0.634.
  *
- * It rises if Lighthouse re-weights `is-crawlable`, and that is a deliberate bump with a
- * commit, not a "fix the CI" edit.
+ * Set AT the ceiling with no slack, which is what keeps it a gate rather than an
+ * excuse: one more failing SEO audit on a hidden page — a lost `<title>`, a missing
+ * description — costs at least 1/11.04 and lands below 0.63. This is the
+ * ACCESSIBILITY § 10.1.1 pattern: a measured number that may only rise, never a
+ * threshold nobody can meet.
+ *
+ * It moves if Lighthouse re-weights `is-crawlable`, and that is a deliberate bump with
+ * a commit, not a "fix the CI" edit.
  */
-const HIDDEN_SEO_CEILING = 0.69;
+const HIDDEN_SEO_CEILING = 0.63;
 
 /*
- * READ THIS BEFORE "FIXING" THE NUMBER ABOVE.
+ * WHY A REAL SERVER AND NOT `staticDistDir`.
  *
- * The URLs below end in `.html`, and they have to: lhci serves the build with
- * `express.static` (`src/collect/fallback-server.js`), whose extension fallback is off,
- * so `/beta-test-checklists` is a 404 there. The only alternative,
- * `isSinglePageApplication: true`, answers every path with `index.html` — every page
- * would then be measured as the home page.
+ * The block that stood here explained why the URLs had to end in `.html`: lhci serves
+ * the build with `express.static` (`src/collect/fallback-server.js`), whose extension
+ * fallback is off, so `/beta-test-checklists` is a 404 there — and the only alternative
+ * it offers, `isSinglePageApplication: true`, answers every path with `index.html`, so
+ * every page would be measured as the home page.
  *
- * On a `.html` URL the app hydrates the hidden pages as ORDINARY routes, because
- * `isHiddenRoute()` matches `/beta-test-checklists`, not `/beta-test-checklists.html`.
- * The head is then rebuilt client-side with the default `index, follow` and a canonical,
- * so `is-crawlable` passes and the SEO score comes out near 1.0 instead of 0.69.
+ * Both halves were true. The conclusion — measure `.html` addresses instead — was the
+ * part that cost, and it cost twice.
  *
- * That is fine — `minScore` is a floor, so a higher score passes — and it is NOT a
- * defect in the noindex mechanism. Checked at the real URL shape, served under the base
- * path the way GitHub Pages does: `/adoptananimal/beta-test-checklists` and
- * `/adoptananimal/apply/form` both keep `noindex, nofollow`, no canonical and no
- * hreflang after hydration. No link on the site, and no sitemap entry, uses `.html`.
+ * FIRST, it measured a state the site never serves. `isHiddenRoute()` matches
+ * `/beta-test-checklists`, not `/beta-test-checklists.html`, so on an `.html` address
+ * the app hydrates a hidden page as an ORDINARY route: the head is rebuilt with
+ * `index, follow`, a canonical and an hreflang appear, and `is-crawlable` passes on a
+ * page whose whole purpose is to be out of the index. The old note called that "fine,
+ * because minScore is a floor". It is not fine: it is where the 0.69 ceiling came
+ * from, and that number was then a measurement of a page nobody can visit.
  *
- * So the number stays where the measurement put it, and the pages stay on the list:
- * BETA-CHECKLIST-v8 § 5.5 is explicit that the page testers use most must not become
- * the least audited one, and its accessibility and performance audits are unaffected by
- * any of this.
+ * SECOND, `express.static` serves the build at the SERVER ROOT, while the build is
+ * made for `/<repo>/`. That was survivable only while SvelteKit emitted relative
+ * paths. The day `paths.relative` went to `false` (PROJECT-CONTEXT § 4.38) every
+ * asset URL became `/adoptananimal/…`, all 60 of them 404'd at the root, and
+ * Lighthouse scored seven pages that had no CSS, no JavaScript and no images —
+ * reporting a HIGHER performance score than before, because there was nothing left to
+ * download.
+ *
+ * `startServerCommand` removes both. `vite preview` is the same server Playwright
+ * uses, it serves the build under `paths.base`, and it resolves an extension-less
+ * address to its file the way GitHub Pages does. So the addresses below are the
+ * addresses the site has.
  */
 
 /**
@@ -112,24 +134,24 @@ const HIDDEN_SEO_CEILING = 0.69;
  * with the rule that `404.html` may never be on the list. A typo would otherwise be
  * a 404 that Lighthouse scores, which is a low score with no defect behind it.
  */
-const URLS = [
+const PAGES = [
 	// The home page. Added the day this list arrived; see above.
-	'/index.html',
+	'/',
 	// The heaviest page in the build: the full dog listing, every card with an image.
 	// If a performance budget breaks anywhere, it breaks here first.
-	'/adopt/dog.html',
+	'/adopt/dog',
 	// Carries its own best-practices threshold (0.78) because of the embedded Google
 	// form. Dropping it from the sample would leave that number asserting nothing.
-	'/apply.html',
+	'/apply',
 	// The one page whose content comes from storage rather than from the build.
-	'/favorites.html',
+	'/favorites',
 	// A localised home, so `<html lang>` and the hreflang set get audited too, not
 	// only the English tree.
-	'/de.html',
+	'/de',
 
 	/*
 	 * The hidden routes, and the reason HIDDEN_SEO_CEILING exists. Same argument as
-	 * `/apply.html`: a threshold nobody measures is not a threshold. And
+	 * `/apply`: a threshold nobody measures is not a threshold. And
 	 * BETA-CHECKLIST-v8 § 5.5 puts it the other way round — the page testers spend
 	 * the most time on must not become the least audited one.
 	 *
@@ -139,8 +161,27 @@ const URLS = [
 	 * hidden route added later would silently get no budget. Derived, it gets one the
 	 * moment it lands in `src/lib/config.ts`.
 	 */
-	...HIDDEN_ROUTES.map((route) => `${route}.html`)
+	...HIDDEN_ROUTES
 ];
+
+/**
+ * The port the preview server is asked for, and the base it serves under.
+ *
+ * `4174` rather than Playwright's `4173`: the two run in different CI steps, but a
+ * port that is only free by scheduling is a port that collides the day the steps move.
+ */
+const PORT = 4174;
+
+/**
+ * The base path, from the same environment variable the build read.
+ *
+ * Without it the URLs below would name addresses the server does not have, and every
+ * page would be scored as a 404 — a low score with no defect behind it.
+ */
+const BASE = process.env.BASE_PATH ?? '';
+
+/** `/` is the base itself, and it keeps the trailing slash a directory URL needs. */
+const URLS = PAGES.map((page) => `http://localhost:${PORT}${BASE}${page === '/' ? '/' : page}`);
 
 /** Everything except SEO is the same everywhere; only the reason for SEO differs. */
 const shared = {
@@ -152,15 +193,26 @@ const shared = {
 module.exports = {
 	ci: {
 		collect: {
-			staticDistDir: './build',
+			/*
+			 * The project's own preview server, so the build is served under its base
+			 * path at the addresses production uses — see the block above for what
+			 * `staticDistDir` measured instead.
+			 *
+			 * It reads `BASE_PATH` from the environment exactly as the build did, so the
+			 * deploy workflow has to hand the same value to this step. Without it the
+			 * server comes up at the root while the URLs below carry the base, and every
+			 * page scores as a 404.
+			 */
+			startServerCommand: `npm run preview -- --port ${PORT} --strictPort`,
+
+			// vite prints `➜  Local:   http://localhost:4174/adoptananimal` when it is up.
+			startServerReadyPattern: 'Local:',
+			startServerReadyTimeout: 120000,
 
 			/*
-			 * Relative paths are the documented form and they work: lhci resolves each
-			 * entry with `new URL(raw, 'http://localhost')` and then overwrites the port
-			 * with its own server's (`src/collect/collect.js`). Read from the package at
-			 * 0.15.1 rather than assumed — an unverified change to this file cannot be
-			 * tried locally, because Lighthouse itself does not run on this machine
-			 * (`EPERM` on its own temp directory, PROJECT-CONTEXT.md § 5).
+			 * Absolute URLs, because there is no `staticDistDir` for lhci to infer a port
+			 * from. `--strictPort` is what makes that safe: the server either takes 4174
+			 * or refuses to start, so the URLs cannot end up pointing at a different one.
 			 */
 			url: URLS
 
@@ -182,7 +234,7 @@ module.exports = {
 			assertMatrix: [
 				{
 					// Ordinary pages: the whole SEO category, as before.
-					matchingUrlPattern: `^(?!.*/apply\\.html$)(?!.*${hiddenPattern}).*$`,
+					matchingUrlPattern: `^(?!.*/apply$)(?!.*${hiddenPattern}).*$`,
 					assertions: { ...shared, 'categories:seo': ['error', { minScore: 0.9 }] }
 				},
 				{
@@ -193,7 +245,7 @@ module.exports = {
 					 * 0.78 against a measured 0.79 — one audit of slack, not a licence.
 					 * PROJECT-CONTEXT.md § 4.18.
 					 */
-					matchingUrlPattern: '/apply\\.html$',
+					matchingUrlPattern: '/apply$',
 					assertions: {
 						...shared,
 						'categories:best-practices': ['error', { minScore: 0.78 }],

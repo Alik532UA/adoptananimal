@@ -234,6 +234,8 @@ export const en = {
 	'meta.apply.description':
 		'How adoption works, which countries we arrange it to, and the application form itself.',
 	'meta.favorites.description': 'The animals you marked while browsing, kept in your own browser.',
+	'meta.form.description':
+		'The on-site adoption form kept as a fallback. Applications are collected through the Google form on the application page.',
 	'meta.animal.description': '{name}: a {breed} from Ukraine looking for a home. {story}'
 } as const;
 

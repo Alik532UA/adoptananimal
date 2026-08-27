@@ -52,6 +52,7 @@
 
 <svelte:head>
 	<title>{pick(BETA_UI.title, locale)}</title>
+	<meta name="description" content={pick(BETA_UI.description, locale)} />
 </svelte:head>
 
 <!--

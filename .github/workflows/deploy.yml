@@ -185,9 +185,21 @@ jobs:
       # `--config` is explicit rather than left to discovery: lhci looks for a list of
       # filenames in order, and a `lighthouserc.json` left behind beside the `.cjs` one
       # would win silently on some versions and not others.
+      # BASE_PATH, and it is load-bearing twice: `lighthouserc.cjs` builds its URLs from
+      # it, and the preview server it starts reads it to serve the build under the same
+      # base the build was made for. Without it the server comes up at the root while
+      # the URLs carry the base, and every page is scored as a 404.
+      #
+      # This step used to hand lhci `staticDistDir` instead, which serves the build at
+      # the SERVER ROOT. That survived only while SvelteKit emitted relative asset
+      # paths; once they became base-absolute (PROJECT-CONTEXT § 4.38) all 60 URLs on a
+      # page 404'd and Lighthouse scored seven documents with no CSS, no JS and no
+      # images — at a HIGHER performance score, because nothing was left to download.
       - name: Lighthouse Audit
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: npx @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
+        env:
+          BASE_PATH: ${{ steps.site.outputs.base }}
 
       - uses: actions/upload-pages-artifact@v5
         with:
