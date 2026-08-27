@@ -606,6 +606,105 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 9. every local file a page asks for is in the build, spelled the same way ---
+//
+// Two defects in one pass, and the second is the reason this is not `existsSync`.
+//
+// ABSENT: a page references an image, stylesheet or script that the build did not
+// produce. Nothing here fails — the page renders, the asset 404s, and whoever
+// looks sees a missing photo rather than a broken build.
+//
+// CASE: the file is there under a different spelling. On this machine that is not
+// a defect at all: Windows resolves `Bg-Dark.webp` and `bg-dark.webp` to the same
+// file, so a local build, a local preview and `existsSync` all agree the page is
+// fine. GitHub Pages serves from Linux and answers 404. This project has already
+// paid for that asymmetry once, in `prerender.entries`, and the fix there was the
+// same one as here: compare against the real directory listing instead of asking
+// the filesystem whether a path "exists" (AI-AGENT-PITFALLS-v8 § 1.1).
+//
+// Which is why the inventory below is built by walking the tree and keeping the
+// names verbatim, and `_app` is walked too — that is where every hashed asset
+// lives, and `htmlFiles` above deliberately skips it.
+{
+	const onDisk = new Set();
+	(function walk(dir) {
+		for (const entry of readdirSync(dir)) {
+			const full = join(dir, entry);
+			if (statSync(full).isDirectory()) walk(full);
+			else onDisk.add(relative(BUILD_DIR, full).split(sep).join('/'));
+		}
+	})(BUILD_DIR);
+
+	// A reference worth resolving: same-origin, and naming a file rather than a
+	// route. Routes are prerendered to `foo.html` and answered by the host without
+	// the suffix, so treating them as files would report every link in the site.
+	const LOCAL_FILE = /\.[a-z0-9]{2,5}$/i;
+
+	const lowered = new Map();
+	for (const file of onDisk) lowered.set(file.toLowerCase(), file);
+
+	let htmlRefs = 0;
+	let cssRefs = 0;
+
+	/** Resolve one reference against the file that made it, and report if it misses. */
+	const resolve = (url, fromRel) => {
+		if (/^(?:[a-z]+:|\/\/|#)/i.test(url)) return false;
+		const clean = url.split(/[?#]/)[0];
+		if (!LOCAL_FILE.test(clean)) return false;
+
+		// Absolute URLs carry the base; relative ones resolve against the referrer.
+		const target = clean.startsWith('/')
+			? buildPath(clean)
+			: buildPath(`/${join(fromRel, '..', clean).split(sep).join('/')}`, '');
+		if (!target) return false;
+
+		if (!onDisk.has(target)) {
+			const sameName = lowered.get(target.toLowerCase());
+			fail(
+				sameName
+					? `${fromRel}: references "${clean}" but the build holds "${sameName}" — a 404 on Linux, not here`
+					: `${fromRel}: references "${clean}", which the build does not contain`
+			);
+		}
+		return true;
+	};
+
+	for (const file of htmlFiles) {
+		const rel = relative(BUILD_DIR, file).split(sep).join('/');
+		const html = readFileSync(file, 'utf-8');
+		for (const [, url] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+			if (resolve(url, rel)) htmlRefs++;
+		}
+	}
+
+	// Stylesheets too, and that is not thoroughness for its own sake. The first
+	// reverse experiment for this section renamed a background `.webp` and the
+	// check stayed green: the four theme backgrounds are named in CSS `url()`, not
+	// in any `src`, so scanning HTML alone looked past them entirely. Every theme
+	// on the site depends on those four files.
+	for (const cssFile of [...onDisk].filter((f) => f.endsWith('.css'))) {
+		const css = readFileSync(join(BUILD_DIR, cssFile), 'utf-8');
+		for (const [, url] of css.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)) {
+			if (resolve(url, cssFile)) cssRefs++;
+		}
+	}
+
+	// Canary, one per corpus. A regex that stops matching, or a `buildPath` that
+	// returns '' for every URL, would leave this section reporting a clean build
+	// after checking nothing — and the CSS half is the half that was silently empty.
+	if (htmlRefs < htmlFiles.length) {
+		fail(
+			`asset check resolved only ${htmlRefs} references across ${htmlFiles.length} pages — ` +
+				'it is measuring nothing, not finding nothing'
+		);
+	}
+	if (cssRefs === 0) {
+		fail(
+			'asset check found no url() references in any stylesheet — the CSS half is measuring nothing'
+		);
+	}
+}
+
 // ---------------------------------------------------------------------------
 // SEO-v8 § 7.5 — артефакти AI-пошуку (llms.txt і групи robots.txt).
 //
