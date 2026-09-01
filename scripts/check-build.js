@@ -705,6 +705,63 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 10. no page carries an inline event handler ----------------------------
+//
+// SECURITY-v8 § 6.3.2. The policy this site ships covers its inline <script> with a
+// hash (§ 6.3) and refuses everything else. Handler ATTRIBUTES are the one thing a
+// hash can never cover, and the browser says so in as many words:
+//
+//   Executing inline event handler violates the following Content Security Policy
+//   directive 'script-src 'self' …'. … Note that hashes do not apply to event
+//   handlers … The action has been blocked.
+//
+// Nobody writes these attributes: Svelte 5 emits `onerror="this.__e=event"` during
+// SSR onto any element whose source carries an event prop, so that an event fired
+// before hydration can be replayed instead of lost. Measured 2026-09-02, this build
+// held 600 of them across 229 pages — fifty on the home page — every one of them
+// dead on arrival, and with them the fallback glyph for a photo that fails early.
+//
+// Checked here and only here: in `src/` these attributes do not exist by definition.
+//
+// A named list rather than /\bon[a-z]+=/, which also matches `only=`, `once=` and
+// every future attribute with "on" inside it.
+{
+	const HANDLERS = [
+		'onload',
+		'onerror',
+		'onclick',
+		'onchange',
+		'oninput',
+		'onsubmit',
+		'onfocus',
+		'onblur',
+		'ontoggle',
+		'onanimationend'
+	];
+	const ATTR = new RegExp(`\\s(?:${HANDLERS.join('|')})\\s*=\\s*["'][^"']*["']`, 'gi');
+
+	let scanned = 0;
+
+	for (const file of htmlFiles) {
+		const html = readFileSync(file, 'utf-8');
+		scanned++;
+		const found = [...html.matchAll(ATTR)].map((m) => m[0].trim());
+		if (found.length > 0) {
+			const shown = [...new Set(found)].slice(0, 3).join(', ');
+			fail(
+				`${relative(BUILD_DIR, file).split(sep).join('/')}: ${found.length} inline event ` +
+					`handler(s) the policy will block — ${shown}`
+			);
+		}
+	}
+
+	// Canary. Zero pages read means the walk found nothing, not that the build is
+	// clean, and this section would then report a clean build forever.
+	if (scanned === 0) {
+		fail('inline-handler check read no pages at all — it is measuring nothing');
+	}
+}
+
 // ---------------------------------------------------------------------------
 // SEO-v8 § 7.5 — артефакти AI-пошуку (llms.txt і групи robots.txt).
 //

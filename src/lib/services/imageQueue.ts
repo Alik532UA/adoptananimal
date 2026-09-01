@@ -1,4 +1,5 @@
 import type { Attachment } from 'svelte/attachments';
+import { photoIsBroken } from '$lib/utils/imageFallback';
 
 /**
  * How many photos may be downloading at once.
@@ -72,10 +73,15 @@ function claimSlot(start: () => void): () => void {
 /**
  * Loads a photo when it is near the viewport and a download slot is free, then reveals it.
  *
- * `reveal` runs once the picture is decoded and ready to paint, not merely when its bytes
- * arrived — the fade in CSS is meant to start from a whole photograph. It is the only way
- * the photo becomes visible: the stylesheet leaves it at zero opacity wherever a script
- * is running (see `[data-js]` in AnimalCard).
+ * `on.reveal` runs once the picture is decoded and ready to paint, not merely when its
+ * bytes arrived — the fade in CSS is meant to start from a whole photograph. It is the
+ * only way the photo becomes visible: the stylesheet leaves it at zero opacity wherever
+ * a script is running (see `[data-js]` in AnimalCard).
+ *
+ * `on.failed` runs when there is no picture to show, and it is reported from here rather
+ * than from an `onerror` prop in the markup: that prop puts a real `onerror` attribute
+ * into the prerendered HTML, which this project's CSP blocks. The whole measurement is in
+ * `$lib/utils/imageFallback`.
  *
  * `source` is passed in rather than read off the element, because by the time anything
  * else looks the attribute has been taken away.
@@ -83,13 +89,21 @@ function claimSlot(start: () => void): () => void {
 export function queuedPhoto(
 	source: string,
 	priority: boolean,
-	reveal: () => void
+	on: { reveal: () => void; failed: () => void }
 ): Attachment<HTMLImageElement> {
 	return (img) => {
 		// Already there — from the cache, or the browser simply finished before Svelte
 		// attached anything. The load event is long gone and nothing would ever reveal it.
 		if (img.complete && img.naturalWidth > 0) {
-			reveal();
+			on.reveal();
+			return;
+		}
+
+		// The other half of the same window: the served `src` was tried and failed before
+		// anything here was listening. That is the case the blocked `onerror` attribute
+		// used to be responsible for.
+		if (photoIsBroken(img)) {
+			on.failed();
 			return;
 		}
 
@@ -103,15 +117,22 @@ export function queuedPhoto(
 			// The slot is a share of the network, so it goes back the moment the bytes are
 			// in. Decoding is the processor's problem and holds nothing else up.
 			giveBackSlot();
-			img.decode().then(reveal, reveal);
+			img.decode().then(on.reveal, on.reveal);
+		};
+
+		const onError = () => {
+			giveBackSlot();
+			// Taking `src` away below is not a broken picture, and in some browsers it is
+			// reported as an error all the same. `photoIsBroken` is what tells them apart.
+			if (photoIsBroken(img)) on.failed();
 		};
 
 		img.addEventListener('load', onLoad);
-		img.addEventListener('error', giveBackSlot);
+		img.addEventListener('error', onError);
 
 		const stopListening = () => {
 			img.removeEventListener('load', onLoad);
-			img.removeEventListener('error', giveBackSlot);
+			img.removeEventListener('error', onError);
 		};
 
 		// One photo is left to the browser: the priority one is the LCP element, and it

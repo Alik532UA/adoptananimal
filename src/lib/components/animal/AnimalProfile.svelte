@@ -9,6 +9,7 @@
 	import AnimalSpecs from '$lib/components/animal/AnimalSpecs.svelte';
 	import AnimalStory from '$lib/components/animal/AnimalStory.svelte';
 	import { absoluteFromRoot } from '$lib/config';
+	import { photoFallback } from '$lib/utils/imageFallback';
 	import { ageDisplay, ageInEnglish, ageInMonths } from '$lib/data/age';
 	import { clock } from '$lib/services/clock.svelte';
 	import type { AnimalDetail } from '$lib/data/types';
@@ -155,10 +156,10 @@
 							alt={animal.name}
 							class="detail__photo"
 							style={animal.imagePosition ? `object-position: ${animal.imagePosition}` : undefined}
-							onerror={() => (imageFailed = true)}
 							loading="eager"
 							fetchpriority="high"
 							decoding="sync"
+							{@attach photoFallback(() => (imageFailed = true))}
 						/>
 					{/if}
 					<div class="detail__emoji" style={imageFailed ? '' : 'display: none;'}>

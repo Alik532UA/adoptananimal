@@ -62,19 +62,15 @@
 				class="animal-card__photo"
 				class:animal-card__photo--loaded={imageLoaded}
 				style={animal.imagePosition ? `object-position: ${animal.imagePosition}` : undefined}
-				onerror={(event) => {
-					// The queue takes `src` away while a photo waits its turn. A browser that
-					// reports that as an error is not reporting a broken picture, and swapping
-					// in the fallback glyph there would be permanent.
-					if (!event.currentTarget.getAttribute('src')) return;
-					imageFailed = true;
-				}}
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}
 				decoding={priority ? 'sync' : 'async'}
 				width="400"
 				height="400"
-				{@attach queuedPhoto(photo, priority, () => (imageLoaded = true))}
+				{@attach queuedPhoto(photo, priority, {
+					reveal: () => (imageLoaded = true),
+					failed: () => (imageFailed = true)
+				})}
 			/>
 		{/if}
 		<div class="animal-card__emoji" style={imageFailed ? '' : 'display: none;'} aria-hidden="true">
