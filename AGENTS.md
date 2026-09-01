@@ -97,7 +97,7 @@ npm test             # юніт-інваріанти (Vitest)
 npm run check:i18n   # паритет ключів у чотирьох мовах
 npm run build        # збірка
 npm run check:build  # гейт над build/
-npm run check:bundle # бюджет JS: найважча сторінка проти 165 КБ gzip
+npm run check:bundle # бюджет JS: код і каталог тварин окремими числами
 npm run test:e2e     # Playwright проти зібраного сайту
 ```
 
