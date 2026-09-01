@@ -1,10 +1,33 @@
 import type { AnimalSummary, AnimalDetail, Translations } from './types';
 
+/**
+ * The registry, typed at the glob rather than cast afterwards
+ * (SVELTEKIT-DATA-v8 § 7.3, `SKD-SATISFIES`).
+ *
+ * An untyped `import.meta.glob` hands back `unknown`, and the two `as` casts that
+ * used to stand below agreed with whatever came out of it: change `import:
+ * 'summary'` to any other export and the cast is still happy, while the site loses
+ * every card. Naming the type here is the same information in the one place the
+ * compiler can act on it — every reader of `dogs`, `cats` and `allAnimals` is
+ * checked against it from here on.
+ *
+ * What actually verifies the shape of a record is the record: each file declares
+ * `export const summary: AnimalSummary`, so a missing or misspelled field is a type
+ * error in the file that owns it. `src/lib/data/animals.test.ts` covers what a type
+ * cannot — that the file is named after its slug, that the photograph exists with
+ * that exact spelling, and that all four languages are filled in.
+ */
+
 // Eager load only the summaries for fast listing pages
-const summaryModules = import.meta.glob('./animals/*.ts', { import: 'summary', eager: true });
+const summaryModules = import.meta.glob<AnimalSummary>('./animals/*.ts', {
+	import: 'summary',
+	eager: true
+});
 
 // Lazy load for detail pages to prevent large bundle sizes (100+ animals)
-const detailModules = import.meta.glob('./animals/*.ts');
+const detailModules = import.meta.glob<{ summary: AnimalSummary; description: Translations }>(
+	'./animals/*.ts'
+);
 
 /**
  * Canonical ordering of dogs matching the legacy source of truth (adoptananimal.in.ua).
@@ -80,7 +103,7 @@ function sortByCanonicalOrder(
 	});
 }
 
-const rawAnimals: AnimalSummary[] = Object.values(summaryModules) as AnimalSummary[];
+const rawAnimals: AnimalSummary[] = Object.values(summaryModules);
 
 export const dogs: AnimalSummary[] = sortByCanonicalOrder(
 	rawAnimals.filter((a) => a.type === 'dog'),
@@ -106,7 +129,7 @@ export async function getAnimalBySlug(
 		return undefined;
 	}
 
-	const mod = (await loader()) as { summary: AnimalSummary; description: Translations };
+	const mod = await loader();
 
 	return {
 		...mod.summary,

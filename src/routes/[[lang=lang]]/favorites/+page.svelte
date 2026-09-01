@@ -3,16 +3,13 @@
 	import { t } from '$lib/i18n';
 	import { settings } from '$lib/services/settings.svelte';
 	import { allAnimals } from '$lib/data/animals';
-	import type { Animal } from '$lib/data/animals';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import { flip } from 'svelte/animate';
 	import { MediaQuery } from 'svelte/reactivity';
 
-	let favoriteAnimals = $derived(
-		(allAnimals as Animal[]).filter((a) => settings.favorites.includes(a.slug))
-	);
+	let favoriteAnimals = $derived(allAnimals.filter((a) => settings.favorites.includes(a.slug)));
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 

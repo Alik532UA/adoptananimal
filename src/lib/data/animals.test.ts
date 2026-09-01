@@ -139,3 +139,74 @@ describe('imagePosition', () => {
 		expect(bad, `unparseable object-position: ${JSON.stringify(bad)}`).toEqual([]);
 	});
 });
+
+describe('the registry is typed, not asserted', () => {
+	/*
+	 * SVELTEKIT-DATA-v8 § 7.3 and § 7.9. `as` agrees with whatever is on the other
+	 * side of it: `Object.values(glob) as AnimalSummary[]` compiled just as happily
+	 * when the glob was asked for a different export, and the only symptom would have
+	 * been a site with no cards on it.
+	 *
+	 * The type names are read from `types.ts` rather than listed here, so a type added
+	 * there is covered without anyone remembering to come back. That also keeps the
+	 * check off the fifty files of prose beside it: `as` occurs in four animal stories
+	 * ("accept me as I am"), and a pattern for `as <Capitalised>` would report them.
+	 */
+	const TYPES_FILE = resolve('src/lib/data/types.ts');
+	const registryTypes = [
+		...readFileSync(TYPES_FILE, 'utf8').matchAll(/export (?:interface|type) (\w+)/g)
+	].map((m) => m[1]);
+
+	/**
+	 * Anything asserted on the way to a registry type, including the structural form.
+	 *
+	 * `as AnimalSummary[]` is the obvious shape; `as { summary: AnimalSummary; … }`
+	 * was the other one standing in this file, and a pattern that only knew type names
+	 * walked straight past it. So: `as`, then anything up to the end of the statement,
+	 * with a registry type somewhere in it.
+	 *
+	 * That is also why the names come from `types.ts` and not from `[A-Z]\w+`: `as`
+	 * appears in four of the animal stories beside this ("accept me as I am"), and the
+	 * looser pattern reports those.
+	 */
+	const cast = () => new RegExp(String.raw`\bas\s+[^;\n]*\b(?:${registryTypes.join('|')})\b`);
+
+	const strip = (source: string) =>
+		source
+			.replace(/\/\*[\s\S]*?\*\//g, '')
+			.replace(/(^|[^:])\/\/.*$/gm, '$1')
+			// `export type { AnimalSummary as Animal }` renames, it does not assert.
+			.replace(/(?:import|export) type \{[^}]*\}/g, '');
+
+	const sources = (function walk(dir: string, out: string[] = []): string[] {
+		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+			const full = resolve(dir, entry.name);
+			if (entry.isDirectory()) walk(full, out);
+			else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) out.push(full);
+		}
+		return out;
+	})(resolve('src/lib/data'));
+
+	it('the check is alive: it still recognises a cast, and it is reading the registry', () => {
+		// The pattern is built from a template string, and the first draft of it lost
+		// its backslashes on the way into the file: `\bas\s+` became `ass+`, which
+		// matches nothing and reported a clean scan. Proving the regex against a sample
+		// is the only part of this suite that would have caught that.
+		expect(cast().test('const a = Object.values(m) as AnimalSummary[];')).toBe(true);
+		expect(cast().test('const m = (await loader()) as { summary: AnimalSummary };')).toBe(true);
+		expect(cast().test('a person who will accept me as I am and will never leave')).toBe(false);
+
+		expect(registryTypes, 'types.ts no longer exports what the registry is built from').toEqual(
+			expect.arrayContaining(['AnimalSummary', 'AnimalDetail'])
+		);
+		expect(sources.length, 'no registry sources found — scanning the wrong place').toBeGreaterThan(
+			40
+		);
+	});
+
+	it('no source under src/lib/data casts to a registry type', () => {
+		const CAST = cast();
+		const bad = sources.filter((file) => CAST.test(strip(readFileSync(file, 'utf8'))));
+		expect(bad, `use a typed import, not a cast:\n${bad.join('\n')}`).toEqual([]);
+	});
+});
