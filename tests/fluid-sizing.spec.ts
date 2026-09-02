@@ -51,12 +51,11 @@ const PAGES = [
  * An animal's page was added to PAGES on 2026-08-16 after a change to it introduced a
  * 725px-wide layout on a 320px screen and nothing noticed — the list did not include a
  * single animal page, so the widest defect in the project's history sailed past this
- * gate. The 56px below was already there before that change and is a different fault:
- * the first grid column keeps a floor of 352px where 272 is available.
+ * gate. Its own 56px entry, the last one here, came out on 2026-09-02: the floor was
+ * `1fr` resolving to 352px in a 272px column, and `minmax(0, 1fr)` in AnimalProfile
+ * removed it. The list is empty, which is where it is meant to end up.
  */
-const SIDEWAYS_BUDGET_PX: Record<string, number> = {
-	'/adopt/cat/basti': 56
-};
+const SIDEWAYS_BUDGET_PX: Record<string, number> = {};
 
 const SIZES = [
 	{ width: 320, height: 450, label: 'small phone' },

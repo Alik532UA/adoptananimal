@@ -209,9 +209,29 @@
 		color: white;
 	}
 
+	/*
+	 * `min-width: 0` on the items, `minmax(0, 1fr)` on the track (FLUID-SIZING-v8 § 1).
+	 *
+	 * `1fr` is `minmax(auto, 1fr)`: a column may grow and may NOT become narrower than
+	 * the min-content of what is in it. Measured on a 320px phone before this changed,
+	 * the single column resolved to 352.19px inside a 272px container and the page
+	 * travelled 56px sideways — on two hundred animal pages, in four languages. It had
+	 * a recorded budget in `tests/fluid-sizing.spec.ts` and had had one since August.
+	 *
+	 * WHICH HALF DID THE WORK, because the pair is usually quoted together and only
+	 * one of them is load-bearing here. Reverting the track to `1fr` alone leaves the
+	 * gate green; removing `min-width: 0` from `.detail__image-area` alone brings the
+	 * 56px straight back. The floor was the grid ITEM refusing to go under its own
+	 * content — the column of buttons beside the photo — not the track refusing to
+	 * offer less. The `minmax(0, …)` stays because the two only mean anything as a
+	 * pair: the next thing to arrive in this column may find the other half of it.
+	 *
+	 * `.detail__info` gets the same for the same reason: it carries an animal's name
+	 * at 2rem, and a longer one would find the identical floor.
+	 */
 	.detail__layout {
 		display: grid;
-		grid-template-columns: 400px 1fr;
+		grid-template-columns: 400px minmax(0, 1fr);
 		gap: var(--space-3xl);
 		align-items: start;
 	}
@@ -222,6 +242,7 @@
 		gap: var(--space-lg);
 		position: sticky;
 		top: 96px;
+		min-width: 0;
 	}
 
 	.detail__image {
@@ -257,6 +278,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-xl);
+		min-width: 0;
 	}
 
 	/*
@@ -284,7 +306,7 @@
 
 	@media (max-width: 768px) {
 		.detail__layout {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
 		}
 
 		.detail__image-area {
