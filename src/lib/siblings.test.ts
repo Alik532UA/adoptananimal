@@ -44,15 +44,36 @@ describe('the sibling registry describes this site correctly', () => {
 	});
 
 	/*
-	 * Against package.json rather than `SITE_BASE`, and that is not laziness.
+	 * Against the deploy workflow rather than `SITE_BASE`, and that is not laziness.
 	 * `SITE_BASE` comes from `BASE_PATH`, which is empty everywhere except the deploy
-	 * job — so comparing against it would assert `''` locally and prove nothing about
-	 * the address other sites are told to link to. The deploy workflow derives the
-	 * base from the repository NAME, so that is what this compares against.
+	 * job — so comparing against it would assert `''` locally for the same reason it now
+	 * asserts `''` in production, and prove nothing either way about the address other
+	 * sites are told to link to.
+	 *
+	 * The workflow is where that address is decided: `CUSTOM_DOMAIN` set means the site is
+	 * served from the root of its own domain — empty base, origin is the domain — and left
+	 * empty it falls back to a project site under the repository NAME.
+	 *
+	 * This used to compare against package.json alone, which was right only while the
+	 * fallback branch was the one that ran. It would have stayed green through the entire
+	 * move to adoptananimal.in.ua, with every sibling site still sending its readers to
+	 * alik532ua.github.io/adoptananimal — a link that works, in the sense that a 404 page
+	 * loads.
+	 *
+	 * Reverse experiment (AI-AGENT-PITFALLS-v8 § 1.1): changing the domain on one side
+	 * only — here or in the workflow — reddens this; clearing `CUSTOM_DOMAIN` without
+	 * putting the base back reddens it too.
 	 */
-	it('carries the base path the deploy workflow derives', () => {
-		const name = JSON.parse(readFileSync('package.json', 'utf-8')).name;
-		expect(own.base).toBe(`/${name}`);
+	it('carries the address the deploy workflow builds for', () => {
+		const workflow = readFileSync('.github/workflows/deploy.yml', 'utf-8');
+		const domain = /^\s+CUSTOM_DOMAIN:\s*(\S*)/m.exec(workflow)?.[1] ?? '';
+
+		if (domain) {
+			expect(own.origin).toBe(`https://${domain}`);
+			expect(own.base).toBe('');
+		} else {
+			expect(own.base).toBe(`/${JSON.parse(readFileSync('package.json', 'utf-8')).name}`);
+		}
 	});
 
 	it('agrees with the layout about trailing slashes', () => {

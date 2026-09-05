@@ -26,8 +26,8 @@ export const animalChecks: readonly BetaCheck[] = [
 		id: 'animal_3',
 		category: { uk: 'Дані', en: 'Facts' },
 		text: {
-			uk: 'Порівняйте вік із тим самим на старому сайті adoptananimal.in.ua. Числа мусять збігатися; вік «0 років» бути НЕ мусить ніде.',
-			en: 'Compare the age with the same animal on the old site adoptananimal.in.ua. The numbers must agree, and no age may read «0 years».'
+			uk: 'Порівняйте вік із тим самим на старому сайті на Google Sites (НЕ на adoptananimal.in.ua — це тепер адреса цього сайту). Числа мусять збігатися; вік «0 років» бути НЕ мусить ніде.',
+			en: 'Compare the age with the same animal on the old Google Sites site (NOT adoptananimal.in.ua — that address is this site now). The numbers must agree, and no age may read «0 years».'
 		},
 		negative: true,
 		coverage: 'manual'

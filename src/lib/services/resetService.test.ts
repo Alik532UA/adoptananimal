@@ -5,7 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * DBG-HARD-RESET — the one CRITICAL rule of DEBUGGING-v8 (§ 3.4), and the only place in
  * this project where a bug destroys data that is not ours.
  *
- * The origin `alik532ua.github.io` is shared with the sibling projects. Three of the
+ * The fixture puts the site at `alik532ua.github.io` — the fallback address, and the
+ * origin it SHARES with the sibling projects. That is deliberate: it is the harder of
+ * the two shapes the site is served in, and the only one in which these filters can be
+ * observed doing anything at all. Three of the
  * four browser APIs this function touches are ORIGIN-wide by design: `caches.keys()`
  * lists every cache on the host, `getRegistrations()` every service worker on it, and
  * `localStorage.clear()` wipes the lot. The reset is correct only because each half

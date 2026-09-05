@@ -94,9 +94,11 @@ export async function hardReset(askConfirmation = true): Promise<void> {
 /**
  * Caches — only our own, by project prefix.
  *
- * `caches.keys()` returns the cache names of the entire ORIGIN, i.e. together
- * with the caches of neighbouring projects on `alik532ua.github.io`. Without the
- * filter this is 'reset everything on the domain', not 'reset this site'.
+ * `caches.keys()` returns the cache names of the entire ORIGIN. On the site's own
+ * domain that is only ours; at the fallback address it is together with the caches of
+ * the neighbouring projects on `alik532ua.github.io`, and the reset has to be right in
+ * both. Without the filter this is 'reset everything on the domain', not 'reset this
+ * site'.
  */
 async function clearOwnCaches(): Promise<void> {
 	if (!('caches' in window)) return;

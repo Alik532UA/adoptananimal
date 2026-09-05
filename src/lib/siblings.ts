@@ -69,8 +69,8 @@ export interface Sibling {
 
 export const SIBLINGS = {
 	adoptananimal: {
-		origin: 'https://alik532ua.github.io',
-		base: '/adoptananimal',
+		origin: 'https://adoptananimal.in.ua',
+		base: '',
 		locales: ['en', 'uk', 'de', 'nl'],
 		defaultLocale: 'en',
 		transport: 'path',

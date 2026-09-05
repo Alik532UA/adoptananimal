@@ -113,14 +113,32 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-      # A project site is served from https://<owner>.github.io/<repo>/, a user site
-      # from the domain root. Deriving both here keeps them out of the source.
+      # Where the site says it lives, and the one line here that moves with the DNS.
       #
-      # The owner is lower-cased, the repository name is NOT, and the asymmetry is the
-      # point: a URL's host is case-insensitive, its path is not (RFC 3986 § 3.2.2,
-      # § 6.2.2.1). GitHub returns `repository_owner` as the owner typed it —
-      # `Alik532UA` — so every canonical, og:url and sitemap <loc> would carry a
-      # capitalised host: not a 404, just the site advertising itself under a spelling
+      # `CUSTOM_DOMAIN` set means the site is served from the root of its own domain:
+      # the base path is empty and the origin is that domain. Left empty, both fall back
+      # to being derived from the repository — a project site under
+      # https://<owner>.github.io/<repo>/, a user site at the origin root.
+      #
+      # Neither value is discoverable at runtime, which is why the switch lives here and
+      # not in DNS alone. `BASE_PATH` is compiled into every asset URL in the output and
+      # `SITE_ORIGIN` into every canonical, og:url, hreflang and sitemap <loc>. Point the
+      # domain at Pages without changing this and the deploy is green over a site that
+      # asks for its CSS at /adoptananimal/ and tells every crawler its home page is on
+      # alik532ua.github.io. The DNS record and this line are one change in two places —
+      # PROJECT-CONTEXT.md § 4.40.
+      #
+      # There is no CNAME file, in `static/` or anywhere else, and that is not an
+      # omission: published from a workflow, GitHub ignores a CNAME file and reads the
+      # domain from the repository's Pages settings instead. A file here would be a
+      # second source of truth that nothing reads, and that would drift the first time
+      # the domain changed.
+      #
+      # In the fallback branch the owner is lower-cased and the repository name is NOT,
+      # and the asymmetry is the point: a URL's host is case-insensitive, its path is not
+      # (RFC 3986 § 3.2.2, § 6.2.2.1). GitHub returns `repository_owner` as the owner
+      # typed it — `Alik532UA` — so every canonical, og:url and sitemap <loc> would carry
+      # a capitalised host: not a 404, just the site advertising itself under a spelling
       # that appears in no link anywhere. Lower-casing the repo name instead would be a
       # real 404 the day a repository has a capital in it.
       #
@@ -129,7 +147,16 @@ jobs:
       - name: Resolve base path and origin
         id: site
         if: ${{ !cancelled() }}
+        env:
+          # The domain configured in Settings → Pages. Empty falls back to the
+          # repository-derived address.
+          CUSTOM_DOMAIN: adoptananimal.in.ua
         run: |
+          if [ -n "$CUSTOM_DOMAIN" ]; then
+            echo "base=" >> "$GITHUB_OUTPUT"
+            echo "origin=https://$CUSTOM_DOMAIN" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           owner=$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
           repo='${{ github.event.repository.name }}'
           if [ "$(printf '%s' "$repo" | tr '[:upper:]' '[:lower:]')" = "$owner.github.io" ]; then

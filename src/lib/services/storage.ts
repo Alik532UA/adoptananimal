@@ -24,8 +24,14 @@ export const setStorageReporter = (fn: Reporter) => {
 };
 
 /**
- * Storage facade to ensure isolation between multiple projects on the same domain (alik532ua.github.io).
+ * Storage facade to ensure isolation between projects that share one origin.
  * Every key is automatically prefixed with 'adoptananimal_'.
+ *
+ * The site has an origin of its own since PROJECT-CONTEXT § 4.40, and no neighbour sits
+ * on it — but the prefix stays, and not merely out of caution.
+ * `alik532ua.github.io/adoptananimal/` is still a working address, so a reader who ever
+ * opened it has our keys in a store shared with every sibling project. The canon
+ * (STORAGE-NAMESPACE-v8) requires the prefix either way.
  *
  * The facade never throws: quota limits, private-mode restrictions and blocked cookies
  * all surface as exceptions from the Web Storage API, and none of them is worth

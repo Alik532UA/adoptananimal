@@ -5,8 +5,12 @@ import { readFileSync } from 'node:fs';
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 // Absolute origin of the deployed site, used for canonical URLs and the sitemap.
-// The deploy workflow passes the real one; the default matches the current host.
-const siteOrigin = process.env.SITE_ORIGIN ?? 'https://alik532ua.github.io';
+//
+// The deploy workflow passes the real one, and the default here has to be the SAME
+// address rather than `whatever the host is locally`: nothing sets SITE_ORIGIN outside
+// the deploy job, so this string is what every test and every local build sees, and
+// `siblings.test.ts` checks the sibling registry's own entry against it.
+const siteOrigin = process.env.SITE_ORIGIN ?? 'https://adoptananimal.in.ua';
 const basePath = process.env.BASE_PATH ?? '';
 
 export default defineConfig({
