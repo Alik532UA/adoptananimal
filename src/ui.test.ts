@@ -175,8 +175,10 @@ describe('UI-конвенції', () => {
 
 describe('перший кадр', () => {
 	it('meta color-scheme не провокує Force Dark Mode (UI-UX § 1.2)', () => {
-		// Саме `light` — не `light dark` — вмикає на Android Chrome примусову
-		// інверсію, і сайт стає темним не тими кольорами, які хтось обирав.
+		// Голе `light` вмикає на Android Chrome Auto Dark Theme, і сайт стає
+		// темним не тими кольорами, які хтось обирав. Значення в самій розмітці —
+		// стан «тему ще не обрано»; що ставить скрипт для КОЖНОЇ теми, стереже
+		// `color-scheme-canon.test.ts` (UI-UX-v9 `UIUX-ONLY-LIGHT`).
 		const value = /name="color-scheme"[^>]*content="([^"]+)"/.exec(appHtml)?.[1];
 		expect(value, 'мета-тега немає — перевірка мертва').toBeDefined();
 		expect(value, 'значення "light" на Android Chrome інвертує кольори').not.toBe('light');

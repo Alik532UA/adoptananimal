@@ -58,7 +58,9 @@
 			(function () {
 				const THEMES = ['dark', 'light-green', 'orange-purple', 'winter'];
 				const STYLES = ['modern', 'minimal', 'playful'];
+				// Темні за ТЛОМ, а не за назвою: `orange-purple` має --color-bg #1a0f2e.
 				const DARK = 'dark';
+				const DARK_SCHEMES = ['dark', 'orange-purple'];
 				const LIGHT = 'light-green';
 				const root = document.documentElement;
 
@@ -109,7 +111,16 @@
 				}
 
 				const meta = document.querySelector('meta[name="color-scheme"]');
-				if (meta) meta.setAttribute('content', theme === DARK ? 'dark' : 'light dark');
+				// `only light` для світлих тем, а не `light dark`. Android Chrome із
+				// темною темою САМОГО браузера перемальовує в темні кольори кожну
+				// сторінку, яку вважає світлою й без власної темної теми (Auto Dark
+				// Theme); `only` — документована відмова. Заміряно на пристрої в
+				// сусідньому `teatralo4ka.odesa.ua` 7 вересня 2026: зі старим
+				// значенням світлі теми виходили перефарбованими, з `only light` —
+				// ні. Правило UI-UX-v9 `UIUX-ONLY-LIGHT`.
+				if (meta) {
+					meta.setAttribute('content', DARK_SCHEMES.indexOf(theme) !== -1 ? 'dark' : 'only light');
+				}
 			})();
 		</script>
 	</head>

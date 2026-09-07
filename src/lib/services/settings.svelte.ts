@@ -85,7 +85,11 @@ class Settings {
 					storage.set('theme', this.theme);
 					document.documentElement.setAttribute('data-theme', this.theme);
 					const meta = document.querySelector('meta[name="color-scheme"]');
-					if (meta) meta.setAttribute('content', this.theme === 'dark' ? 'dark' : 'light dark');
+					// Те саме, що в скрипті першого кадру: `only light` — відмова від
+					// Auto Dark Theme на Android (UI-UX-v9 `UIUX-ONLY-LIGHT`).
+					// `orange-purple` темна за тлом, тож іде разом із `dark`.
+					const темна = this.theme === 'dark' || this.theme === 'orange-purple';
+					if (meta) meta.setAttribute('content', темна ? 'dark' : 'only light');
 				}
 			});
 
