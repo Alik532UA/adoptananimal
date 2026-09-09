@@ -124,6 +124,42 @@ describe('числа в прозі', () => {
 	 * so — that is a fact about Vite, not about this repository, so it is prose here
 	 * and nothing more.
 	 */
+	/**
+	 * The size-debt table in PROJECT-CONTEXT § 4.15 against the `OVERSIZED` list that
+	 * enforces it (PROJECT-STRUCTURE-v9 § 7.1, `PS-SIZE-RATCHET`).
+	 *
+	 * Read as source text rather than imported: `structure.test.ts` registers suites at
+	 * module scope, so importing it from here would run all of them a second time under
+	 * this file's name — nine phantom results and one real gate.
+	 *
+	 * Measured 2026-09-10, before this check existed: the document named nine files, the
+	 * list held five. `PageScrollbar`, `OrgLogos`, `HeaderNavLinks` and the language page
+	 * had come back under the limit at some point and left the test without leaving the
+	 * prose, so the section overstated the debt by four files — which is the direction
+	 * that goes unnoticed, because nothing about it looks broken.
+	 */
+	it('таблиця § 4.15 дослівно збігається з переліком OVERSIZED', () => {
+		const listed = [...read('src/structure.test.ts').matchAll(/^\t'([^']+)':\s*(\d+),?$/gm)].map(
+			([, path, ceiling]) => `${path}=${ceiling}`
+		);
+		expect(
+			listed.length,
+			'перелік OVERSIZED не читається — змінилася форма запису в structure.test.ts'
+		).toBeGreaterThan(0);
+
+		const section = read('PROJECT-CONTEXT.md').match(/### 4\.15[\s\S]*?(?=\n### 4\.16)/)?.[0];
+		expect(section, 'розділ 4.15 зник або перенумерований').toBeTruthy();
+
+		const documented = [...section!.matchAll(/^\|\s*`([^`]+)`\s*\|\s*(\d+)\s*\|/gm)].map(
+			([, path, ceiling]) => `${path}=${ceiling}`
+		);
+
+		expect(
+			documented.sort(),
+			'таблиця § 4.15 розійшлася з OVERSIZED — файл, стеля або й те й те'
+		).toEqual(listed.sort());
+	});
+
 	it('порти в документації — ті, що в .claude/launch.json і playwright.config.ts', () => {
 		const launch = JSON.parse(read('.claude/launch.json')) as {
 			configurations: { name: string; port: number }[];
