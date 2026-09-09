@@ -91,9 +91,13 @@
 	--hero-shape-color-2: var(--color-secondary);
 	--hero-shape-opacity: 0.08;
 
-	/* Links */
-	--color-link: var(--color-primary-dark);
-	--color-link-hover: var(--color-primary);
+	/* Links. See winter.css for the reasoning: the global `a` rule means a link can land
+	   on any surface, and #4a7a2e was 4.17:1 on --color-bg-surface. #3f6b28: 5.13:1 at
+	   worst. */
+	--color-link: var(--color-primary-on-surface);
+	/* A measured step darker, because --color-primary is now the same colour as the link
+	   and hover would not show. 7.31:1 at worst. */
+	--color-link-hover: #2f5220;
 	--footer-text: #ffffff;
 	--footer-link: var(--color-secondary-light);
 	--footer-link-hover: #ffffff;

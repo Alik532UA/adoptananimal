@@ -90,8 +90,9 @@
 	--hero-shape-color-2: var(--color-primary);
 	--hero-shape-opacity: 0.15;
 
-	/* Links */
-	--color-link: var(--color-primary);
+	/* Links. Same as dark.css: the text-role token, which is this theme’s primary
+	   unchanged. 5.93:1 at worst (on --color-bg-card-hover). */
+	--color-link: var(--color-primary-on-surface);
 	--color-link-hover: var(--color-primary-light);
 	--footer-text: #f0e6ff;
 	--footer-link: var(--color-primary);

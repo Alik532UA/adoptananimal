@@ -91,9 +91,12 @@
 	--hero-shape-color-2: var(--color-primary-dark);
 	--hero-shape-opacity: 0.12;
 
-	/* Links */
+	/* Links.
+	   Through --color-primary-on-surface rather than --color-primary directly: the two are
+	   the same colour in this theme, and naming the text-role token keeps them that way if
+	   the surface-role one is ever lightened. 5.31:1 at worst (on --color-bg-card-hover). */
 	--color-stat: #ffb327;
-	--color-link: var(--color-primary);
+	--color-link: var(--color-primary-on-surface);
 	--color-link-hover: var(--color-primary-light);
 	--footer-text: #e5e5e5;
 	--footer-link: var(--color-primary);

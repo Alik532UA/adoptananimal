@@ -87,9 +87,16 @@
 	--hero-shape-color-2: var(--color-secondary);
 	--hero-shape-opacity: 0.1;
 
-	/* Links */
-	--color-link: var(--color-primary-dark);
-	--color-link-hover: var(--color-primary);
+	/* Links.
+	   `--color-primary-on-surface`, not `--color-primary-dark`: `a { color: var(--color-link) }`
+	   is a global rule in base.css, so a link can land on any of this theme's surfaces,
+	   and #3385ff gave 3.28:1 on --color-bg and 3.12:1 on --color-bg-surface. This is the
+	   token that exists for the brand colour in its text role — a link is text.
+	   #1f66cc: 4.83:1 at worst (on --color-bg-surface). */
+	--color-link: var(--color-primary-on-surface);
+	/* A measured step darker rather than --color-primary, which is lighter than the link
+	   and was 2.78:1. 6.89:1 at worst. */
+	--color-link-hover: #17509f;
 	--footer-text: #ffffff;
 	--footer-link: var(--color-secondary-light);
 	--footer-link-hover: #ffffff;
