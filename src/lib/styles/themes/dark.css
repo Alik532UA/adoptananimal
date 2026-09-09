@@ -1,5 +1,12 @@
 :root,
 [data-theme='dark'] {
+	/* What the browser draws its own controls with: scrollbars, form fields, the date
+	   picker, autofill. Declared in CSS and not only in the `color-scheme` meta tag,
+	   because CSS wins over the tag — a page that says nothing here takes the used
+	   scheme from the visitor's system preference and can end up drawing dark native
+	   controls on a light page. UI-UX-v9 § 1.2, `UIUX-ONLY-LIGHT`. */
+	color-scheme: dark;
+
 	/* Palette */
 	--color-primary: #93bf4c;
 	--color-primary-light: #a4d45c;

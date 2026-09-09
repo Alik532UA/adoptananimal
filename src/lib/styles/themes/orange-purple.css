@@ -1,4 +1,8 @@
 [data-theme='orange-purple'] {
+	/* Dark by its background (#1a0f2e), whatever the name suggests — see dark.css for
+	   why this is declared in CSS at all. UI-UX-v9 § 1.2, `UIUX-ONLY-LIGHT`. */
+	color-scheme: dark;
+
 	/* Palette */
 	--color-primary: #ff8c00;
 	--color-primary-light: #ffa500;

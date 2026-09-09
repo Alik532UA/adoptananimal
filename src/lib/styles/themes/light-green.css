@@ -1,4 +1,11 @@
 [data-theme='light-green'] {
+	/* `only light`, not `light`: the keyword is the documented opt-out of Android
+	   Chrome's Auto Dark Theme, which repaints any page it considers light and without
+	   a dark theme of its own. Measured on a device in `teatralo4ka.odesa.ua` on
+	   2026-09-07 — the meta tag alone did not stop it, because CSS decides the used
+	   scheme and the tag does not. UI-UX-v9 § 1.2, `UIUX-ONLY-LIGHT`. */
+	color-scheme: only light;
+
 	/* Palette */
 	--color-primary: #3f6b28; /* 6.28:1 with white */
 	--color-primary-light: #4a7a30; /* 5.10:1 with white */

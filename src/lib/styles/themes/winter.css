@@ -1,4 +1,7 @@
 [data-theme='winter'] {
+	/* `only light` for the same reason as light-green.css — see the note there. */
+	color-scheme: only light;
+
 	/* Palette */
 	--color-primary: #4d94ff;
 	--color-primary-light: #80b3ff;
