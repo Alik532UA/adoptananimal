@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { basename, resolve } from 'node:path';
+import { basename, posix, resolve } from 'node:path';
 
 /**
- * Structural invariants from PROJECT-STRUCTURE-v8 §§ 4 and 7.
+ * Structural invariants from PROJECT-STRUCTURE-v9 §§ 2, 4 and 7.
  *
  * The size rule is the one that needed a test rather than good intentions: nothing about
  * an 878-line component is visible in a diff, and by the time it is obvious it is too
  * late to want to split it. The canon says to switch the limit on with the existing
  * offenders listed explicitly, so that the list is a thing you shorten rather than a
- * gate you turn off — which is what this allowlist is.
+ * gate you turn off — which is what the ceilings below are.
+ *
+ * Reachability (§ 4.3.1, `PS-REACHABILITY`) is proved by an import graph rather than by
+ * grepping for the file's name, and it covers every module under `src/` — `.ts` and
+ * `.css` as well as components. Orphans in `static/` (§ 2.1, `PS-STATIC-ORPHANS`) are a
+ * different walk over a different tree and live in `static-assets.test.ts`.
  */
 
 const ROOT = resolve(__dirname, '..');
@@ -66,12 +71,132 @@ const OVERSIZED: Record<string, number> = {
 	'src/lib/components/ui/Carousel.svelte': 309
 };
 
+/** Everything under `src/` that can be imported, tests and stylesheets included. */
+function modulesUnderSrc(dir = 'src', out: string[] = []): string[] {
+	for (const entry of readdirSync(resolve(ROOT, dir), { withFileTypes: true })) {
+		const path = `${dir}/${entry.name}`;
+		if (entry.isDirectory()) modulesUnderSrc(path, out);
+		else if (/\.(svelte|ts|js|css)$/.test(entry.name)) out.push(path);
+	}
+	return out;
+}
+
+/**
+ * Where the application starts, from the framework's point of view.
+ *
+ * Route files, hooks and param matchers are loaded by SvelteKit by name — nothing
+ * imports them, and nothing should. Check files are entry points for the same reason:
+ * a module whose only caller is its own test is still reached, and calling that an
+ * orphan would push the project towards deleting the test instead of the module.
+ */
+const ENTRY = [
+	/^src\/routes\/(?:.*\/)?\+[^/]+\.(svelte|ts|js)$/,
+	/^src\/hooks\.[^/]+\.ts$/,
+	/^src\/service-worker\.[^/]+$/,
+	/^src\/params\/[^/]+\.ts$/,
+	/^src\/app\.d\.ts$/,
+	/\.(test|spec)\.ts$/
+];
+
+/**
+ * Turns one import specifier into the files it can mean.
+ *
+ * Bare specifiers (`svelte`, `zod`) and virtual ones (`$app/*`, `$env/*`) resolve
+ * outside `src/` and are dropped. A specifier carrying `*` is an `import.meta.glob`
+ * pattern and resolves to EVERY file it matches — that is the edge that keeps the
+ * fifty animal records reachable, and the canon asks for it by name.
+ */
+function targetsOf(spec: string, from: string, all: string[]): string[] {
+	let path: string;
+	if (spec.startsWith('$lib')) path = `src/lib${spec.slice(4)}`;
+	else if (spec.startsWith('.')) path = posix.normalize(posix.join(posix.dirname(from), spec));
+	else return [];
+
+	if (path.includes('*')) {
+		// Split on the wildcards so each piece is translated once and literally.
+		// Escaping first and substituting after needs a placeholder to hold `**` apart
+		// from `*`, and any placeholder is a character that can occur in a real path.
+		const pattern = new RegExp(
+			`^${path
+				.split(/(\*\*|\*)/)
+				.map((part) =>
+					part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.+^${}()|[\]\\?]/g, '\\$&')
+				)
+				.join('')}$`
+		);
+		return all.filter((candidate) => pattern.test(candidate));
+	}
+
+	// Extensionless specifiers are the norm in TypeScript; `.svelte` and `.css` are
+	// always written out. `/index.ts` covers a directory import.
+	return [path, `${path}.ts`, `${path}.js`, `${path}.svelte`, `${path}/index.ts`].filter(
+		(candidate) => all.includes(candidate)
+	);
+}
+
+/** `from '…'`, `import '…'`, `import('…')`, `import.meta.glob('…')`, CSS `@import '…'`. */
+const SPECIFIERS = [
+	/\bfrom\s*['"]([^'"]+)['"]/g,
+	/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+	/\bimport\s+['"]([^'"]+)['"]/g,
+	/\bimport\.meta\.glob\s*(?:<[\s\S]*?>)?\s*\(\s*['"]([^'"]+)['"]/g,
+	/@import\s+(?:url\()?['"]([^'"]+)['"]/g
+];
+
 describe('§ 4.3 — a file that exists reads as work that was done', () => {
 	// The most expensive rule in the canon, and the one this file was missing. A
 	// component nobody imports still gets read, edited and cited: a fully written
 	// SEO.svelte, imported from nowhere, once earned a project an SEO score it did
 	// not have. Nothing about it looks wrong — that is the whole problem.
 	const all = sources();
+	const modules = modulesUnderSrc();
+
+	const graph = new Map<string, string[]>(
+		modules.map((path) => {
+			const text = read(path);
+			const to = new Set<string>();
+			for (const pattern of SPECIFIERS) {
+				for (const [, spec] of text.matchAll(pattern)) {
+					for (const target of targetsOf(spec, path, modules)) to.add(target);
+				}
+			}
+			return [path, [...to]];
+		})
+	);
+
+	/*
+	 * A module named by an npm script or a workflow is an entry point too: that is how
+	 * `src/lib/i18n/validator.ts` arrives, run as `tsx src/lib/i18n/validator.ts` by
+	 * `npm run check:i18n`. Nothing imports it, and a gate that called it dead would
+	 * be asking for the parity check to be deleted.
+	 */
+	const invoked = (() => {
+		const workflowDir = resolve(ROOT, '.github/workflows');
+		const text = [
+			read('package.json'),
+			...readdirSync(workflowDir)
+				.filter((name) => /\.ya?ml$/.test(name))
+				.map((name) => read(`.github/workflows/${name}`))
+		].join('\n');
+		return modules.filter((path) => text.includes(path));
+	})();
+
+	const entries = [
+		...new Set([...modules.filter((path) => ENTRY.some((re) => re.test(path))), ...invoked])
+	];
+
+	const reachable = new Set(entries);
+	for (let added = true; added; ) {
+		added = false;
+		for (const path of [...reachable]) {
+			for (const target of graph.get(path) ?? []) {
+				if (!reachable.has(target)) {
+					reachable.add(target);
+					added = true;
+				}
+			}
+		}
+	}
 
 	it('the scan finds components at all — the check is alive', () => {
 		const components = all.filter((path) => path.includes('/lib/') && path.endsWith('.svelte'));
@@ -81,22 +206,39 @@ describe('§ 4.3 — a file that exists reads as work that was done', () => {
 		).toBeGreaterThan(10);
 	});
 
-	it('every component under lib/ is imported from somewhere', () => {
-		const contents = new Map(all.map((path) => [path, read(path)]));
-		const components = all.filter((path) => path.includes('/lib/') && path.endsWith('.svelte'));
+	it('the import graph has edges at all — the resolver is alive', () => {
+		// Without this the whole check below is one typo away from being a green
+		// nothing: a resolver that returns [] for every specifier reports zero
+		// orphans, which reads exactly like a clean project.
+		const edges = [...graph.values()].reduce((n, to) => n + to.length, 0);
+		expect(edges, 'no import resolved anywhere — the specifier patterns broke').toBeGreaterThan(
+			100
+		);
+		expect(entries.length, 'no entry point matched — the patterns broke').toBeGreaterThan(10);
+	});
 
-		// Deliberately crude: it looks for the file name in the text of every other
-		// source. That misses a dynamic import built from a variable, which is why
-		// the canon says such cases go in an explicit allowlist here rather than
-		// loosening the rule. There are none today.
-		const orphans = components.filter((path) => {
-			const name = basename(path);
-			return ![...contents].some(([other, text]) => other !== path && text.includes(name));
-		});
+	it('every module under src/ is reachable from an entry point', () => {
+		/*
+		 * Reachability is proved by the graph, not by finding the file's NAME somewhere
+		 * (PROJECT-STRUCTURE-v9 § 4.3.1, `PS-REACHABILITY`).
+		 *
+		 * The check this replaces looked for the basename in the text of every other
+		 * source, and it had two holes the canon names outright. It could not see a
+		 * chain of orphans — `A.svelte` imports `B.svelte`, nobody imports `A`, and `B`
+		 * counts as used. And it looked only at `.svelte` under `lib/`, so every `.ts`
+		 * module in the project was outside it entirely.
+		 *
+		 * That second hole was holding something: `src/lib/index.ts`, the scaffold stub
+		 * from `npm create svelte` ("place files you want to import through the `$lib`
+		 * alias in this folder"), imported by nothing since the first commit. Small and
+		 * harmless in itself — the point is that nothing in the repository could have
+		 * told you it was dead.
+		 */
+		const orphans = modules.filter((path) => !reachable.has(path));
 
 		expect(
 			orphans,
-			`imported from nowhere — wire it up or delete it:\n${orphans.join('\n')}`
+			`no path to it from any entry point — wire it up or delete it:\n${orphans.join('\n')}`
 		).toEqual([]);
 	});
 
