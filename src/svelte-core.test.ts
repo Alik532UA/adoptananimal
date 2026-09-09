@@ -4,7 +4,10 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
- * SVELTE-CORE-v8 § 1.6 — a `$state` proxy must not cross into an outside API.
+ * SVELTE-CORE-v9 §§ 1.6 and 2.2.2 — the two source-level rules behind
+ * `GATE-SVELTE-SOURCES`.
+ *
+ * SVELTE-CORE-v9 § 1.6 — a `$state` proxy must not cross into an outside API.
  *
  * `$state` hands back a Proxy, not the object. Everything inside the app reads through
  * it and never notices; everything OUTSIDE it either notices or, worse, half-notices.
@@ -83,5 +86,61 @@ describe('§ 1.6 — what crosses out of the app is a snapshot, not a proxy', ()
 		}
 
 		expect(bad, `a reactive proxy is leaving the app:\n${bad.join('\n')}`).toEqual([]);
+	});
+});
+
+/**
+ * § 2.2.2 — a listener is removed in the same file that adds it (`SC-LISTENER-CLEANUP`).
+ *
+ * The leak this catches is invisible by every other means. The page works, the tests
+ * are green, and after twenty client-side navigations `window` carries twenty `resize`
+ * handlers, each holding its component in memory. The compiler says nothing:
+ * `addEventListener` without a pair is not its subject.
+ *
+ * The heuristic is per FILE, and deliberately crude: it does not prove the right
+ * listener was removed, only that removal was thought about at all. Anything finer
+ * would need to follow the identity of the handler function across a closure, and a
+ * check that is nearly right about that is worse than one that is obviously rough.
+ *
+ * `AbortSignal` and `once: true` count as removal — they are the mechanism, not an
+ * omission of it (§ 2.2.1). A `$effect` or attachment returning a cleanup function is
+ * the shape most of this project uses, and it names `removeEventListener` inside, so
+ * it needs no special case.
+ */
+const ATTACH = /\.addEventListener\s*\(|\.observe\s*\(|\bsetInterval\s*\(/;
+const DETACH =
+	/\.removeEventListener\s*\(|\.disconnect\s*\(|\.unobserve\s*\(|\bclearInterval\s*\(|once:\s*true|\bsignal\b/;
+
+describe('§ 2.2.2 — що підписалося, те й відписується', () => {
+	// Every source, not only the rune files: `imageQueue.ts` and `imageFallback.ts` add
+	// listeners and hold no state at all.
+	const sources = (function collect(dir = 'src', out: string[] = []): string[] {
+		for (const entry of readdirSync(resolve(ROOT, dir), { withFileTypes: true })) {
+			const path = `${dir}/${entry.name}`;
+			if (entry.isDirectory()) collect(path, out);
+			else if (/\.(svelte|ts)$/.test(entry.name) && !/\.(test|spec)\.ts$/.test(entry.name)) {
+				out.push(path);
+			}
+		}
+		return out;
+	})().map((path) => ({ path, text: read(path) }));
+
+	const attaching = sources.filter((file) => ATTACH.test(file.text));
+
+	it('перевірка жива: файли з підписками знайдено', () => {
+		// Zero subscribing files would report zero leaks, which reads like a project that
+		// never touches the DOM. There are fourteen.
+		expect(attaching.length, 'жодного addEventListener — обхід дивиться не туди').toBeGreaterThan(
+			5
+		);
+	});
+
+	it('у кожному файлі з підпискою є й зняття', () => {
+		const leaking = attaching.filter((file) => !DETACH.test(file.text)).map((file) => file.path);
+
+		expect(
+			leaking,
+			`підписка без пари — по одному слухачу на кожен перехід:\n${leaking.join('\n')}`
+		).toEqual([]);
 	});
 });
