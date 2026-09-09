@@ -1,6 +1,6 @@
-// \vitest-environment node
-import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+// @vitest-environment node
+import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 /**
  * Світла тема оголошує `only light` — і ніде не оголошує голе `light`.
@@ -31,34 +31,29 @@ import { readFileSync } from "node:fs";
  * Проведено: `only light` повернено до `light` — перевірка почервоніла й
  * назвала файл із номером рядка.
  */
-const ДЖЕРЕЛА = ["src/app.html", "src/lib/services/settings.svelte.ts"];
+const ДЖЕРЕЛА = ['src/app.html', 'src/lib/services/settings.svelte.ts'];
 
-describe("color-scheme світлої теми", () => {
-	it("перевірка жива: джерела прочитано й схема в них є", () => {
-		const усе = ДЖЕРЕЛА.map((ф) => readFileSync(ф, "utf8")).join("|");
-		expect(усе.length, "джерела порожні").toBeGreaterThan(100);
-		expect(усе, "жодного оголошення color-scheme — стерегти нема чого").toContain(
-			"color-scheme"
-		);
+describe('color-scheme світлої теми', () => {
+	it('перевірка жива: джерела прочитано й схема в них є', () => {
+		const усе = ДЖЕРЕЛА.map((ф) => readFileSync(ф, 'utf8')).join('|');
+		expect(усе.length, 'джерела порожні').toBeGreaterThan(100);
+		expect(усе, 'жодного оголошення color-scheme — стерегти нема чого').toContain('color-scheme');
 	});
 
-	it("ніде немає голого `light`: ні в CSS, ні в мета-тезі, ні в скрипті", () => {
+	it('ніде немає голого `light`: ні в CSS, ні в мета-тезі, ні в скрипті', () => {
 		const bad: string[] = [];
 		for (const ф of ДЖЕРЕЛА) {
-			readFileSync(ф, "utf8")
-				.split("\n")
+			readFileSync(ф, 'utf8')
+				.split('\n')
 				.forEach((рядок, i) => {
 					// Рядок, що ПРИСВОЮЄ схему: властивість CSS або значення мета-тега.
-					const присвоєння = /color-scheme\s*:|colorScheme\s*=|name="color-scheme"/.test(
-						рядок
-					);
+					const присвоєння = /color-scheme\s*:|colorScheme\s*=|name="color-scheme"/.test(рядок);
 					if (!присвоєння) return;
 					if (/(:|=)\s*["']?\s*light\s*["']?\s*;?\s*$|content="light"/.test(рядок)) {
 						bad.push(`${ф}:${i + 1} — ${рядок.trim()}`);
 					}
 				});
 		}
-		expect(bad, `Auto Dark Theme перемалює світлу тему:\n${bad.join("\n")}`).toEqual([]);
+		expect(bad, `Auto Dark Theme перемалює світлу тему:\n${bad.join('\n')}`).toEqual([]);
 	});
-
 });
