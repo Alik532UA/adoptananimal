@@ -59,6 +59,64 @@ describe('CSS custom properties', () => {
 		const withFallback = [...allCss.matchAll(/var\(\s*--[a-z0-9-]+\s*,/gi)].map((m) => m[0]);
 		expect(withFallback).toEqual([]);
 	});
+
+	/**
+	 * The other direction: a token declared and read by nobody.
+	 *
+	 * The same class as an orphan component or an orphan script (PROJECT-STRUCTURE-v9
+	 * § 4.3 names localisation keys and CSS classes in as many words), and this project
+	 * already gates all three of those. A dead token costs more than its bytes: the
+	 * "declares the same variables in every theme" test above keeps it alive in all four
+	 * themes, so whoever adds a fifth theme is asked to invent a value for a colour that
+	 * paints nothing, and whoever greps for `--footer-bg` finds four confident answers
+	 * to a question with no consumer.
+	 *
+	 * Measured 2026-09-10: nineteen of ninety-nine. `--footer-*` are leftovers from a
+	 * footer that now styles itself from `--glass-bg` and `--color-text`;
+	 * `--hero-shape-*`, `--about-note-*`, `--apply-*` from sections rebuilt since;
+	 * `--radius-xl`/`--radius-2xl` were declared by the skins and never asked for.
+	 *
+	 * Recorded rather than deleted, for the same reason as the orphans in `static/`:
+	 * which of them is a leftover and which is a palette slot someone is about to use
+	 * is a decision for whoever owns the design, not for a gate. The list can only
+	 * shrink — an entry that gains a consumer has to leave it.
+	 */
+	const UNUSED_TOKENS = [
+		'--about-note-bg',
+		'--about-note-border',
+		'--apply-email-bg',
+		'--apply-highlight-bg',
+		'--color-overlay',
+		'--color-overlay-light',
+		'--color-stat',
+		'--footer-bg',
+		'--footer-link',
+		'--footer-link-hover',
+		'--footer-text',
+		'--footer-wave',
+		'--gradient-hero',
+		'--header-border',
+		'--hero-shape-color-1',
+		'--hero-shape-color-2',
+		'--hero-shape-opacity',
+		'--radius-2xl',
+		'--radius-xl'
+	];
+
+	it('declares nothing that no rule reads', () => {
+		const orphans = [...declared].filter(
+			(name) => !used.has(name) && !UNUSED_TOKENS.includes(name)
+		);
+		expect(
+			orphans.sort(),
+			`оголошено й не читається жодним правилом — прибрати або підключити:\n${orphans.join('\n')}`
+		).toEqual([]);
+	});
+
+	it('the list of dead tokens holds nothing that has since been wired up', () => {
+		const revived = UNUSED_TOKENS.filter((name) => used.has(name));
+		expect(revived, `уже читається — прибрати з переліку:\n${revived.join('\n')}`).toEqual([]);
+	});
 });
 
 /**
