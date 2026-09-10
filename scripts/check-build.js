@@ -350,6 +350,40 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 4E. the tab that was open before the deploy can ask what version this is --
+//
+// VERSIONING-v9 § 4.5 (`VER-OPEN-TAB-SURVIVES`). Every build renames the chunks by
+// content hash, so a tab opened BEFORE a deploy holds a list of addresses the
+// server no longer has: the first navigation asks for
+// `_app/immutable/nodes/3.Dxzs2ghZ.js`, gets a 404, and a page that worked a moment
+// ago renders "Internal Error".
+//
+// SvelteKit already recovers from this, and it was measured rather than read
+// (2026-09-11, two real builds and a static server whose directory was swapped
+// under an open tab): the 404 is followed by a request for `_app/version.json`,
+// and because the stamp differs the runtime does a FULL page navigation instead of
+// raising an error. The reader lands on a working page. `src/stale-build.test.ts`
+// carries the sequence and the rest of the reasoning.
+//
+// The whole recovery hangs on that one file being served. Without it the version
+// check is itself a 404, `updated.check()` answers "same version", and the runtime
+// goes back to rendering the error. Nothing else in this repository would notice:
+// the file is emitted by the adapter, so its absence means something changed in the
+// build, not in the sources — which is exactly the kind of thing a gate over
+// `build/` exists for.
+const versionFile = join(BUILD_DIR, '_app', 'version.json');
+if (!existsSync(versionFile)) {
+	fail(
+		'_app/version.json is missing — a tab open across a deploy cannot tell that the ' +
+			'build changed, and gets an error page instead of a reload (VERSIONING § 4.5)'
+	);
+} else {
+	const stamp = JSON.parse(readFileSync(versionFile, 'utf-8')).version;
+	if (typeof stamp !== 'string' || stamp === '') {
+		fail(`_app/version.json carries no usable build stamp: ${JSON.stringify(stamp)}`);
+	}
+}
+
 // --- 5. the sitemap lists pages that were actually generated ----------------
 const sitemapPath = join(BUILD_DIR, 'sitemap.xml');
 if (!existsSync(sitemapPath)) {
