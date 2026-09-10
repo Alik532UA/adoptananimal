@@ -43,16 +43,33 @@
 		/** `og:description`, якщо він має відрізнятися від опису. */
 		ogDescription?: string;
 		/**
-		 * Готовий тег `<script type="application/ld+json">` рядком.
+		 * Структуровані дані сторінки — об'єктом, а не готовим тегом.
 		 *
-		 * Рядком, а не об'єктом, бо Svelte не обчислює вирази всередині літерального
-		 * `<script>` (§ 3.2) — його доводиться складати й віддавати через `{@html}`,
-		 * і складання лишається у виклику, де видно, з яких даних воно зроблене.
+		 * Svelte не обчислює вирази всередині літерального `<script>` (§ 3.2), тож
+		 * розмітку доводиться складати рядком і віддавати через `{@html}`. Складання
+		 * стояло у виклику й було б скопійоване в кожну наступну сторінку разом із
+		 * екрануванням `<` — рівно та деталь, яку в третій копії забувають, а
+		 * наслідок її пропуску (закритий раніше часу `<script>`) не видно в діфі.
+		 * Тому виклик дає дані, а тег складає це місце.
 		 */
-		jsonLd?: string;
+		jsonLd?: Record<string, unknown>;
 	}
 
 	let { title, description, ogTitle, ogDescription, jsonLd }: Props = $props();
+
+	/**
+	 * `<` екранується, щоб корисне навантаження не могло закрити власний тег, а сам
+	 * закривний тег складається з двох частин — тоді його послідовність не
+	 * трапляється в джерелі й не збиває підсвітку та парсери.
+	 */
+	const jsonLdTag = $derived(
+		jsonLd
+			? '<script type="application/ld+json">' +
+					JSON.stringify(jsonLd).replace(/</g, '\\u003c') +
+					'<' +
+					'/script>'
+			: ''
+	);
 </script>
 
 <svelte:head>
@@ -61,8 +78,8 @@
 	<meta property="og:title" content={ogTitle ?? title} />
 	<meta property="og:description" content={ogDescription ?? description} />
 	<meta property="og:type" content="website" />
-	{#if jsonLd}
-		<!-- eslint-disable-next-line svelte/no-at-html-tags -- складено викликом із власних даних проєкту, з екранованим "<" -->
-		{@html jsonLd}
+	{#if jsonLdTag}
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- власні дані проєкту, JSON-кодовані, з екранованим "<" -->
+		{@html jsonLdTag}
 	{/if}
 </svelte:head>

@@ -5,6 +5,8 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Carousel from '$lib/components/ui/Carousel.svelte';
 	import PageMeta from '$lib/components/PageMeta.svelte';
+	import { absoluteLocale } from '$lib/config';
+	import { HTML_LANG } from '$lib/i18n/locales';
 	import { t, tFormat, type TranslationKey } from '$lib/i18n';
 	import { settings, type Locale } from '$lib/services/settings.svelte';
 	import { interleaveByType, limitAdopted } from '$lib/utils/interleave';
@@ -80,9 +82,31 @@
 		animals = interleaveByType(limitAdopted(data.animals));
 		shuffled = true;
 	});
+
+	/**
+	 * Головна як сутність (SEO-v9 § 3.1: «сайт із розділами — `WebSite`»).
+	 *
+	 * Мінімальний набір і жодного поля понад те, що видно на сторінці: назва,
+	 * адреса цією мовою, мова, опис. Спокуса дописати сюди `Organization` була, і
+	 * від неї варто утриматися — сайт це спільний проєкт ДВОХ організацій
+	 * (Notpfote і Vet Crew), тож `Organization` довелося б або вигадати третю
+	 * сутність, якої не існує, або назвати одну з двох і промовчати про другу.
+	 * Обидва варіанти — розмітка того, чого на сторінці немає (§ 3.1).
+	 *
+	 * `url` через `absoluteLocale`, а не з `page.url`: під час пререндеру там
+	 * стоїть хост-заглушка `sveltekit-prerender` (§ 1.3).
+	 */
+	const website = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: t('app.title'),
+		url: absoluteLocale('/', settings.locale),
+		inLanguage: HTML_LANG[settings.locale],
+		description: t('meta.home.description')
+	});
 </script>
 
-<PageMeta title={t('app.title.full')} description={t('meta.home.description')} />
+<PageMeta title={t('app.title.full')} description={t('meta.home.description')} jsonLd={website} />
 
 <!-- Featured Carousel (Moved to the very beginning) -->
 <section class="featured section">

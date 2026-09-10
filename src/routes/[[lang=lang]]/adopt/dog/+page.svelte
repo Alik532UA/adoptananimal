@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { withBase } from '$lib/utils/withBase';
+	import { absoluteLocale } from '$lib/config';
+	import { settings } from '$lib/services/settings.svelte';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
@@ -47,6 +49,32 @@
 
 	const filteredDogs = $derived(animalService.getFiltered('dog', { gender, size, status, search }));
 
+	/**
+	 * Каталог як структуровані дані (SEO-v9 § 3.1: «каталог — `ItemList`»).
+	 *
+	 * Побудований із `filteredDogs`, тобто рівно з того, що намальовано нижче, а не
+	 * з повного реєстру. Розмітка того, чого на сторінці немає, — порушення правил
+	 * Google, а не оптимізація (§ 3.1), і модель цитує структуровані дані охочіше
+	 * за текст (§ 7). Той самий блок є в сусідній сторінці котів; спільного
+	 * компонента навмисно немає — два виклики по десять рядків читаються, а
+	 * параметр «яка це сторінка» коштував би дорожче за копію.
+	 *
+	 * Гейт звіряє `numberOfItems` із кількістю карток у `build/`:
+	 * `check-build.js` § 4F.
+	 */
+	const itemList = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'ItemList',
+		name: t('list.dog.title'),
+		numberOfItems: filteredDogs.length,
+		itemListElement: filteredDogs.map((dog, i) => ({
+			'@type': 'ListItem',
+			position: i + 1,
+			name: dog.name,
+			url: absoluteLocale(`/adopt/dog/${dog.slug}`, settings.locale)
+		}))
+	});
+
 	function handleFilterChange(filters: FilterState) {
 		const params = new SvelteURLSearchParams(page.url.searchParams);
 
@@ -73,6 +101,7 @@
 <PageMeta
 	title={t('app.title.dog')}
 	description={tFormat('list.dog.description', { count: animalService.dogs.length })}
+	jsonLd={itemList}
 />
 
 <section class="list-hero list-hero--dog">

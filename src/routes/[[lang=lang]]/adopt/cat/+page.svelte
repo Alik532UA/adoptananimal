@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { withBase } from '$lib/utils/withBase';
+	import { absoluteLocale } from '$lib/config';
+	import { settings } from '$lib/services/settings.svelte';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
@@ -48,6 +50,33 @@
 		animalService.getFiltered('cat', { gender, status, search, size: '' })
 	);
 
+	/**
+	 * Каталог як структуровані дані (SEO-v9 § 3.1: «каталог — `ItemList`»).
+	 *
+	 * Побудований із `filteredCats`, тобто рівно з того, що намальовано нижче, а не
+	 * з повного реєстру. Це не дрібниця: § 3.1 і § 7 обидва кажуть, що розмітка
+	 * того, чого на сторінці немає, — порушення правил Google, а не оптимізація, і
+	 * що модель цитує структуровані дані ОХОЧІШЕ за текст. Список зі всього
+	 * реєстру виглядав би вигіднішим і був би неправдою тієї миті, коли читач
+	 * увімкне фільтр.
+	 *
+	 * У зібраному HTML фільтрів немає за побудовою (`params` порожні до гідрації),
+	 * тож у краулера це повний список — і саме той, що на сторінці. Гейт звіряє
+	 * `numberOfItems` із кількістю карток у `build/`: `check-build.js` § 4F.
+	 */
+	const itemList = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'ItemList',
+		name: t('list.cat.title'),
+		numberOfItems: filteredCats.length,
+		itemListElement: filteredCats.map((cat, i) => ({
+			'@type': 'ListItem',
+			position: i + 1,
+			name: cat.name,
+			url: absoluteLocale(`/adopt/cat/${cat.slug}`, settings.locale)
+		}))
+	});
+
 	function handleFilterChange(filters: FilterState) {
 		const params = new SvelteURLSearchParams(page.url.searchParams);
 
@@ -71,6 +100,7 @@
 <PageMeta
 	title={t('app.title.cat')}
 	description={tFormat('list.cat.description', { count: animalService.cats.length })}
+	jsonLd={itemList}
 />
 
 <section class="list-hero list-hero--cat">

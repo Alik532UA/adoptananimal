@@ -384,6 +384,57 @@ if (!existsSync(versionFile)) {
 	}
 }
 
+// --- 4F. an ItemList says as many items as the page actually shows -----------
+//
+// SEO-v9 § 3.1 and § 7: structured data that describes something the page does not
+// contain is a violation of Google's rules rather than an optimisation, and a model
+// quotes structured data MORE readily than the prose beside it — so a stale
+// `numberOfItems` does not merely go unnoticed, it is the number that ends up in the
+// answer.
+//
+// The failure this guards is not a typo. The listing pages build their ItemList from
+// the same `$derived` array they render, so the two agree by construction TODAY. The
+// day someone paginates the grid, or renders `animalService.cats` in the markup while
+// the list still reads `filteredCats`, they part company silently — both halves keep
+// looking right in their own file, which is the same shape as § 4.4's two owners.
+//
+// Counted from `build/`, because "how many cards are on the page" is not a property
+// of either file on its own.
+for (const file of htmlFiles) {
+	const rel = relative(BUILD_DIR, file).split(sep).join('/');
+	const html = readFileSync(file, 'utf-8');
+
+	for (const [, payload] of html.matchAll(
+		/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g
+	)) {
+		let data;
+		try {
+			data = JSON.parse(payload);
+		} catch (error) {
+			fail(`${rel}: JSON-LD does not parse — ${error.message}`);
+			continue;
+		}
+		if (data['@type'] !== 'ItemList') continue;
+
+		const listed = Array.isArray(data.itemListElement) ? data.itemListElement.length : 0;
+		if (data.numberOfItems !== listed) {
+			fail(`${rel}: ItemList says numberOfItems ${data.numberOfItems} over ${listed} entries`);
+		}
+
+		// One card per animal, and the locator carries the slug — the same one the
+		// ListItem URL ends with, so the two counts are of the same thing.
+		const cards = new Set(
+			[...html.matchAll(/data-testid="animal-card-([^"]+?)-card"/g)].map((m) => m[1])
+		);
+		if (cards.size !== listed) {
+			fail(
+				`${rel}: ItemList names ${listed} animals, the page draws ${cards.size} cards — ` +
+					'structured data must match what is on the page (SEO § 3.1)'
+			);
+		}
+	}
+}
+
 // --- 5. the sitemap lists pages that were actually generated ----------------
 const sitemapPath = join(BUILD_DIR, 'sitemap.xml');
 if (!existsSync(sitemapPath)) {

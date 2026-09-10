@@ -58,42 +58,38 @@
 	);
 
 	/**
-	 * Schema.org description of the animal. Rendered with {@html} because Svelte does
-	 * not evaluate expressions inside a literal <script> tag (SEO § 3.2). The payload
-	 * is our own data and is JSON-encoded, with "<" escaped so it cannot close the tag.
+	 * Schema.org description of the animal.
+	 *
+	 * Data only: PageMeta serialises it, escapes `<` so the payload cannot close its
+	 * own tag, and renders it — Svelte does not evaluate expressions inside a literal
+	 * `<script>` (SEO § 3.2), so that part has to go through `{@html}` somewhere, and
+	 * one somewhere is enough.
 	 */
-	const jsonLd = $derived(
-		JSON.stringify({
-			'@context': 'https://schema.org',
-			'@type': 'Product',
-			name: animal.name,
-			image: photo,
-			description: animal.description[settings.locale]?.[0] || animal.description.en[0],
-			category: kind === 'cat' ? 'Cat' : 'Dog',
-			additionalProperty: [
-				{ '@type': 'PropertyValue', name: 'Breed', value: animal.breed.en },
-				{
-					'@type': 'PropertyValue',
-					name: 'Age',
-					// English regardless of the reader's language: this block is for machines.
-					value: ageInEnglish(ageDisplay(ageInMonths(animal.bornOn, clock.now)))
-				},
-				{ '@type': 'PropertyValue', name: 'Gender', value: animal.gender.en },
-				{ '@type': 'PropertyValue', name: 'Size', value: animal.size.en }
-			],
-			offers: {
-				'@type': 'Offer',
-				price: '0',
-				priceCurrency: 'EUR',
-				availability: animal.isAdopted ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock'
-			}
-		}).replace(/</g, '\u003c')
-	);
-
-	// Assembled here rather than inline so the closing tag never appears as a literal
-	// sequence in the source. {@html} is required: Svelte does not evaluate expressions
-	// inside a literal <script> tag (SEO § 3.2), and the payload is our own JSON.
-	const jsonLdTag = $derived('<script type="application/ld+json">' + jsonLd + '<' + '/script>');
+	const jsonLd = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'Product',
+		name: animal.name,
+		image: photo,
+		description: animal.description[settings.locale]?.[0] || animal.description.en[0],
+		category: kind === 'cat' ? 'Cat' : 'Dog',
+		additionalProperty: [
+			{ '@type': 'PropertyValue', name: 'Breed', value: animal.breed.en },
+			{
+				'@type': 'PropertyValue',
+				name: 'Age',
+				// English regardless of the reader's language: this block is for machines.
+				value: ageInEnglish(ageDisplay(ageInMonths(animal.bornOn, clock.now)))
+			},
+			{ '@type': 'PropertyValue', name: 'Gender', value: animal.gender.en },
+			{ '@type': 'PropertyValue', name: 'Size', value: animal.size.en }
+		],
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: 'EUR',
+			availability: animal.isAdopted ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock'
+		}
+	});
 
 	const breadcrumbItems = $derived([{ label: listLabel, href: listPath }, { label: animal.name }]);
 </script>
@@ -109,7 +105,7 @@
 	description={metaDescription}
 	ogTitle="{animal.name} - {listLabel}"
 	ogDescription={animal.description[settings.locale][0] || animal.description.en[0]}
-	jsonLd={jsonLdTag}
+	{jsonLd}
 />
 
 <!-- The hero colour is the species' own, set here rather than by a modifier class so the
