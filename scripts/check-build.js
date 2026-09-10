@@ -435,6 +435,81 @@ for (const file of htmlFiles) {
 	}
 }
 
+// --- 4G. no two indexed pages offer the same snippet ------------------------
+//
+// SEO-v9 § 4.1: the description is unique per page, and an empty one beats a copied
+// one. Google picks a single page for a snippet it has seen before, so two pages
+// with the same one are two pages competing to be the other's duplicate.
+//
+// Indexed pages only. The hidden ones legitimately share: `apply/form` carries the
+// same title as `apply` because it is the same form, and the beta checklist is one
+// page in English for every language but Ukrainian, by design (`data/beta/ui.ts`).
+// Neither is in the index or in the sitemap, so neither competes with anything.
+//
+// The ledger below is a ratchet, like `KNOWN_OVERSIZE` in `structure.test.ts`: an
+// entry is a debt with a named cause, and the list is meant to shrink. Compared by
+// equality rather than by "at most N", so a pair that goes away has to be struck out
+// here too and a new pair cannot hide behind an old allowance.
+const KNOWN_DUPLICATE_DESCRIPTIONS = [
+	/*
+	 * Two different animals called BLACK — a cat and a dog — and only in Ukrainian.
+	 *
+	 * The snippet is built from the animal's own first sentence. English, German and
+	 * Dutch all name the species there ("I am a mixed breed cat" / "Mischlingshund"),
+	 * so those six pages differ. The Ukrainian line says «я — метис» with no species,
+	 * and 36 of the 50 records are written the same way — the collision only surfaces
+	 * where two animals share a name.
+	 *
+	 * Left as it is on purpose: the fix is a sentence in the shelter's own text about
+	 * two specific animals, and rewriting authored content is the owner's call, not an
+	 * audit's. The alternative — putting the species into the `meta.animal.description`
+	 * template — changes the snippet of all 200 animal pages in four languages to
+	 * repair two.
+	 */
+	['uk/adopt/cat/black.html', 'uk/adopt/dog/black-dog.html']
+];
+
+{
+	/** page → its head, for pages that are in the index. */
+	const indexed = new Map();
+	for (const file of htmlFiles) {
+		const rel = relative(BUILD_DIR, file).split(sep).join('/');
+		const head = readFileSync(file, 'utf-8').split('</head>')[0];
+		if (/rel="canonical"/.test(head)) indexed.set(rel, head);
+	}
+
+	/** @param {RegExp} pattern @returns {string[][]} groups of pages sharing a value */
+	const collisions = (pattern) => {
+		const byValue = new Map();
+		for (const [rel, head] of indexed) {
+			const value = head.match(pattern)?.[1];
+			if (!value) continue;
+			if (!byValue.has(value)) byValue.set(value, []);
+			byValue.get(value).push(rel);
+		}
+		return [...byValue.values()].filter((pages) => pages.length > 1);
+	};
+
+	for (const pages of collisions(/<title>([\s\S]*?)<\/title>/)) {
+		fail(`same <title> on ${pages.join(', ')} — a title belongs to one page (SEO § 4.1)`);
+	}
+
+	const found = collisions(/<meta[^>]+name="description"[^>]+content="([^"]*)"/)
+		.map((pages) => [...pages].sort())
+		.sort((a, b) => a[0].localeCompare(b[0]));
+	const known = KNOWN_DUPLICATE_DESCRIPTIONS.map((pages) => [...pages].sort()).sort((a, b) =>
+		a[0].localeCompare(b[0])
+	);
+
+	if (JSON.stringify(found) !== JSON.stringify(known)) {
+		fail(
+			'the list of pages sharing a description has changed — update ' +
+				`KNOWN_DUPLICATE_DESCRIPTIONS in this file.\n      now:   ${JSON.stringify(found)}\n` +
+				`      known: ${JSON.stringify(known)}`
+		);
+	}
+}
+
 // --- 5. the sitemap lists pages that were actually generated ----------------
 const sitemapPath = join(BUILD_DIR, 'sitemap.xml');
 if (!existsSync(sitemapPath)) {
