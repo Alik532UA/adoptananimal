@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { blankNonMarkup, tagEnd } from '$lib/utils/svelteMarkup';
 
 /**
  * Кнопка-іконка без імені, знайдена статично (ACCESSIBILITY-v9 § 10.6,
@@ -51,41 +52,12 @@ function компоненти(dir = 'src', out: string[] = []): string[] {
 	return out;
 }
 
-/**
- * Гасить коментарі й тіла `<script>`/`<style>`, зберігаючи кількість рядків.
- *
- * Без цього слово `<button>` у прозі докблока читається як розмітка: у
- * `Minimap.svelte` саме такий коментар і зупиняв першу редакцію розбору.
+/*
+ * `погасити` і `кінецьТега` жили тут, доки не знадобилися вдруге — інваріанту
+ * розмірів картинок у `src/images.test.ts`. Тепер обидві в
+ * `$lib/utils/svelteMarkup.ts`: розбір Svelte має пастку зі стрілкою `=>`, і
+ * знати про неї в двох місцях означає забути в одному.
  */
-const погасити = (текст: string) =>
-	текст
-		.replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, ' '))
-		.replace(/<script[\s\S]*?<\/script>/g, (m) => m.replace(/[^\n]/g, ' '))
-		.replace(/<style[\s\S]*?<\/style>/g, (m) => m.replace(/[^\n]/g, ' '));
-
-/**
- * Кінець відкривного тега — перший `>` поза лапками й поза `{…}`.
- *
- * Наївний `[^>]*>` обривається на стрілці `=>` в `onclick={() => …}`, а таких
- * атрибутів тут більшість: перша редакція розбору через це бачила половину
- * атрибутів кнопки як її вміст і давала десять хибних знахідок.
- */
-function кінецьТега(текст: string, від: number): number {
-	let рівень = 0;
-	let лапка = '';
-	for (let i = від; i < текст.length; i++) {
-		const c = текст[i];
-		if (лапка) {
-			if (c === лапка) лапка = '';
-			continue;
-		}
-		if (c === '"' || c === "'") лапка = c;
-		else if (c === '{') рівень++;
-		else if (c === '}') рівень--;
-		else if (c === '>' && рівень === 0) return i;
-	}
-	return -1;
-}
 
 /** Парний закривний тег, з урахуванням вкладеності однойменних. */
 function кінецьЕлемента(текст: string, від: number, тег: string): number {
@@ -139,7 +111,7 @@ function кнопки(файл: string, текст: string, тег: 'button' | '
 		i = початок + тег.length + 1;
 		// `<a` не сміє зловити `<article`: після назви тега має бути пробіл або `>`.
 		if (!/[\s>]/.test(текст[початок + тег.length + 1] ?? '')) continue;
-		const кінецьВідкрив = кінецьТега(текст, початок);
+		const кінецьВідкрив = tagEnd(текст, початок);
 		const кінецьВмісту = кінецьЕлемента(текст, початок, тег);
 		if (кінецьВідкрив === -1 || кінецьВмісту === -1) continue;
 		знайдені.push({
@@ -153,7 +125,7 @@ function кнопки(файл: string, текст: string, тег: 'button' | '
 }
 
 const усі = компоненти().flatMap((файл) => {
-	const текст = погасити(readFileSync(resolve(ROOT, файл), 'utf8'));
+	const текст = blankNonMarkup(readFileSync(resolve(ROOT, файл), 'utf8'));
 	return [...кнопки(файл, текст, 'button'), ...кнопки(файл, текст, 'a')];
 });
 

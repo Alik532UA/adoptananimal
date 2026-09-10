@@ -144,6 +144,15 @@
 				One per page, and that is the whole value of it (PERFORMANCE-v8 § 3.1): a
 				second high-priority image would mean neither is prioritised. The gate is
 				`check-build.js` § 4D.
+
+				`width`/`height` are proportions, not the size on screen: the box around
+				this image carries `aspect-ratio: 1` and the image itself is 100% × 100%,
+				so the only thing these two numbers do is tell the browser how much room
+				to leave before the file arrives (PERFORMANCE-v9 § 10.2). 400 is the
+				width of the column in `.detail__layout`, and square because the box is.
+				Without them the reservation depends entirely on that one CSS line, and
+				the day it changes the whole page below jumps with nothing in the diff to
+				say so — `src/images.test.ts`.
 			-->
 			<div class="detail__image-area">
 				<div class="detail__image">
@@ -156,6 +165,8 @@
 							loading="eager"
 							fetchpriority="high"
 							decoding="sync"
+							width="400"
+							height="400"
 							{@attach photoFallback(() => (imageFailed = true))}
 						/>
 					{/if}
