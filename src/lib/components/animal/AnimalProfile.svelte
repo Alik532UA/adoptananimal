@@ -8,6 +8,7 @@
 	import AnimalActions from '$lib/components/animal/AnimalActions.svelte';
 	import AnimalSpecs from '$lib/components/animal/AnimalSpecs.svelte';
 	import AnimalStory from '$lib/components/animal/AnimalStory.svelte';
+	import PageMeta from '$lib/components/PageMeta.svelte';
 	import { absoluteFromRoot } from '$lib/config';
 	import { photoFallback } from '$lib/utils/imageFallback';
 	import { ageDisplay, ageInEnglish, ageInMonths } from '$lib/data/age';
@@ -97,23 +98,19 @@
 	const breadcrumbItems = $derived([{ label: listLabel, href: listPath }, { label: animal.name }]);
 </script>
 
-<svelte:head>
-	<title>{animal.name} | {listLabel}</title>
-	<meta name="description" content={metaDescription} />
-	<meta property="og:title" content="{animal.name} - {listLabel}" />
-	<meta
-		property="og:description"
-		content={animal.description[settings.locale][0] || animal.description.en[0]}
-	/>
-	<meta property="og:type" content="website" />
-	<!--
-		No `og:image` here. It is the layout's tag, fed by `ogImage` from this route's
-		`load` — see the comment there. Written in this block it did not replace the
-		layout's default, it joined it, and the first tag is the one a link preview uses.
-	-->
-	<!-- eslint-disable-next-line svelte/no-at-html-tags -- payload is JSON.stringify of our own data, with "<" escaped -->
-	{@html jsonLdTag}
-</svelte:head>
+<!--
+	No `og:image` here, and none in PageMeta either. It is the layout's tag, fed by
+	`ogImage` from this route's `load` — see the comment there. Written in a page's own
+	head block it did not replace the layout's default, it joined it, and the first tag
+	is the one a link preview uses.
+-->
+<PageMeta
+	title="{animal.name} | {listLabel}"
+	description={metaDescription}
+	ogTitle="{animal.name} - {listLabel}"
+	ogDescription={animal.description[settings.locale][0] || animal.description.en[0]}
+	jsonLd={jsonLdTag}
+/>
 
 <!-- The hero colour is the species' own, set here rather than by a modifier class so the
 	 stylesheet does not need a rule per species. -->

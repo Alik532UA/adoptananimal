@@ -5,6 +5,7 @@
 	import { BETA_TABS } from '$lib/data/beta/tabs';
 	import type { Coverage } from '$lib/data/beta/types';
 	import { BETA_UI, pick } from '$lib/data/beta/ui';
+	import PageMeta from '$lib/components/PageMeta.svelte';
 	import { copyText } from '$lib/utils/copyText';
 
 	/** Ukrainian for a Ukrainian reader, English for everyone else — see ui.ts. */
@@ -50,10 +51,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{pick(BETA_UI.title, locale)}</title>
-	<meta name="description" content={pick(BETA_UI.description, locale)} />
-</svelte:head>
+<PageMeta title={pick(BETA_UI.title, locale)} description={pick(BETA_UI.description, locale)} />
 
 <!--
 	Two sections, not one, and the reason is in the root layout: `.main > :first-child`

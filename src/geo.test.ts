@@ -36,7 +36,12 @@ function build(llms: string, pages: string[] = []): string[] {
 
 	// Isolated to the llms.txt half: the head rules have their own cases below, and
 	// the pages written here carry no head at all.
-	return checkGeo(dir, { duplicateMetaTags: false, metaDescription: false, searchAgents: [] });
+	return checkGeo(dir, {
+		duplicateMetaTags: false,
+		metaDescription: false,
+		openGraph: false,
+		searchAgents: []
+	});
 }
 
 const link = (name: string, url: string) => `- [${name}](${url}): what it is.`;
@@ -106,8 +111,16 @@ describe('the llms.txt gate', () => {
 	});
 });
 
-/** A build of pages carrying the given head tags, checked without the llms.txt half. */
-function pageBuild(pages: Record<string, string>): string[] {
+/**
+ * A build of pages carrying the given head tags, checked without the llms.txt half.
+ *
+ * The Open Graph rule is off by default and has its own helper below. Left on, every
+ * case in the two blocks that follow would assert its own finding plus three about
+ * tags it was never about, and the first person to add a case would take the shortest
+ * way out of that — pasting the three tags into a fixture whose point is what it does
+ * NOT contain.
+ */
+function pageBuild(pages: Record<string, string>, openGraph = false): string[] {
 	dir = mkdtempSync(join(tmpdir(), 'geo-'));
 	writeFileSync(join(dir, 'robots.txt'), 'User-agent: *\nDisallow: /private\n');
 
@@ -117,7 +130,7 @@ function pageBuild(pages: Record<string, string>): string[] {
 		writeFileSync(target, `<html><head>${head}</head><body></body></html>`);
 	}
 
-	return checkGeo(dir, { expectsLlmsTxt: false, searchAgents: [] });
+	return checkGeo(dir, { expectsLlmsTxt: false, openGraph, searchAgents: [] });
 }
 
 const description = (text: string) => `<meta name="description" content="${text}"/>`;
@@ -232,5 +245,63 @@ describe('every page carries a description', () => {
 	/* The SPA shell has an empty body by design and nothing to describe. */
 	it('the SPA shell is exempt', () => {
 		expect(pageBuild({ '404.html': '<title>Not found</title>' })).toEqual([]);
+	});
+});
+
+/** The full head of a page that shares correctly, for the block below. */
+const shareable = (title: string) =>
+	description(title) + og('title', title) + og('description', title) + og('type', 'website');
+
+/**
+ * The third half of the same rule, and the one that had never been written.
+ *
+ * The duplicate rule counts tags that appear twice; the description rule requires one
+ * of a single key. Neither can see a page that wrote no Open Graph at all — the first
+ * because zero is not more than one, the second because it only ever looks at
+ * `description`.
+ *
+ * Measured in `build/` on 2026-09-11: 20 of the 220 indexed pages carried no
+ * `og:title`, no `og:description` and no `og:type` — the home page, `adopt/cat`,
+ * `adopt/dog`, `apply` and `favorites`, in all four languages. Every one of the 200
+ * animal pages had all three, because `AnimalProfile` wrote them and the other five
+ * page components did not. In the sources all nine head blocks looked right: what was
+ * wrong with them was a line that was not there, which is not a thing code review sees.
+ *
+ * `og:url`, `og:image` and `og:locale` are missing from this list on purpose — the
+ * layout writes those for every page at once, so they cannot go missing one page at a
+ * time. These three belong to the page.
+ *
+ * Reverse experiment: reverting `PageMeta.svelte` out of `+page.svelte` on the home
+ * route and rebuilding turns `npm run check:build` red with
+ * `index.html: сторінка без og:title, og:description, og:type` and three more lines
+ * for `de.html`, `nl.html` and `uk.html`.
+ */
+describe('every page carries the Open Graph tags it owns', () => {
+	it('passes a page with all three', () => {
+		expect(pageBuild({ 'index.html': shareable('The site.') }, true)).toEqual([]);
+	});
+
+	it('names all three when a page has none of them', () => {
+		expect(pageBuild({ 'index.html': description('The site.') }, true)).toEqual([
+			'index.html: сторінка без og:title, og:description, og:type'
+		]);
+	});
+
+	/* A page halfway there is the more likely regression: someone adds one and stops. */
+	it('names only the ones that are missing', () => {
+		expect(
+			pageBuild({ 'adopt/cat.html': description('Cats.') + og('title', 'Cats') }, true)
+		).toEqual(['adopt/cat.html: сторінка без og:description, og:type']);
+	});
+
+	/* Same reasoning as the description rule: a preview shows a hidden page too. */
+	it('a hidden page is not exempt', () => {
+		expect(pageBuild({ 'apply/form.html': NOINDEX + description('A form.') }, true)).toEqual([
+			'apply/form.html: сторінка без og:title, og:description, og:type'
+		]);
+	});
+
+	it('the SPA shell is exempt here as well', () => {
+		expect(pageBuild({ '404.html': '<title>Not found</title>' }, true)).toEqual([]);
 	});
 });

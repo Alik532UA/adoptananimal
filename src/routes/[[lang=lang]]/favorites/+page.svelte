@@ -6,6 +6,7 @@
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import PageMeta from '$lib/components/PageMeta.svelte';
 	import { flip } from 'svelte/animate';
 	import { MediaQuery } from 'svelte/reactivity';
 
@@ -52,10 +53,10 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{t('nav.favorites')} | AdoptAnAnimal</title>
-	<meta name="description" content={t('meta.favorites.description')} />
-</svelte:head>
+<PageMeta
+	title="{t('nav.favorites')} | AdoptAnAnimal"
+	description={t('meta.favorites.description')}
+/>
 
 <section class="favs-hero">
 	<div class="container">

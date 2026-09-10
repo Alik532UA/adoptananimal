@@ -6,6 +6,7 @@
 	import { animalService } from '$lib/services/animals';
 	import AnimalCard from '$lib/components/animal/AnimalCard.svelte';
 	import FilterBar from '$lib/components/FilterBar.svelte';
+	import PageMeta from '$lib/components/PageMeta.svelte';
 	import { t, tFormat } from '$lib/i18n';
 	import type { FilterState } from '$lib/data/types';
 
@@ -69,13 +70,10 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{t('app.title.dog')}</title>
-	<meta
-		name="description"
-		content={tFormat('list.dog.description', { count: animalService.dogs.length })}
-	/>
-</svelte:head>
+<PageMeta
+	title={t('app.title.dog')}
+	description={tFormat('list.dog.description', { count: animalService.dogs.length })}
+/>
 
 <section class="list-hero list-hero--dog">
 	<div class="container">

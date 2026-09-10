@@ -102,7 +102,7 @@ function htmlFiles(dir, out = []) {
 
 /**
  * @param {string} buildDir каталог зібраного сайту
- * @param {{ expectsLlmsTxt?: boolean, searchAgents?: string[], duplicateMetaTags?: boolean, metaDescription?: boolean, spaFallback?: boolean }} options
+ * @param {{ expectsLlmsTxt?: boolean, searchAgents?: string[], duplicateMetaTags?: boolean, metaDescription?: boolean, openGraph?: boolean, spaFallback?: boolean }} options
  * @returns {string[]} перелік проблем; порожній — усе гаразд
  */
 export function checkGeo(buildDir, options = {}) {
@@ -111,6 +111,7 @@ export function checkGeo(buildDir, options = {}) {
 		searchAgents = SEARCH_AGENTS,
 		duplicateMetaTags = true,
 		metaDescription = true,
+		openGraph = true,
 		// `true` для профілю, де `adapter-static` віддає фолбек на всі адреси:
 		// власного HTML у маршруту там немає за побудовою.
 		spaFallback = false
@@ -194,6 +195,39 @@ export function checkGeo(buildDir, options = {}) {
 		if (rel === '404.html' || rel.endsWith('/404.html')) continue;
 
 		problems.push(`${rel}: сторінка без <meta name="description">`);
+	}
+
+	/*
+	 * --- КОЖНА сторінка має повний набір Open Graph (SEO § 4.2) ---
+	 *
+	 * Третя половина того самого правила. Дублікати ловить перший блок, відсутній
+	 * опис — другий, а цей вимагає тегів, яких у другому немає: `og:title`,
+	 * `og:description`, `og:type`. `og:url`, `og:image` й `og:locale` пише макет
+	 * усім сторінкам одразу, тож вони не губляться; ці три пише сторінка.
+	 *
+	 * Заміряно в `build/` 2026-09-11: **20 із 220 індексованих сторінок** не мали
+	 * жодного з трьох — головна, `adopt/cat`, `adopt/dog`, `apply` і `favorites`
+	 * усіма чотирма мовами. Тобто саме ті сторінки, посилання на які ділять
+	 * найчастіше, показували у прев'ю лише те, що читач дістав із `<title>`.
+	 * Правило «в кожного тега один власник» цього не бачило за побудовою: воно
+	 * рахує теги, яких два, і мовчить про ті, яких нуль.
+	 *
+	 * Виняток той самий, що й в описі, і з тієї ж причини: оболонці SPA нічого
+	 * описувати. Приховані сторінки НЕ виняток — прев'ю посилання показує їх так
+	 * само, як індексованих.
+	 */
+	for (const file of openGraph ? htmlFiles(buildDir) : []) {
+		const head = readFileSync(file, 'utf8').split('</head>')[0];
+		const rel = relPath(buildDir, file);
+
+		if (rel === '404.html' || rel.endsWith('/404.html')) continue;
+
+		const missing = ['og:title', 'og:description', 'og:type'].filter(
+			(key) => !head.includes(`property="${key}"`)
+		);
+		if (missing.length) {
+			problems.push(`${rel}: сторінка без ${missing.join(', ')}`);
+		}
 	}
 
 	// --- llms.txt (§ 7.1) ---

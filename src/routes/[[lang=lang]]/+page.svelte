@@ -4,6 +4,7 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Carousel from '$lib/components/ui/Carousel.svelte';
+	import PageMeta from '$lib/components/PageMeta.svelte';
 	import { t, tFormat, type TranslationKey } from '$lib/i18n';
 	import { settings, type Locale } from '$lib/services/settings.svelte';
 	import { interleaveByType, limitAdopted } from '$lib/utils/interleave';
@@ -81,10 +82,7 @@
 	});
 </script>
 
-<svelte:head>
-	<title>{t('app.title.full')}</title>
-	<meta name="description" content={t('meta.home.description')} />
-</svelte:head>
+<PageMeta title={t('app.title.full')} description={t('meta.home.description')} />
 
 <!-- Featured Carousel (Moved to the very beginning) -->
 <section class="featured section">

@@ -3,6 +3,7 @@
 	import { t, tFormat } from '$lib/i18n';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import PageMeta from '$lib/components/PageMeta.svelte';
 	import { GOOGLE_FORM_EMBED_URL, GOOGLE_FORM_URL } from '$lib/config';
 
 	// A $derived here would read url.searchParams during prerender, where accessing it
@@ -15,10 +16,10 @@
 	});
 </script>
 
-<svelte:head>
-	<title>{t('apply.title')} | {t('footer.brand')}</title>
-	<meta name="description" content={t('meta.apply.description')} />
-</svelte:head>
+<PageMeta
+	title="{t('apply.title')} | {t('footer.brand')}"
+	description={t('meta.apply.description')}
+/>
 
 <section class="apply-hero">
 	<div class="container">
