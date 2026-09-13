@@ -225,8 +225,8 @@ describe('HOLD-SCROLL § 1 — доводка вимкнена типово й �
 		// де малює НАТИВНА смуга: на сенсорному екрані й у вікні, вужчому за
 		// 1100 px під мінімапу (HOLD-SCROLL § 1.3).
 		const src = read(MENU);
-		expect(src, 'чекбокса в меню немає — вмикати опцію нічим').toMatch(
-			/data-testid="scrollbar-menu-hold-btn"/
+		expect(src, 'перемикача в меню немає — вмикати опцію нічим').toMatch(
+			/data-testid="scrollbar-hold-toggle"/
 		);
 		expect(src, 'умову показу написано на mode').toMatch(
 			/showHold\s*=\s*\$derived\(\s*scrollbar\.active\s*!==\s*'native'\s*\)/

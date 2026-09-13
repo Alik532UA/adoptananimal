@@ -95,57 +95,65 @@
 		}}
 	></div>
 
+	<!-- Стек двох ПАНЕЛЕЙ, а не одна панель із роздільником. Перелік режимів —
+		 вибір одного з чотирьох; доводка — незалежна настройка. Окремий контейнер
+		 каже це саме собою, без пояснень (SCROLLBAR § 7.4). -->
 	<div
 		bind:offsetHeight={height}
-		class="scrollbar-menu"
+		class="scrollbar-menu-stack"
 		style="left: {position.left}px; top: {position.top}px; width: {WIDTH}px;"
-		role="menu"
-		tabindex="-1"
-		aria-label={t('scrollbar.title')}
-		data-testid="scrollbar-context-menu"
+		role="presentation"
 		onkeydown={(e) => {
 			if (e.key === 'Escape') scrollbar.closeMenu();
 		}}
 	>
-		<span class="scrollbar-menu__title">{t('scrollbar.title')}</span>
-		{#each SCROLLBAR_MODES as mode (mode.id)}
-			<!-- menuitemradio with aria-checked rather than plain menuitem: the options
+		<div
+			class="scrollbar-menu"
+			role="menu"
+			tabindex="-1"
+			aria-label={t('scrollbar.title')}
+			data-testid="scrollbar-context-menu"
+		>
+			<span class="scrollbar-menu__title">{t('scrollbar.title')}</span>
+			{#each SCROLLBAR_MODES as mode (mode.id)}
+				<!-- menuitemradio with aria-checked rather than plain menuitem: the options
 				 are mutually exclusive, and a screen reader has to say which one is on. -->
-			<button
-				type="button"
-				class="scrollbar-menu__item"
-				class:active={scrollbar.mode === mode.id}
-				role="menuitemradio"
-				aria-checked={scrollbar.mode === mode.id}
-				onclick={() => choose(mode.id)}
-				data-testid="scrollbar-menu-{mode.id}-btn"
-			>
-				{t(mode.key)}
-			</button>
-		{/each}
+				<button
+					type="button"
+					class="scrollbar-menu__item"
+					class:active={scrollbar.mode === mode.id}
+					role="menuitemradio"
+					aria-checked={scrollbar.mode === mode.id}
+					onclick={() => choose(mode.id)}
+					data-testid="scrollbar-menu-{mode.id}-btn"
+				>
+					{t(mode.key)}
+				</button>
+			{/each}
+		</div>
 
 		{#if showHold}
-			<span class="scrollbar-menu__separator" role="separator"></span>
-			<!-- menuitemcheckbox, не menuitemradio: опція не належить до групи режимів
-				 і вибору серед них не скидає.
+			<!-- Тумблер, а не галочка: галочка з фіксованою колонкою лишала порожній
+			 відступ у вимкненому стані, і підпис висів без нічого ліворуч.
 
-				 Меню тут НЕ закривається, на відміну від вибору режиму. Вибір — ухвалене
-				 рішення; це перемикач, і єдиний зворотний зв'язок про його стан —
-				 галочка в цьому ж рядку. Меню, що закрилося раніше, ніж вона
-				 намалювалася, лишає без відповіді на «то ввімкнулося чи ні». -->
-			<button
-				type="button"
-				class="scrollbar-menu__item scrollbar-menu__item--check"
-				role="menuitemcheckbox"
-				aria-checked={scrollbar.holdScroll}
-				onclick={() => scrollbar.setHoldScroll(!scrollbar.holdScroll)}
-				data-testid="scrollbar-menu-hold-btn"
-			>
-				<span class="scrollbar-menu__mark" aria-hidden="true"
-					>{scrollbar.holdScroll ? '✓' : ''}</span
-				>
-				{t('scrollbar.hold')}
-			</button>
+			 Нативний `<input type="checkbox">` під ним, а не кнопка з
+			 `aria-checked`: це справжній елемент форми — фокус, пробіл, читалка й
+			 `:disabled` дістаються задарма. Панель НЕ закривається на перемиканні:
+			 зворотний зв'язок про стан — сам тумблер, і панель, що зникла раніше,
+			 ніж він доїхав, лишає без відповіді на «то ввімкнулося чи ні». -->
+			<div class="scrollbar-menu scrollbar-menu--hold">
+				<label class="scrollbar-hold" data-testid="scrollbar-hold-label">
+					<span>{t('scrollbar.hold')}</span>
+					<input
+						type="checkbox"
+						class="scrollbar-hold__input"
+						checked={scrollbar.holdScroll}
+						onchange={() => scrollbar.setHoldScroll(!scrollbar.holdScroll)}
+						data-testid="scrollbar-hold-toggle"
+					/>
+					<span class="scrollbar-hold__slider"></span>
+				</label>
+			</div>
 		{/if}
 	</div>
 {/if}
@@ -158,9 +166,16 @@
 		z-index: 1600;
 	}
 
-	.scrollbar-menu {
+	/* Позиціонується стек; панелі всередині — звичайний потік. */
+	.scrollbar-menu-stack {
 		position: fixed;
 		z-index: 1601;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.scrollbar-menu {
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
@@ -211,22 +226,84 @@
 		font-weight: 700;
 	}
 
-	.scrollbar-menu__separator {
-		height: 1px;
-		margin: 4px 6px;
-		background: var(--color-border);
+	/* Друга панель: один рядок, тож вертикальний падінг менший за панель переліку —
+	   інакше вона виглядала б порожньою коробкою навколо тумблера. */
+	.scrollbar-menu--hold {
+		padding: 8px 10px;
 	}
 
-	.scrollbar-menu__item--check {
-		gap: 6px;
+	/* Підпис ліворуч, тумблер праворуч. */
+	.scrollbar-hold {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		cursor: pointer;
+		user-select: none;
+		font-size: 0.85rem;
+		color: var(--color-text);
 	}
 
-	/* Ширина фіксована й не залежить від того, стоїть галочка чи ні: інакше підпис
-	   стрибав би вбік при кожному натисканні — просто в меню, яке саме на нього
-	   й дивиться. */
-	.scrollbar-menu__mark {
-		flex: 0 0 14px;
-		color: var(--color-primary-on-surface);
-		text-align: center;
+	/* Поле лишається в потоці подій (фокус, пробіл, читалка), але не видно. */
+	.scrollbar-hold__input {
+		position: absolute;
+		width: 0;
+		height: 0;
+		opacity: 0;
+	}
+
+	/*
+	 * Вимкнений стан — відтінок від тексту, а НЕ `--color-border`.
+	 *
+	 * У цьому проєкті `--color-border: transparent` (рамка самого меню теж
+	 * прозора), тож тумблер виходив невидимий: на білій картці лишався тільки
+	 * білий кружечок із тінню, і прочитати його як «вимкнено» було неможливо —
+	 * він читався як порожнє місце. Заміряно в браузері: `rgba(0, 0, 0, 0)`.
+	 *
+	 * `color-mix` від кольору тексту, а не константа: так відтінок лишається
+	 * правильним у будь-якій темі — тим самим прийомом, що й активний рядок
+	 * переліку нижче.
+	 */
+	.scrollbar-hold__slider {
+		position: relative;
+		flex: 0 0 44px;
+		height: 24px;
+		border-radius: 24px;
+		background: color-mix(in srgb, var(--color-text-muted), transparent 72%);
+		transition: background var(--transition-fast);
+	}
+
+	.scrollbar-hold__slider::before {
+		content: '';
+		position: absolute;
+		left: 3px;
+		bottom: 3px;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		transition: transform var(--transition-fast);
+	}
+
+	.scrollbar-hold__input:checked + .scrollbar-hold__slider {
+		background: var(--color-primary);
+	}
+
+	.scrollbar-hold__input:checked + .scrollbar-hold__slider::before {
+		transform: translateX(20px);
+	}
+
+	/* Обведення на тумблері, а не на полі: те 0×0 і не видно, де фокус. */
+	.scrollbar-hold__input:focus-visible + .scrollbar-hold__slider {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.scrollbar-hold__slider,
+		.scrollbar-hold__slider::before {
+			transition: none;
+		}
 	}
 </style>
