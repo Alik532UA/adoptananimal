@@ -201,6 +201,7 @@
 			role="menu"
 			tabindex="-1"
 			onkeydown={handleKeydown}
+			data-testid="{testId}-menu"
 			{@attach focusFirstItem}
 		>
 			{#each items as item (item.id)}

@@ -277,108 +277,70 @@
 	/*
 	 * ПУНКТ ТЕМИ ПОКАЗУЄ СВОЮ ТЕМУ, а не поточну (THEME-SWITCHER § 4).
 	 *
-	 * ## Перша редакція була неправильна, і ось чим
+	 * Тло — `--color-bg-surface` тієї теми, тобто те, з чого зроблене саме це
+	 * меню, а НЕ тло сторінки: тла сторінки не видно майже ніде, воно під
+	 * фотографічним фоном, і кнопка, пофарбована ним, показує колір, якого
+	 * відвідувач у тій темі не бачив жодного разу.
 	 *
-	 * Вона брала `--color-bg` — ТЛО СТОРІНКИ. Але тла сторінки не видно майже
-	 * ніде: очима людина читає ПОВЕРХНІ — картки тварин, шапку, саме це меню.
-	 * Через це «Темна» виходила чорнішою за все, що є в темній темі, а
-	 * «Світло-зелена» — просто білою: її тло `#f2f5ec` зеленого не має взагалі.
+	 * Колір-ідентичність — смуга ліворуч у `--color-primary`. Саме primary, а не
+	 * `--color-bg-card`: у світло-зеленої та зимової той `#ffffff`, тобто смуга
+	 * була б невидима рівно там, де потрібна найбільше.
 	 *
-	 * Тепер береться `--color-bg-surface` — рівно те, з чого зроблене це меню в
-	 * кожній темі, — плюс `--color-text` тієї ж теми. Рядок виходить мініатюрою
-	 * свого меню, а не умовним «темним» чи «світлим».
+	 * Наведення не міняє тло: заливка кольором-ідентичністю провалює контраст
+	 * (`#3f6b28` не дає читабельної пари ні з білим, ні з чорним). Замість неї
+	 * рамка тим самим кольором — пара «текст на поверхні» лишається недоторканою.
 	 *
-	 * ## Звідки колір-ідентичність
+	 * ## Прив'язка до самого меню, а не перелік ключів
 	 *
-	 * Самої поверхні мало: у світло-зеленої та зимової вони обидві бліді й
-	 * схожі. Тому ліворуч стоїть смуга в `--color-primary` теми. Вона
-	 * декоративна (підпис поруч каже те саме словами), тож порогу контрасту не
-	 * має, зате з неї тема впізнається миттєво.
+	 * Доти тут стояв `:is()` із чотирма ключами тем, бо в списку не було
+	 * локатора, а `data-menu-key` є на пунктах УСІХ трьох меню — без такого
+	 * перелічування правило зачепило б і мову зі стилем. Локатор тепер є
+	 * (`-menu`, як велить TESTID-AND-NAMING-v9 § типів), і селектор став
+	 * простим та однозначним.
 	 *
-	 * `--color-bg-card` для цього не годиться: у світло-зеленої та зимової він
-	 * `#ffffff`, тобто смуга була б невидима рівно там, де потрібна найбільше.
-	 *
-	 * ## Чому наведення не міняє тло
-	 *
-	 * Заливка кольором-ідентичністю провалює контраст: `#3f6b28` світло-зеленої
-	 * не дає читабельної пари ні з білим, ні з чорним. Тому наведення лише додає
-	 * рамку тим самим кольором — пара «текст на поверхні» лишається недоторканою.
-	 *
-	 * ## Чому селектор без прив'язки до меню
-	 *
-	 * У списку немає `data-testid`, а `data-menu-key` стоїть на пунктах усіх
-	 * трьох меню. Ключі тем при цьому не перетинаються з ключами стилю
-	 * (`playful`, `modern`) чи мови (`uk`, `en`, …), тож правило по ключу
-	 * однозначне. Саме тому рамка обраного перелічує чотири ключі через `:is()`,
-	 * а не пише голе `.dropdown__item--active[data-menu-key]`: те зачепило б і
-	 * мову зі стилем.
-	 *
-	 * Контраст «текст на поверхні» (WCAG AA): 13,1:1, 12,9:1, 12,6:1 і 12,2:1.
+	 * Контраст «текст на поверхні» (WCAG AA): 9,08:1 (dark), 12,9:1
+	 * (light-green), 12,6:1 (winter), 8,95:1 (orange-purple).
 	 */
-	:global(.dropdown__item[data-menu-key='dark']) {
-		--sw-id: #93bf4c;
-		background: #242424;
-		color: #e5e5e5;
-	}
-
-	:global(.dropdown__item[data-menu-key='light-green']) {
-		--sw-id: #3f6b28;
-		background: #e4ebd8;
-		color: #262626;
-	}
-
-	:global(.dropdown__item[data-menu-key='winter']) {
-		--sw-id: #4d94ff;
-		background: #e6f2ff;
-		color: #1a2b4d;
-	}
-
-	:global(.dropdown__item[data-menu-key='orange-purple']) {
-		--sw-id: #ff8c00;
-		background: #261742;
-		color: #f0e6ff;
-	}
-
-	:global(
-		.dropdown__item:is(
-			[data-menu-key='dark'],
-			[data-menu-key='light-green'],
-			[data-menu-key='winter'],
-			[data-menu-key='orange-purple']
-		)
-	) {
+	:global([data-testid='theme-menu'] .dropdown__item) {
 		border-left: 4px solid var(--sw-id);
 	}
 
-	:global(
-		.dropdown__item:is(
-				[data-menu-key='dark'],
-				[data-menu-key='light-green'],
-				[data-menu-key='winter'],
-				[data-menu-key='orange-purple']
-			):hover
-	),
-	:global(
-		.dropdown__item:is(
-				[data-menu-key='dark'],
-				[data-menu-key='light-green'],
-				[data-menu-key='winter'],
-				[data-menu-key='orange-purple']
-			):focus-visible
-	) {
+	:global([data-testid='theme-menu'] .dropdown__item:hover),
+	:global([data-testid='theme-menu'] .dropdown__item:focus-visible) {
 		box-shadow: inset 0 0 0 2px var(--sw-id);
 	}
 
 	/* Обраний лишається СВОЇХ кольорів — інакше обрана тема єдина перестала б
 	   показувати себе. Вибір позначає суцільна рамка, а не заливка. */
-	:global(
-		.dropdown__item--active:is(
-			[data-menu-key='dark'],
-			[data-menu-key='light-green'],
-			[data-menu-key='winter'],
-			[data-menu-key='orange-purple']
-		)
-	) {
+	:global([data-testid='theme-menu'] .dropdown__item--active) {
 		box-shadow: inset 0 0 0 3px var(--sw-id);
+	}
+
+	/* #2a3d1d, а не поверхня #242424: автор попросив оливкову — ту, якою темна
+	   тема виглядає на ділі, а не нейтрально-сіру. */
+	:global([data-testid='theme-menu'] .dropdown__item[data-menu-key='dark']) {
+		--sw-id: #93bf4c;
+		background: #2a3d1d;
+		color: #e5e5e5;
+	}
+
+	:global([data-testid='theme-menu'] .dropdown__item[data-menu-key='light-green']) {
+		--sw-id: #3f6b28;
+		background: #e4ebd8;
+		color: #262626;
+	}
+
+	:global([data-testid='theme-menu'] .dropdown__item[data-menu-key='winter']) {
+		--sw-id: #4d94ff;
+		background: #e6f2ff;
+		color: #1a2b4d;
+	}
+
+	/* #4a2e7a, а не поверхня #261742: та майже чорна, і фіолетового в ній не
+	   видно — те саме зауваження, що й до темної. */
+	:global([data-testid='theme-menu'] .dropdown__item[data-menu-key='orange-purple']) {
+		--sw-id: #ff8c00;
+		background: #4a2e7a;
+		color: #f0e6ff;
 	}
 </style>
