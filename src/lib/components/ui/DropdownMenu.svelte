@@ -223,7 +223,7 @@
 						data-testid="{testId}-option-{item.id}-link"
 					>
 						{@render itemVisual?.(item)}
-						<span>{item.label}</span>
+						<span class="dropdown__label">{item.label}</span>
 					</a>
 				{:else}
 					<button
@@ -237,7 +237,7 @@
 						data-testid="{testId}-option-{item.id}-btn"
 					>
 						{@render itemVisual?.(item)}
-						<span>{item.label}</span>
+						<span class="dropdown__label">{item.label}</span>
 					</button>
 				{/if}
 			{/each}
@@ -285,7 +285,31 @@
 		border-radius: var(--radius-md);
 		box-shadow: var(--shadow-lg);
 		padding: 6px;
+		/*
+		 * Меню РОСТЕ під найдовший підпис замість ламати його на два рядки
+		 * (прохання автора: «не переносити на наступний рядок назву теми, а за
+		 * потреби робити ширше контейнер»). Назви тем образні — «Магічний захід»,
+		 * «Magischer Sonnenuntergang», — і в 180 px не вміщалися.
+		 *
+		 * `width: max-content` тут ОБОВ'ЯЗКОВИЙ, і це не зайвий рядок. Сам лише
+		 * `min-width` не допомагає: підпис нижче має `min-width: 0` і
+		 * `overflow: hidden` (задля трикрапки), а такий flex-елемент віддає
+		 * нульовий внесок у бажану ширину — контейнеру нема від чого рости.
+		 * Заміряно на сусідньому проєкті з тим самим меню: з німецьким підписом
+		 * воно лишалося рівно 180 px, а текст обрізався. `max-content` рахує
+		 * ширину за вмістом ДО стиснення.
+		 *
+		 * Розміщення це витримує: `place()` МІРЯЄ `offsetWidth` і притискає меню
+		 * до краю вікна, а `ResizeObserver` на самому меню переміряє, коли ширина
+		 * змінилася від іншої мови.
+		 *
+		 * `max-width` — запобіжник: на вузькому екрані вікно фізично менше за
+		 * німецький підпис, і без стелі меню вилізло б за край. Аж тоді
+		 * спрацьовує трикрапка нижче.
+		 */
+		width: max-content;
 		min-width: 180px;
+		max-width: calc(100vw - 16px);
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
@@ -308,6 +332,21 @@
 		cursor: pointer;
 		width: 100%;
 		text-align: left;
+	}
+
+	/*
+	 * Підпис не переноситься: меню розширюється під нього (див. `min-width` вище).
+	 *
+	 * Трикрапка — не звичайний стан, а останній рубіж: вона з'явиться лише коли
+	 * підпис довший за все вікно. `min-width: 0` обов'язковий — без нього
+	 * flex-елемент не має права стиснутися нижче за свій вміст, і `overflow`
+	 * ніколи не спрацює.
+	 */
+	.dropdown__label {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
 	}
 
 	.dropdown__item:hover {
