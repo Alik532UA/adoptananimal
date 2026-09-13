@@ -124,7 +124,61 @@ class Settings {
 	}
 
 	setTheme(theme: Theme) {
+		this.previewedTheme = null;
+		this.#startThemeShift();
 		this.theme = theme;
+	}
+
+	/** Знімає клас плавного переходу, коли той доїхав (THEME-SWITCHER § 5). */
+	#shiftTimer: ReturnType<typeof setTimeout> | null = null;
+
+	/**
+	 * Вмикає плавний перехід кольорів на час зміни теми.
+	 *
+	 * Тривалість із ЗАПАСОМ над 0,56 с із `styles/base.css`, а не те саме число
+	 * — щоб не тримати копію тривалості у двох місцях. Знімає клас ЛИШЕ таймер:
+	 * зняття в обробнику обривало б перехід на половині, бо вибір теми закриває
+	 * меню, а його закриття кличе `previewTheme(null)`.
+	 */
+	#startThemeShift() {
+		if (!browser) return;
+		document.documentElement.classList.add('theme-shifting');
+		if (this.#shiftTimer) clearTimeout(this.#shiftTimer);
+		this.#shiftTimer = setTimeout(() => {
+			document.documentElement.classList.remove('theme-shifting');
+			this.#shiftTimer = null;
+		}, 900);
+	}
+
+	/**
+	 * Тема, яку показуємо «на пробу» під курсором, або `null`
+	 * (THEME-SWITCHER § 2.1).
+	 *
+	 * ОКРЕМО від `theme`, і тут це критичніше, ніж деінде: `theme` слухає
+	 * `$effect`, який на КОЖНУ зміну пише у сховище. Прев'ю в те саме поле
+	 * означало б, що курсор, який просто перетнув меню, зберігає чужу тему
+	 * назавжди — а `.active` при цьому їхала б за ним.
+	 */
+	previewedTheme = $state<Theme | null>(null);
+
+	/**
+	 * Показує тему «на пробу», поки курсор на її пункті; `null` — вертає обрану.
+	 *
+	 * Малює документ напряму, повз `$effect`: той прив'язаний до `theme`, і
+	 * єдиний спосіб зачепити його — записати вибір, чого прев'ю робити не має.
+	 * Мета-тег іде разом з атрибутом — інакше показана темна тема лишалася б
+	 * оголошеною як світла, і Android Chrome перемальовував би її своєю Auto
+	 * Dark Theme рівно на час показу.
+	 */
+	previewTheme(theme: Theme | null) {
+		if (!browser) return;
+		this.previewedTheme = theme;
+		this.#startThemeShift();
+		const shown = theme ?? this.theme;
+		document.documentElement.setAttribute('data-theme', shown);
+		const meta = document.querySelector('meta[name="color-scheme"]');
+		const темна = shown === 'dark' || shown === 'orange-purple';
+		if (meta) meta.setAttribute('content', темна ? 'dark' : 'only light');
 	}
 
 	/** Records an explicit choice by the visitor. Navigation is the caller's job. */
