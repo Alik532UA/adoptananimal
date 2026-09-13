@@ -36,6 +36,15 @@ export default defineConfig({
 		 * 68.3; measured again on 2026-09-02 the run gives 73.6 / 65.5 / 65.9 / 74.8, so
 		 * the old floor sat nine points under the work and had stopped being a floor.
 		 *
+		 * 2026-09-13: the floor went the OTHER way first, and that is worth writing
+		 * down. The theme preview added `previewedTheme` and `previewTheme()` to
+		 * `settings.svelte.ts` — a module then at 17% — and the deploy failed on
+		 * 70.32 / 61.8 / 71.68 against 71 / 63 / 72. Nothing was broken: 428 tests
+		 * passed, and the gate was doing exactly its job, reporting that new logic
+		 * arrived without a test. `settings.svelte.test.ts` covers it now
+		 * (64% of that file, up from 17%), the run gives 75.37 / 68.63 / 66.9 / 77.22,
+		 * and the floor follows at measured-minus-two.
+		 *
 		 * Statements and lines are now ABOVE the canon's recommended 70 for the first
 		 * time. That is not a reason to write 70 here: the rule is measured-minus-two in
 		 * both directions, and a threshold the project does not meet is a gate that is
@@ -55,7 +64,7 @@ export default defineConfig({
 			provider: 'v8',
 			include: ['src/lib/controllers/**', 'src/lib/services/**'],
 			reporter: ['text'],
-			thresholds: { statements: 71, branches: 63, functions: 63, lines: 72 }
+			thresholds: { statements: 73, branches: 66, functions: 64, lines: 75 }
 		}
 	},
 	define: {
