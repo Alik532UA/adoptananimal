@@ -17,6 +17,16 @@ export const commonChecks: readonly BetaCheck[] = [
 		test: 'tests/ui.spec.ts'
 	},
 	{
+		id: 'common_15',
+		category: { uk: 'Тема', en: 'Theme' },
+		text: {
+			uk: 'На комп’ютері відкрийте список тем і наведіть курсор на тему, якою ЗАРАЗ не користуєтесь, не натискаючи. Сторінка мусить показати цю тему цілком, а щойно курсор піде — повернутися до попередньої. Самі пункти списку мусять бути пофарбовані кожен під СВОЮ тему, а не всі під поточну.',
+			en: 'On a desktop, open the theme list and hover a theme you are NOT using, without clicking. The page must show that theme in full and return to the previous one as soon as the pointer leaves. The list items themselves must each be coloured in THEIR OWN theme, not all in the current one.'
+		},
+		testid: 'theme-menu',
+		coverage: 'manual'
+	},
+	{
 		id: 'common_2',
 		category: { uk: 'Тема', en: 'Theme' },
 		text: {
