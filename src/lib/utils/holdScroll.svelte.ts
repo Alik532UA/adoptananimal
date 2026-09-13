@@ -34,12 +34,16 @@ export interface HoldGeometry {
  * Shared by the custom bar and both minimaps, because all three are the same model: a
  * marker of some height travelling a strip of some height at a fixed ratio to the
  * scroll. Writing it three times would mean three chances to get the ramp wrong.
+ *
+ * OFF by default; the visitor turns it on from the bar's own menu (HOLD-SCROLL § 1).
+ * This is the only thing on the bar that moves the page with no input at all.
  */
 export class HoldScroll {
 	/** Whether the drift is running, so the markup can show it. */
 	holding = $state(false);
 
 	private geometry: () => HoldGeometry;
+	private enabled: () => boolean;
 	private timer: ReturnType<typeof setTimeout> | null = null;
 	private frame = 0;
 	private started = 0;
@@ -48,8 +52,34 @@ export class HoldScroll {
 	/** The zone the pointer was in at the last aim: -1, 0 or 1. */
 	private zone = 0;
 
-	constructor(geometry: () => HoldGeometry) {
+	/**
+	 * `enabled` is a function, not a value: the checkbox is flipped while the menu is
+	 * open, without the component being rebuilt, and a value captured here would
+	 * outlive the change — a freshly ticked option would do nothing until reload.
+	 */
+	constructor(geometry: () => HoldGeometry, enabled: () => boolean) {
 		this.geometry = geometry;
+		this.enabled = enabled;
+	}
+
+	/**
+	 * Дві причини не рухатися, обидві читаються на КОЖЕН `aim()`.
+	 *
+	 * Перша — опція вимкнена, і це типовий стан (HOLD-SCROLL § 1.1): сторінка, що
+	 * їде від самої лише нерухомості курсора, стається без жодної дії, а людина,
+	 * яка припаркувала мишу біля правого краю, не має підказки, що це було.
+	 *
+	 * Друга — `prefers-reduced-motion` (HOLD-SCROLL, HIGH). Автоматичний рух
+	 * сторінки — рівно те, від чого захищає ця настройка; механіка вимикається
+	 * ЦІЛКОМ, а не сповільнюється.
+	 *
+	 * Обидві тут, а не в компонентах: малювальники читають `reducedMotion` лише
+	 * для власної пружини ПОЯВИ смуги, тож сама прокрутка їхала б однаково —
+	 * слово в компоненті є, і виглядає воно як виконана вимога.
+	 */
+	private blocked(): boolean {
+		if (!this.enabled()) return true;
+		return browser && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	}
 
 	/** Which zone a point falls in relative to the marker: above, on it, or below. */
@@ -68,6 +98,11 @@ export class HoldScroll {
 	 * movement never begins.
 	 */
 	aim(localY: number) {
+		if (this.blocked()) {
+			this.stop();
+			return;
+		}
+
 		const zone = this.zoneOf(localY);
 		this.targetY = localY;
 

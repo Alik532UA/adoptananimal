@@ -181,6 +181,59 @@ describe('§ 9.10 / § 9.11 — the minimap must not fight its own drag', () => 
 	});
 });
 
+describe('HOLD-SCROLL § 1 — доводка вимкнена типово й вмикається чекбоксом', () => {
+	const HOLD = 'src/lib/utils/holdScroll.svelte.ts';
+	const MENU = 'src/lib/components/ui/ScrollbarContextMenu.svelte';
+
+	it('перевірка жива: механіка на місці й нею користуються', () => {
+		expect(read(HOLD)).toMatch(/requestAnimationFrame/);
+		const users = sourceFiles().filter((f) => /new HoldScroll\(/.test(read(f)));
+		expect(users.length, 'HoldScroll ніхто не створює — перевіряти нема чого').toBeGreaterThan(1);
+	});
+
+	it('типове значення — вимкнено', () => {
+		expect(
+			read('src/lib/services/scrollbar.svelte.ts'),
+			'увімкнена типово доводка рухає сторінку в кожного, хто про неї не просив'
+		).toMatch(/holdScroll\s*=\s*\$state\(false\)/);
+	});
+
+	it('стан читається функцією, а не запам’ятовується при створенні', () => {
+		// Чекбокс перемикають при відкритому меню, не перестворюючи компонент:
+		// збережене поле означало б, що щойно ввімкнена опція мовчить до
+		// перезавантаження сторінки.
+		// `[\s\S]*?`, а не `[^)]*`: перший же `)` закриває `() => HoldGeometry`
+		// у сусідньому параметрі.
+		const src = read(HOLD);
+		expect(src, 'конструктор мусить брати другим аргументом читача стану').toMatch(
+			/constructor\([\s\S]*?enabled:\s*\(\)\s*=>\s*boolean/
+		);
+		expect(src, 'стан читається викликом на кожну спробу').toMatch(/this\.enabled\(\)/);
+	});
+
+	it('сама механіка знає про prefers-reduced-motion, а не лише показ смуги', () => {
+		expect(
+			read(HOLD),
+			'малювальники читають цю настройку лише для пружини появи — сторінка ' +
+				'їхала б однаково; guard мусить бути у спільному класі'
+		).toMatch(/prefers-reduced-motion/);
+	});
+
+	it('чекбокс намальований і показується за active, а не за mode', () => {
+		// Прапорець без чекбокса — мертвий код, який читається як зроблена
+		// робота (PS-REACHABILITY). А умова на `mode` показала б перемикач там,
+		// де малює НАТИВНА смуга: на сенсорному екрані й у вікні, вужчому за
+		// 1100 px під мінімапу (HOLD-SCROLL § 1.3).
+		const src = read(MENU);
+		expect(src, 'чекбокса в меню немає — вмикати опцію нічим').toMatch(
+			/data-testid="scrollbar-menu-hold-btn"/
+		);
+		expect(src, 'умову показу написано на mode').toMatch(
+			/showHold\s*=\s*\$derived\(\s*scrollbar\.active\s*!==\s*'native'\s*\)/
+		);
+	});
+});
+
 describe('§ 1 — the native bar is only hidden once something replaces it', () => {
 	it('scrollbar-width: none is scoped to the has-custom-scrollbar class', () => {
 		// Hiding it unconditionally leaves a page with no way to see where it is, and no

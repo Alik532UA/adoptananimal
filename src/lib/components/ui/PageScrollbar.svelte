@@ -44,11 +44,12 @@
 	 */
 	let dragThumbTop = $state(0);
 
-	const hold = new HoldScroll(() => ({
-		markerTop: thumbTop,
-		markerHeight: thumbHeight,
-		pxPerScroll
-	}));
+	// Другий аргумент — функція, а не значення: чекбокс перемикають посеред сесії,
+	// і запам'ятоване тут значення пережило б зміну.
+	const hold = new HoldScroll(
+		() => ({ markerTop: thumbTop, markerHeight: thumbHeight, pxPerScroll }),
+		() => scrollbar.holdScroll
+	);
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 

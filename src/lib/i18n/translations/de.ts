@@ -221,6 +221,7 @@ export const de = {
 	'scrollbar.custom': 'Eigene',
 	'scrollbar.minimap': 'Minimap minimal',
 	'scrollbar.minimapFull': 'Minimap',
+	'scrollbar.hold': 'Scrollen beim Zeigen',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Nächstes Tier ansehen',

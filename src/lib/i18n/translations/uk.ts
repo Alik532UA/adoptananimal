@@ -218,6 +218,7 @@ export const uk = {
 	'scrollbar.custom': 'Авторська',
 	'scrollbar.minimap': 'Мінімапа мінімальна',
 	'scrollbar.minimapFull': 'Мінімапа',
+	'scrollbar.hold': 'Доводка наведенням',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Дивитися наступного',

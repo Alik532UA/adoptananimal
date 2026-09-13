@@ -219,6 +219,7 @@ export const en = {
 	'scrollbar.custom': "Author's",
 	'scrollbar.minimap': 'Minimal minimap',
 	'scrollbar.minimapFull': 'Minimap',
+	'scrollbar.hold': 'Scroll on hover',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'See the next one',

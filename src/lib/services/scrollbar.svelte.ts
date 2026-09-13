@@ -41,6 +41,18 @@ class ScrollbarState {
 	 */
 	mode = $state<ScrollbarMode>('custom');
 
+	/**
+	 * Прокрутка від наведення на край смуги. Вимкнена за замовчуванням
+	 * (HOLD-SCROLL § 1.1): це єдине тут, що рухає сторінку без жодного вводу —
+	 * від самої лише нерухомості курсора, — тож вмикає її відвідувач чекбоксом
+	 * у тому ж меню, де вибирає режим.
+	 *
+	 * У скрипт першого кадру (`src/app.html`) прапорець НЕ йде, на відміну від
+	 * `mode`: він нічого не малює й не ховає, тож на перший кадр не впливає, а
+	 * там був би другим джерелом правди без причини.
+	 */
+	holdScroll = $state(false);
+
 	menu = $state<{ open: boolean; x: number; y: number }>({ open: false, x: 0, y: 0 });
 
 	/**
@@ -69,12 +81,23 @@ class ScrollbarState {
 		if (saved !== null && (MODES as string[]).includes(saved)) {
 			this.mode = saved as ScrollbarMode;
 		}
+		// Лише два рядки вважаються записаним вибором. Будь-що інше — зокрема
+		// порожній рядок і сміття від сусіда по origin — лишає типове `false`,
+		// а не вмикає механіку через truthiness.
+		const held = storage.get('holdScroll');
+		if (held === 'true' || held === 'false') this.holdScroll = held === 'true';
 	}
 
 	set(mode: ScrollbarMode) {
 		this.mode = mode;
 		storage.set('scrollbarMode', mode);
 		logService.info('ui', `Scrollbar mode: ${mode} (active: ${this.active})`);
+	}
+
+	setHoldScroll(on: boolean) {
+		this.holdScroll = on;
+		storage.set('holdScroll', String(on));
+		logService.info('ui', `Hold scroll: ${on}`);
 	}
 
 	openMenu = (x: number, y: number) => {

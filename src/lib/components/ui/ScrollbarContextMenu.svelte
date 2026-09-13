@@ -38,6 +38,19 @@
 		};
 	});
 
+	/**
+	 * Чекбокс доводки показується, лише поки малює НАША смуга.
+	 *
+	 * Умова на `active`, а не на `mode`, і різниця не косметична (HOLD-SCROLL § 1.3):
+	 * на сенсорному екрані й у вікні, вужчому за 1100 px під мінімапу, `mode`
+	 * лишається `custom`/`minimap`, а малює нативна смуга. Написане на `mode`
+	 * показало б перемикач там, де наводити нема на що.
+	 *
+	 * Висоту меню правити не треба: вона міряється через `bind:offsetHeight`, тож
+	 * зайвий рядок вона бачить сама.
+	 */
+	const showHold = $derived(scrollbar.active !== 'native');
+
 	/** A strip this wide at the right edge catches the right button. */
 	const EDGE_PX = 20;
 
@@ -110,6 +123,30 @@
 				{t(mode.key)}
 			</button>
 		{/each}
+
+		{#if showHold}
+			<span class="scrollbar-menu__separator" role="separator"></span>
+			<!-- menuitemcheckbox, не menuitemradio: опція не належить до групи режимів
+				 і вибору серед них не скидає.
+
+				 Меню тут НЕ закривається, на відміну від вибору режиму. Вибір — ухвалене
+				 рішення; це перемикач, і єдиний зворотний зв'язок про його стан —
+				 галочка в цьому ж рядку. Меню, що закрилося раніше, ніж вона
+				 намалювалася, лишає без відповіді на «то ввімкнулося чи ні». -->
+			<button
+				type="button"
+				class="scrollbar-menu__item scrollbar-menu__item--check"
+				role="menuitemcheckbox"
+				aria-checked={scrollbar.holdScroll}
+				onclick={() => scrollbar.setHoldScroll(!scrollbar.holdScroll)}
+				data-testid="scrollbar-menu-hold-btn"
+			>
+				<span class="scrollbar-menu__mark" aria-hidden="true"
+					>{scrollbar.holdScroll ? '✓' : ''}</span
+				>
+				{t('scrollbar.hold')}
+			</button>
+		{/if}
 	</div>
 {/if}
 
@@ -172,5 +209,24 @@
 		background: color-mix(in srgb, var(--color-primary), transparent 80%);
 		color: var(--color-primary-on-surface);
 		font-weight: 700;
+	}
+
+	.scrollbar-menu__separator {
+		height: 1px;
+		margin: 4px 6px;
+		background: var(--color-border);
+	}
+
+	.scrollbar-menu__item--check {
+		gap: 6px;
+	}
+
+	/* Ширина фіксована й не залежить від того, стоїть галочка чи ні: інакше підпис
+	   стрибав би вбік при кожному натисканні — просто в меню, яке саме на нього
+	   й дивиться. */
+	.scrollbar-menu__mark {
+		flex: 0 0 14px;
+		color: var(--color-primary-on-surface);
+		text-align: center;
 	}
 </style>

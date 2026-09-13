@@ -216,6 +216,7 @@ export const nl = {
 	'scrollbar.custom': 'Eigen',
 	'scrollbar.minimap': 'Minimap minimaal',
 	'scrollbar.minimapFull': 'Minimap',
+	'scrollbar.hold': 'Scrollen bij aanwijzen',
 
 	// The two quiet links in the footer's corner.
 	'detail.nextAnimal': 'Bekijk de volgende',

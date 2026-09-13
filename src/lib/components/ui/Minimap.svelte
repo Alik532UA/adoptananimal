@@ -142,7 +142,10 @@
 		return -(scrollY / Math.max(pageHeight - viewportHeight, 1)) * overflow;
 	});
 
-	const hold = new HoldScroll(() => ({ markerTop, markerHeight, pxPerScroll }));
+	// Другий аргумент — функція, а не значення: чекбокс перемикають посеред сесії,
+	// і запам'ятоване тут значення пережило б зміну.
+	const geometry = () => ({ markerTop, markerHeight, pxPerScroll });
+	const hold = new HoldScroll(geometry, () => scrollbar.holdScroll);
 
 	const target = $derived.by(() => {
 		if (!visible || reducedMotion.current) return 0;
