@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ALL_BETA_CHECKS } from '$lib/data/beta/tabs';
+import { ALL_BETA_CHECKS, BETA_TABS } from '$lib/data/beta/tabs';
 import type { BetaCheck } from '$lib/data/beta/types';
 
 /**
@@ -79,6 +79,9 @@ const coveredCheck = ALL_BETA_CHECKS.find(
 	(check): check is Extract<BetaCheck, { coverage: 'covered' }> => check.coverage === 'covered'
 );
 if (!coveredCheck) throw new Error('no checklist item claims coverage — those cases cannot run');
+
+/** Any real item: a made-up id is dropped on load by § 8.6, so it must be real. */
+const someCheck = ALL_BETA_CHECKS[0];
 
 describe('beta progress', () => {
 	beforeEach(() => {
@@ -176,6 +179,78 @@ describe('beta progress', () => {
 
 		expect(betaProgress.marks).toEqual({});
 		expect(store.getItem(KEY), 'the key survived the clear').toBeNull();
+	});
+
+	/**
+	 * § 6.3 `BETA-CLEAR-TWO-STEP`. Erasing is the only irreversible action on the page
+	 * and it sits in the same row as «Copy report», which gets reached for every time.
+	 * The cost is asymmetric: an hour of work against one extra click.
+	 */
+	it('needs two presses to erase', async () => {
+		const { betaProgress, store } = await load();
+		betaProgress.vote(someCheck.id, 'ok');
+
+		expect(betaProgress.requestClear(), 'the first press already erased').toBe(false);
+		expect(betaProgress.clearArmed).toBe(true);
+		expect(betaProgress.markedOnThisVersion, 'one press wiped the whole session').toBe(1);
+		expect(store.getItem(KEY), 'storage was cleared on the first step').not.toBeNull();
+
+		expect(betaProgress.requestClear()).toBe(true);
+		expect(betaProgress.markedOnThisVersion).toBe(0);
+		expect(betaProgress.clearArmed, 'the button stayed armed after erasing').toBe(false);
+	});
+
+	it('disarms without erasing', async () => {
+		const { betaProgress } = await load();
+		betaProgress.vote(someCheck.id, 'ok');
+		betaProgress.requestClear();
+		betaProgress.disarmClear();
+
+		expect(betaProgress.clearArmed).toBe(false);
+		expect(betaProgress.markedOnThisVersion).toBe(1);
+	});
+
+	/**
+	 * § 8.6 `BETA-MARKS-UNTRUSTED`. A mark left behind by a removed item has a
+	 * perfectly valid shape, so it used to pass and keep counting — the page then
+	 * showed «40 / 38», a number that means nothing and has nowhere to be fixed.
+	 */
+	it('drops a mark whose item is gone from the checklist', async () => {
+		const { betaProgress } = await load({
+			[someCheck.id]: { vote: 'ok', version: __APP_VERSION__ },
+			removed_99: { vote: 'ok', version: __APP_VERSION__ }
+		});
+
+		expect(betaProgress.marks[someCheck.id], 'dead check: the real mark went too').toBeDefined();
+		expect(Object.keys(betaProgress.marks), 'the removed item kept its mark').toEqual([
+			someCheck.id
+		]);
+		expect(betaProgress.markedOnThisVersion).toBe(1);
+	});
+
+	it('drops a mark of the wrong shape', async () => {
+		const { betaProgress } = await load({
+			[someCheck.id]: { vote: 'maybe', version: __APP_VERSION__ }
+		} as never);
+
+		expect(Object.keys(betaProgress.marks)).toEqual([]);
+	});
+
+	/**
+	 * § 8.1 `BETA-TAB-PROGRESS`. The overall count does not answer the only question a
+	 * tester asks: is THIS tab finished.
+	 */
+	it('counts progress per tab, and only for this version', async () => {
+		const { betaProgress } = await load();
+		const own = BETA_TABS[0];
+		const other = BETA_TABS[1];
+
+		expect(betaProgress.progressOf(own.checks).total).toBe(own.checks.length);
+		expect(betaProgress.progressOf(own.checks).done).toBe(0);
+
+		betaProgress.vote(own.checks[0].id, 'ok');
+		expect(betaProgress.progressOf(own.checks).done).toBe(1);
+		expect(betaProgress.progressOf(other.checks).done, 'the mark leaked into another tab').toBe(0);
 	});
 });
 

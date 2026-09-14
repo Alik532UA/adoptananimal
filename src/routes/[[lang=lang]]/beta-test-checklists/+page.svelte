@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { page } from '$app/state';
 	import BetaLevel from '$lib/components/beta/BetaLevel.svelte';
 	import { betaProgress } from '$lib/controllers/betaProgress.svelte';
@@ -36,13 +37,27 @@
 	const offsetOf = (index: number) =>
 		byLevel.slice(0, index).reduce((sum, level) => sum + level.checks.length, 0);
 
+	/**
+	 * The timer that clears the «copied» label (§ 7.5).
+	 *
+	 * Kept in a handle for two reasons, and neither is theoretical. A second click
+	 * within three seconds is ordinary behaviour when the reaction went unnoticed: the
+	 * first timer stays alive and puts out the label the SECOND click had just lit.
+	 * And leaving the checklist right after copying is the normal path — a tester
+	 * copies and walks off to paste — so an unowned timer fires into a destroyed page.
+	 */
+	let copiedTimer: ReturnType<typeof setTimeout> | undefined;
+
+	onDestroy(() => clearTimeout(copiedTimer));
+
 	async function copyReport() {
 		const report = betaProgress.report();
 
 		if (await copyText(report)) {
 			fallback = '';
 			copied = true;
-			setTimeout(() => (copied = false), 3000);
+			clearTimeout(copiedTimer);
+			copiedTimer = setTimeout(() => (copied = false), 3000);
 			return;
 		}
 
@@ -81,6 +96,7 @@
 
 		<nav class="beta__tabs" aria-label={pick(BETA_UI.title, locale)}>
 			{#each BETA_TABS as item (item.id)}
+				{@const tabProgress = betaProgress.progressOf(item.checks)}
 				<button
 					type="button"
 					class="beta__tab"
@@ -90,6 +106,13 @@
 					data-testid="beta-tab-{item.id}-btn"
 				>
 					{pick(item.title, locale)}
+					<span
+						class="beta__tab-count"
+						aria-label={pick(BETA_UI.tabProgress, locale)}
+						data-testid="beta-tab-{item.id}-progress-text"
+					>
+						{tabProgress.done}/{tabProgress.total}
+					</span>
 				</button>
 			{/each}
 		</nav>
@@ -114,13 +137,19 @@
 			>
 				{pick(BETA_UI.copy, locale)}
 			</button>
+			<!--
+				Two steps, not one (§ 6.3). This is the only irreversible action on the page
+				and it sits next to the button testers reach for every time; the cost is
+				asymmetric — an hour of work against one extra click.
+			-->
 			<button
 				type="button"
 				class="btn btn--secondary"
-				onclick={() => betaProgress.clear()}
+				class:btn--armed={betaProgress.clearArmed}
+				onclick={() => betaProgress.requestClear()}
 				data-testid="beta-clear-btn"
 			>
-				{pick(BETA_UI.clear, locale)}
+				{pick(betaProgress.clearArmed ? BETA_UI.clearConfirm : BETA_UI.clear, locale)}
 			</button>
 		</div>
 
@@ -196,6 +225,24 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-sm);
+	}
+
+	/* Tabular figures: the counters must not jitter as the tab strip updates. */
+	.beta__tab-count {
+		margin-inline-start: var(--space-xs);
+		font-size: 0.85rem;
+		font-weight: 400;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/*
+	 * The armed erase button (§ 6.3). Not colour alone: the border thickens, the label
+	 * turns bold and the text itself changes into a question — three independent signs,
+	 * so the change is visible to a reader who cannot tell the colours apart.
+	 */
+	.btn--armed {
+		border-width: 4px;
+		font-weight: 800;
 	}
 
 	/*

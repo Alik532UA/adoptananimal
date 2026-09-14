@@ -124,12 +124,19 @@ test.describe('the beta checklist', () => {
 		expect(report, 'the marked item, with the answer given').toContain(ITEM);
 	});
 
-	test('erasing the marks empties both the count and the storage', async ({ page }) => {
+	test('erasing takes two presses, and then empties count and storage', async ({ page }) => {
 		await page.goto(PAGE);
 		await page.getByTestId(`beta-check-${ITEM}-vote-ok-btn`).click();
+		const marked = await progress(page);
+
+		// § 6.3: erasing is the only irreversible action on the page, and it sits in the
+		// same row as «Copy report», which gets reached for every single time. One press
+		// must only arm the button.
+		await page.getByTestId('beta-clear-btn').click();
+		expect(await progress(page), 'one press wiped the whole session').toBe(marked);
+		expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).not.toBeNull();
 
 		await page.getByTestId('beta-clear-btn').click();
-
 		expect(await progress(page)).toMatch(/^0 \//);
 		expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).toBeNull();
 	});

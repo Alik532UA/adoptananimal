@@ -26,12 +26,54 @@ const STORAGE_KEY = 'beta_marks';
  * database, for data nobody reads yet. Cheap to reverse — aggregation can be glued on
  * later without rewriting the page.
  */
+const VOTES: readonly Vote[] = ['fail', 'weird', 'ok'];
+
+function isMark(value: unknown): value is Mark {
+	if (typeof value !== 'object' || value === null) return false;
+	const m = value as Record<string, unknown>;
+	return VOTES.includes(m.vote as Vote) && typeof m.version === 'string';
+}
+
+/**
+ * What comes back from storage is UNTRUSTED INPUT (§ 8.6, `BETA-MARKS-UNTRUSTED`).
+ *
+ * The key outlives both the checklist and the shape of a mark. The commonest case is
+ * the harmless-looking one and the worst: an item was REMOVED from the list and its
+ * mark stayed behind. It has a perfectly valid shape, so it passed — and it kept
+ * counting, so the page showed «40 / 38». There is no way to fix that from inside:
+ * the item is gone from the list, so there is nothing left to unmark.
+ */
+function readMarks(): Record<string, Mark> {
+	const raw = storage.getJSON<unknown>(STORAGE_KEY);
+	if (typeof raw !== 'object' || raw === null) return {};
+
+	const known = new Set(ALL_BETA_CHECKS.map((check) => check.id));
+	const out: Record<string, Mark> = {};
+	for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
+		if (known.has(id) && isMark(value)) out[id] = value;
+	}
+	return out;
+}
+
 class BetaProgress {
 	marks = $state<Record<string, Mark>>({});
 
+	/**
+	 * Whether the erase button is armed (§ 6.3, `BETA-CLEAR-TWO-STEP`).
+	 *
+	 * Erasing is the ONLY irreversible action on the page, and it sits in the same row
+	 * as «Copy report», which gets reached for every single time. The cost is
+	 * asymmetric: an hour of a tester's work against one extra click.
+	 *
+	 * Not `confirm()`: a native dialog blocks the thread, is untranslatable, looks
+	 * foreign in every theme, and needs its own handler in headless — i.e. it would
+	 * complicate the e2e of § 5.7 for nothing.
+	 */
+	clearArmed = $state(false);
+
 	/** Read once at construction; the facade adds the project prefix and never throws. */
 	constructor() {
-		this.marks = storage.getJSON<Record<string, Mark>>(STORAGE_KEY) ?? {};
+		this.marks = readMarks();
 	}
 
 	vote(id: string, vote: Vote) {
@@ -63,8 +105,39 @@ class BetaProgress {
 		return ALL_BETA_CHECKS.length;
 	}
 
+	/**
+	 * Two-step erasing (§ 6.3): the first call only arms the button, the second one
+	 * erases. Returns `true` when the marks are actually gone.
+	 */
+	requestClear(): boolean {
+		if (!this.clearArmed) {
+			this.clearArmed = true;
+			return false;
+		}
+		this.clear();
+		return true;
+	}
+
+	/** Disarms without erasing: the button must not stay loaded behind the tester. */
+	disarmClear() {
+		this.clearArmed = false;
+	}
+
+	/**
+	 * Progress of ONE tab (§ 8.1, `BETA-TAB-PROGRESS`).
+	 *
+	 * The overall «12 / 38» does not answer the only question a tester asks: is THIS
+	 * tab finished. Tabs are walked one at a time, so without a per-tab count the
+	 * position has to be held in the head or counted by eye.
+	 */
+	progressOf(checks: readonly { id: string }[]): { done: number; total: number } {
+		const done = checks.filter((check) => this.marks[check.id]?.version === __APP_VERSION__).length;
+		return { done, total: checks.length };
+	}
+
 	clear() {
 		this.marks = {};
+		this.clearArmed = false;
 		storage.remove(STORAGE_KEY);
 	}
 

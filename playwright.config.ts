@@ -1,6 +1,20 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4173;
+/**
+ * Власний порт, а не типовий 4173, і це не смак.
+ *
+ * `VetCrewEmergency` — той самий застосунок, з якого цей виріс, і його
+ * `playwright.config.ts` оголошував РІВНО ТОЙ САМИЙ 4173. Заміряно 2026-09-14:
+ * прогін тут падав із «http://localhost:4173 is already used», бо сервер сусіда
+ * ще тримав порт. Це ще щасливий випадок — `--strictPort` зробив зіткнення
+ * голосним. Без нього Playwright спокійно взяв би чужий сервер і перевірив
+ * ЧУЖИЙ застосунок: прогін зелений, перевірено не те.
+ *
+ * Реєстр тестових портів набору: CV 5299, teatralo4ka 5195, Slovko 5273,
+ * MindStep 5373, VetCrewGames 5399, as5 5499, DigitalWorkshop 5599,
+ * adoptananimal 5699.
+ */
+const PORT = 5699;
 
 export default defineConfig({
 	// Outside src/ on purpose: the vitest include glob would otherwise pick these up

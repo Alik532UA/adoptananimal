@@ -64,6 +64,16 @@ export const BETA_UI = {
 		en: 'The browser refused to copy. Select the text below and copy it by hand.'
 	},
 	clear: { uk: 'Стерти всі позначки', en: 'Erase all marks' },
+	/*
+	 * The second step of erasing (§ 6.3). The label must say what the NEXT press
+	 * does, not describe the button's state: «armed» would read as «already gone».
+	 */
+	clearConfirm: {
+		uk: 'Точно стерти? Натисніть ще раз',
+		en: 'Really erase? Press again'
+	},
+	tabProgress: { uk: 'позначено у вкладці', en: 'marked on this tab' },
+	back: { uk: 'На головну', en: 'Home' },
 	nothingMarked: {
 		uk: 'Жодного пункта ще не позначено.',
 		en: 'Nothing has been marked yet.'
