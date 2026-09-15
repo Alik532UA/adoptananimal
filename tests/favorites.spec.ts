@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, blockAnalytics } from './fixtures';
 
 /**
  * Keeping an animal: the button on its own page, the hearts that say where it went,
@@ -427,6 +427,7 @@ test.describe('with reduced motion asked for', () => {
 	// context here is the same setting, stated where it is read.
 	test('nothing flies and nothing glides — the state still changes', async ({ browser }) => {
 		const context = await browser.newContext({ reducedMotion: 'reduce' });
+		await blockAnalytics(context);
 		const page = await context.newPage();
 
 		await seedFavourites(page, ['basti', 'berry', 'bill']);

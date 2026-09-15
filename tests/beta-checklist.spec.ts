@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 /**
  * The checklist page over the built site (BETA-CHECKLIST-v8 § 3, § 4, § 6).

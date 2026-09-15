@@ -1,7 +1,7 @@
 /**
- * Google Analytics 4 — єдиний лічильник проєкту (ANALYTICS-v8 § 1).
+ * Google Analytics 4 — єдиний лічильник проєкту (ANALYTICS-v9 § 1).
  *
- * Endpoints for CSP validation (ANALYTICS-v8 § 2.3):
+ * Endpoints for CSP validation (ANALYTICS-v9 § 2.3):
  * - https://www.googletagmanager.com
  * - https://*.google-analytics.com
  * - https://*.analytics.google.com
@@ -26,7 +26,21 @@ export type AnalyticsEvent =
 	| 'service_badge_click';
 
 const isConfigured = /^G-[A-Z0-9]{6,}$/.test(GA_ID) && GA_ID !== GA_ID_PLACEHOLDER;
-const enabled = () => browser && !dev && isConfigured;
+
+/**
+ * Локальне середовище або автоматизований тест (Playwright, Puppeteer тощо).
+ * Запобігає засміченню аналітики під час розробки, локального прев'ю та E2E-тестів.
+ */
+const isTestOrLocal = () => {
+	if (!browser || typeof window === 'undefined') return false;
+	const hostname = window.location?.hostname ?? '';
+	const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+	const isWebDriver = typeof navigator !== 'undefined' && Boolean(navigator.webdriver);
+	return isLocal || isWebDriver;
+};
+
+// `dev`, `localhost` та автотести відключають аналітику, щоб тестовий трафік не потрапляв у продакшн.
+const enabled = () => browser && !dev && !isTestOrLocal() && isConfigured;
 
 let started = false;
 

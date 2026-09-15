@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, blockAnalytics } from './fixtures';
 
 /**
  * Layout and affordance checks for things that fail silently.
@@ -440,6 +440,7 @@ test.describe('the header meets the page', () => {
 		// The fade hides the layer behind [data-js], so a scripting failure must not be a
 		// page with no background at all — the same guard AnimalCard.svelte needs.
 		const context = await browser.newContext({ javaScriptEnabled: false });
+		await blockAnalytics(context);
 		const page = await context.newPage();
 		await page.goto('/');
 
@@ -501,6 +502,7 @@ test.describe('the carousel', () => {
 		// script there is nothing to shuffle with, and hiding the cards for a shuffle
 		// that is never coming would leave an empty page.
 		const context = await browser.newContext({ javaScriptEnabled: false });
+		await blockAnalytics(context);
 		const page = await context.newPage();
 		await page.goto('/');
 
@@ -710,6 +712,7 @@ test.describe('the page background', () => {
 		// Parallax is one of the effects that makes motion sickness worse. The image
 		// stays; it just stops travelling.
 		const context = await browser.newContext({ reducedMotion: 'reduce' });
+		await blockAnalytics(context);
 		const page = await context.newPage();
 		await page.goto('/');
 		await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));

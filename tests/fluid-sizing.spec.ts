@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 /**
  * FLUID-SIZING-v8 § 9 — the narrow end of the site, measured rather than eyeballed.
