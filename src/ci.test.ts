@@ -369,7 +369,7 @@ describe('CI', () => {
 		 * випав із перевірки.
 		 */
 		const GATE =
-			/npm audit|npm run check|npm run lint|npm test\b|npm run test:e2e|npm run build|git diff --exit-code|lhci/;
+			/npm run audit:ci|npm run check|npm run lint|npm test\b|npm run test:e2e|npm run build|git diff --exit-code|lhci/;
 		// `npm run check:discovery` уже покрите гілкою `npm run check` вище — вона
 		// без межі слова навмисно, бо ловить усю сімʼю `check:*`.
 
