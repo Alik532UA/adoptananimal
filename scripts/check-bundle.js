@@ -189,14 +189,55 @@ console.log(
 	`budget: ${CODE_KB} KB code and ${DATA_KB} KB data per page, over ${measured.length} pages`
 );
 
+/**
+ * A TOLERANCE, not an exact comparison (CI-CD-AND-TOOLS-v9 § 1.18.1).
+ *
+ * The gate compares a MEASURED number against a threshold, and the measurement
+ * depends on the machine. Measured in `teatralo4ka` on 2026-09-16: a deploy
+ * failed on "758 KB > 758" while a local build of THE SAME tree gave 757.78 —
+ * a few hundred bytes between runners, i.e. more than the usual headroom.
+ * Without a tolerance such a coincidence reddens a run with no code change.
+ *
+ * A kilobyte covers that spread and does NOT cover a real increase: a real edit
+ * weighs kilobytes. Named constant on purpose — hidden inside the comparison it
+ * would read as "the threshold is exact".
+ */
+const TOLERANCE_KB = 1;
+
 const over = [
 	...measured
-		.filter((m) => m.code > CODE_KB)
+		.filter((m) => m.code > CODE_KB + TOLERANCE_KB)
 		.map((m) => `code ${m.code.toFixed(1)} KB — ${m.page}`),
-	...measured.filter((m) => m.data > DATA_KB).map((m) => `data ${m.data.toFixed(1)} KB — ${m.page}`)
+	...measured
+		.filter((m) => m.data > DATA_KB + TOLERANCE_KB)
+		.map((m) => `data ${m.data.toFixed(1)} KB — ${m.page}`)
 ];
 
 if (over.length > 0) {
 	for (const line of over) console.error(`over budget: ${line}`);
+
+	/**
+	 * THE BUDGET REPORTS, IT DOES NOT HOLD THE RELEASE (CI-CD-AND-TOOLS-v9 § 1.18).
+	 *
+	 * `BUDGET_SOFT=1` is set in exactly one place — the build step in `deploy.yml`.
+	 * Not because the budget matters less, but because of WHAT it interrupts: a
+	 * deploy carries text fixes, new photographs and data people are waiting for.
+	 * A size budget answers "is the product getting fatter" — that is a trend, not
+	 * a question of whether the product is whole.
+	 *
+	 * Locally it also only reports, and that is not leniency: an overrun in the
+	 * middle of a task interrupts the work and forces a detour into the ceiling
+	 * instead of what was being done.
+	 *
+	 * The same number is checked HARD by `.github/workflows/budgets.yml` — a
+	 * separate run on the same `push`, in parallel with the deploy. A gate that
+	 * fails nowhere after being moved off the release path is not moved, it is
+	 * switched off.
+	 */
+	if (process.env.BUDGET_SOFT === '1' || process.env.CI !== 'true') {
+		console.error('not stopping: here the budget only reports, the "Budgets" run checks it hard.');
+		process.exit(0);
+	}
+
 	process.exit(1);
 }

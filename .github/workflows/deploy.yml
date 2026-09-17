@@ -196,7 +196,15 @@ jobs:
       # `entry` folder the canon names: in this SvelteKit version that folder holds
       # 2 KB and the application lives in the chunks beside it, so the reference
       # script would report "2 KB of 150" forever.
-      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      #
+      # REPORTS, DOES NOT STOP (CI-CD-AND-TOOLS-v9 § 1.18). `BUDGET_SOFT` is set
+      # in EXACTLY this place — that is the whole point of the switch: by default
+      # the budget is hard, it becomes soft only on the release path. The same
+      # number is checked hard by `budgets.yml`, a separate run on the same push.
+      - name: Bundle budget (report only)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        env:
+          BUDGET_SOFT: '1'
         run: npm run check:bundle
 
       # The only machine check of "a build artefact is not committed"
