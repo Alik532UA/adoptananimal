@@ -16,20 +16,32 @@
 
 	const mark = $derived(betaProgress.marks[check.id]);
 	const stale = $derived(betaProgress.isStale(check.id));
+
+	/**
+	 * Локатор бере `id` пункта в kebab-case (§ 5.6, `BETA-LOCATOR-PER-CHECK`).
+	 *
+	 * Доти `check.id` підставлявся ЯК Є, і `animal_1` давав
+	 * `beta-check-animal_1-item` — назву, яку TESTID-AND-NAMING § 1.2 забороняє.
+	 * Обидва правила стояли в каноні, і не падало жодне: за форму `id` і за
+	 * форму локатора відповідали різні перевірки, а перехід одного в друге не
+	 * дивився ніхто. Заміна `_` → `-` однозначна в обидва боки, тож локатор
+	 * лишається ПОХІДНИМ від `id`, а не другим іменем.
+	 */
+	const tid = $derived(check.id.replace(/_/g, '-'));
 </script>
 
-<li class="row" data-testid="beta-check-{check.id}-item">
-	<p class="row__category" data-testid="beta-check-{check.id}-category-text">
+<li class="row" data-testid="beta-check-{tid}-item">
+	<p class="row__category" data-testid="beta-check-{tid}-category-text">
 		{number}. {pick(check.category, locale)}
 		{#if check.negative}
 			<span class="row__boundary">{locale === 'uk' ? 'межа' : 'boundary'}</span>
 		{/if}
 	</p>
 
-	<p class="row__text" data-testid="beta-check-{check.id}-text">{pick(check.text, locale)}</p>
+	<p class="row__text" data-testid="beta-check-{tid}-text">{pick(check.text, locale)}</p>
 
 	{#if stale}
-		<p class="row__stale" data-testid="beta-check-{check.id}-stale-hint">
+		<p class="row__stale" data-testid="beta-check-{tid}-stale-hint">
 			{pick(BETA_UI.stale, locale)}: v{mark.version}
 		</p>
 	{/if}
@@ -43,7 +55,7 @@
 				class:row__vote--stale={mark?.vote === vote && stale}
 				onclick={() => betaProgress.vote(check.id, vote)}
 				aria-pressed={mark?.vote === vote}
-				data-testid="beta-check-{check.id}-vote-{vote}-btn"
+				data-testid="beta-vote-{tid}-{vote}-btn"
 			>
 				{pick(BETA_UI.votes[vote], locale)}
 			</button>

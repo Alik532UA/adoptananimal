@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { ALL_BETA_CHECKS, BETA_TABS, BETA_UNCOVERED_ROUTES } from './tabs';
+import { LOCALES } from '$lib/i18n/locales';
 
 /**
  * The checklist is data, and this is what makes that worth anything
@@ -25,6 +26,18 @@ import { ALL_BETA_CHECKS, BETA_TABS, BETA_UNCOVERED_ROUTES } from './tabs';
  * Reverse experiment (AI-AGENT-PITFALLS-v8 § 1.1) — in the commit message that added
  * this file, one mutation per check.
  */
+
+/**
+ * Джерела САМОЇ сторінки й рядка пункта — окремо від решти проєкту.
+ *
+ * Правила § 8 говорять про те, що є на ЦІЙ сторінці: `beta-lang-btn`,
+ * знайдений у чужому компоненті, нічого не довів би.
+ */
+const PAGE_SOURCE = readFileSync(
+	'src/routes/[[lang=lang]]/beta-test-checklists/+page.svelte',
+	'utf8'
+);
+const ROW_SOURCE = readFileSync('src/lib/components/beta/BetaCheckRow.svelte', 'utf8');
 
 const walk = (dir: string, out: string[] = []): string[] => {
 	for (const entry of readdirSync(dir)) {
@@ -322,5 +335,85 @@ describe('чеклист бета-тестування', () => {
 			return n('covered') <= n('manual');
 		});
 		expect(settled, 'вкладка вирівнялася — приберіть її з COVERED_DEBT').toEqual([]);
+	});
+
+	/**
+	 * § 5.6 `BETA-LOCATOR-PER-CHECK` + TESTID-AND-NAMING § 1.2.
+	 *
+	 * Обидва правила стояли в каноні, і не падало жодне: за форму `id`
+	 * (`{вкладка}_{номер}`) і за форму локатора (без підкреслень) відповідали
+	 * різні перевірки, а місце, де одне переходить у друге, не дивився ніхто.
+	 */
+	it('локатор пункта виходить із id чистим, без підкреслень (§ 5.6)', () => {
+		const inRow = [...ROW_SOURCE.matchAll(/data-testid="(beta-[^"]*)"/g)].map((m) => m[1]);
+		expect(inRow.length, 'перевірка мертва: локаторів у рядку не знайдено').toBeGreaterThan(0);
+
+		expect(
+			inRow.filter((id) => /\{\s*check\.id\s*\}/.test(id)),
+			'локатор бере check.id без переведення в kebab-case'
+		).toEqual([]);
+		expect(
+			inRow.filter((id) => id.includes('_')),
+			'підкреслення в локаторі'
+		).toEqual([]);
+
+		// Порядок сегментів — канонічний: `beta-vote-{id}-{стан}-btn`, а не
+		// `beta-check-{id}-vote-{стан}-btn`. Два імені на той самий елемент у
+		// десяти реалізаціях коштують дорожче, ніж одне перейменування тут.
+		expect(
+			inRow.some((id) => id.startsWith('beta-vote-')),
+			'стан відповіді під чужою назвою'
+		).toBe(true);
+	});
+
+	/**
+	 * § 8.3 `BETA-OWN-LANG-BTN`.
+	 *
+	 * Правило стоїть у каноні з 9.0 і не виконувалося тут саме тому, що не мало
+	 * входу: пункти живуть двома мовами, інтерфейс сайту має чотири, і людина,
+	 * чий сайт відкрився нідерландською, бачила чеклист англійською без жодного
+	 * способу перемкнути його на українську. Умова читається з того самого
+	 * переліку локалей, що й решта i18n, — інакше це другий список (§ 5.1).
+	 */
+	it('мов інтерфейсу більше двох — на сторінці є власна кнопка мови (§ 8.3)', () => {
+		if (LOCALES.length <= 2) return;
+		expect(PAGE_SOURCE, 'чеклист знає дві мови, сайт — чотири; перемкнути нічим').toContain(
+			'data-testid="beta-lang-btn"'
+		);
+	});
+
+	/**
+	 * § 8.5.1 `BETA-VERSION-VISIBLE` і § 8.4 `BETA-SCREEN-LINKS`.
+	 *
+	 * Версія була на сторінці й доти — без локатора, тобто без способу довести,
+	 * що вона нікуди не поділася. Перелік маршрутів вкладки лежав у даних
+	 * невикористаним: його читав лише інваріант § 5.1 вище.
+	 */
+	it('на сторінці є версія, екрани вкладки й вихід (§ 8.4, § 8.5.1)', () => {
+		expect(PAGE_SOURCE).toContain('data-testid="beta-version-text"');
+		expect(PAGE_SOURCE, 'перелік екранів лишився лише для перевірок').toContain(
+			'data-testid="beta-screen-'
+		);
+		expect(
+			PAGE_SOURCE,
+			'тестувальник приходить за прямим посиланням і лишається в пастці'
+		).toContain('data-testid="beta-home-link"');
+	});
+
+	/**
+	 * § 4.0 `BETA-NOINDEX-OVER-DISALLOW` — перевірка ПРОТИЛЕЖНОГО.
+	 *
+	 * `robots.txt` будувався з `HIDDEN_ROUTES`, тобто забороняв обхід тим самим
+	 * сторінкам, які несуть `noindex`. Разом це гірше за кожне окремо: краулер,
+	 * який виконав заборону, сторінку не завантажує, отже `noindex` не читає
+	 * ніколи, і адреса, на яку хтось послався ззовні, лягає в індекс голим URL —
+	 * прибрати його потім нічим.
+	 */
+	it('robots.txt не будується з переліку прихованих сторінок (§ 4.0)', () => {
+		const robots = readFileSync('src/routes/robots.txt/+server.ts', 'utf8');
+		const code = robots.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+		expect(code, 'Disallow знову будується з прихованих сторінок').not.toContain('HIDDEN_ROUTES');
+		expect(code, 'перелік заблокованих для обходу адрес не читається').toContain('CRAWL_BLOCKED');
 	});
 });

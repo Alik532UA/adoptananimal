@@ -655,18 +655,36 @@ for (const route of HIDDEN_ROUTES) {
 	}
 }
 
+/*
+ * ПЕРЕВІРЯЄТЬСЯ ПРОТИЛЕЖНЕ: прихованої сторінки в `robots.txt` бути НЕ мусить
+ * (BETA-CHECKLIST § 4.0, `BETA-NOINDEX-OVER-DISALLOW`).
+ *
+ * Доти цей блок вимагав `Disallow` на кожну мовну адресу кожного прихованого
+ * маршруту — і це було неправильно рівно навпаки. `Disallow` забороняє
+ * ЗАВАНТАЖЕННЯ: краулер, який його виконав, сторінку не читає, отже `noindex`
+ * у ній не читає теж, ніколи. Дві вимоги, які стояли поруч як набір
+ * (`noindex` + `Disallow`), разом давали гірший результат, ніж кожна окремо:
+ * адреса, на яку хтось послався ззовні, лягала в індекс голим URL, і прибрати
+ * його було нічим — прибирає рівно той тег, до якого краулер не дійшов.
+ *
+ * Тому тепер гейт стереже ВІДСУТНІСТЬ рядка. Повернути його «для надійності»
+ * легко й непомітно — саме тому перевірка лишається тут, а не зникає разом із
+ * вимогою.
+ */
 {
 	const robotsPath = join(BUILD_DIR, 'robots.txt');
 	if (!existsSync(robotsPath)) {
 		fail('robots.txt was not generated');
 	} else {
 		const robots = readFileSync(robotsPath, 'utf-8');
+		const disallowed = [...robots.matchAll(/^\s*Disallow:\s*(\S+)/gm)].map((m) => m[1]);
 		for (const route of HIDDEN_ROUTES) {
-			for (const locale of ['', ...PREFIXED]) {
-				const path = `${BASE_PATH}${locale ? `/${locale}` : ''}${route}`;
-				if (!robots.includes(`Disallow: ${path}`)) {
-					fail(`robots.txt does not disallow ${path}`);
-				}
+			const blocked = disallowed.filter((rule) => rule !== '/' && rule.includes(route));
+			if (blocked.length > 0) {
+				fail(
+					`robots.txt disallows ${route} — the crawler then never fetches the page, ` +
+						'never reads its noindex, and an external link puts a bare URL in the index'
+				);
 			}
 		}
 	}

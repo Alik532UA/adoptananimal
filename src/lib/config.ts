@@ -54,6 +54,23 @@ export const isHiddenRoute = (path: string): boolean =>
 	(HIDDEN_ROUTES as readonly string[]).includes(path);
 
 /**
+ * Адреси, які не віддають краулеру ВЗАГАЛІ — окремий список, і це не педантизм
+ * (BETA-CHECKLIST § 4.0, `BETA-NOINDEX-OVER-DISALLOW`).
+ *
+ * Доти `robots.txt` будував `Disallow` із `HIDDEN_ROUTES` — тобто забороняв
+ * обхід тим самим сторінкам, які несуть `noindex`. Разом це гірше за кожне
+ * окремо: краулер, який виконав заборону, сторінку не завантажує, отже
+ * `noindex` не читає ніколи, і адреса, на яку хтось послався ззовні, лягає в
+ * індекс голим URL — прибрати його потім нічим.
+ *
+ * `HIDDEN_ROUTES` — «не має бути в індексі» (працює `noindex`).
+ * `CRAWL_BLOCKED` — «не має бути завантажене» (працює `Disallow`): важкий
+ * генератор, службовий API, нескінченний календар. Зараз таких адрес немає, і
+ * порожній список тут — відповідь, а не пропуск.
+ */
+export const CRAWL_BLOCKED: readonly string[] = [];
+
+/**
  * The pages that exist independently of the data — everything except an animal's
  * own page, which comes from `animalService`.
  *

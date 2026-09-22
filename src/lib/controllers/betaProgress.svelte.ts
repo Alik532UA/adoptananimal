@@ -112,14 +112,34 @@ class BetaProgress {
 	requestClear(): boolean {
 		if (!this.clearArmed) {
 			this.clearArmed = true;
+			this.rearm();
 			return false;
 		}
 		this.clear();
 		return true;
 	}
 
+	/**
+	 * Зведення знімається САМО через п'ять секунд (§ 6.3.1, `BETA-CLEAR-DISARM`).
+	 *
+	 * `disarmClear()` існував і його не кликав ніхто: кнопка лишалася зведеною
+	 * до перезавантаження, тобто наступний прихід на сторінку починався з того,
+	 * що між усією роботою і порожнім списком стоїть ОДНЕ натискання — і вигляд
+	 * кнопки про це вже не кричав, бо людина його не бачила зведеним.
+	 *
+	 * П'ять секунд — більше, ніж треба прочитати «Точно стерти?» і натиснути
+	 * вдруге, і значно менше, ніж пауза між двома відвідуваннями.
+	 */
+	private armTimer: ReturnType<typeof setTimeout> | undefined;
+
+	private rearm() {
+		clearTimeout(this.armTimer);
+		this.armTimer = setTimeout(() => (this.clearArmed = false), 5000);
+	}
+
 	/** Disarms without erasing: the button must not stay loaded behind the tester. */
 	disarmClear() {
+		clearTimeout(this.armTimer);
 		this.clearArmed = false;
 	}
 
@@ -137,6 +157,7 @@ class BetaProgress {
 
 	clear() {
 		this.marks = {};
+		clearTimeout(this.armTimer);
 		this.clearArmed = false;
 		storage.remove(STORAGE_KEY);
 	}

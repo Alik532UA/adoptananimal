@@ -1,4 +1,4 @@
-import { HIDDEN_ROUTES, SITE_BASE, SITE_ORIGIN } from '$lib/config';
+import { CRAWL_BLOCKED, SITE_BASE, SITE_ORIGIN } from '$lib/config';
 import { LOCALES, localeSegment } from '$lib/i18n/locales';
 
 // Prerendered so the sitemap line can carry the real origin and base path,
@@ -6,13 +6,27 @@ import { LOCALES, localeSegment } from '$lib/i18n/locales';
 export const prerender = true;
 
 /**
- * One `Disallow` per language of every hidden route (BETA-CHECKLIST-v8 § 4).
+ * `Disallow` НЕ будується з `HIDDEN_ROUTES` — і це виправлення, а не спрощення
+ * (BETA-CHECKLIST § 4.0, `BETA-NOINDEX-OVER-DISALLOW`).
  *
- * Every language, not a pattern: `/apply/form` and `/uk/apply/form` are four separate
- * addresses, and a rule that names one leaves the other three crawlable. Written from
- * HIDDEN_ROUTES rather than by hand, so a route added there cannot arrive here late.
+ * Доти сюди йшли саме приховані сторінки, і разом із `noindex` у їхньому HTML
+ * це складалося в гірший результат, ніж кожне окремо. `Disallow` забороняє
+ * ЗАВАНТАЖЕННЯ: краулер, який його виконав, сторінку не читає — отже `noindex`
+ * у ній не читає теж, ніколи. А адреса, на яку хтось послався ззовні,
+ * потрапляє в індекс БЕЗ вмісту: голий URL, якого не прибрати, бо прибирає
+ * його рівно той тег, до якого краулер не дійшов.
+ *
+ * Тобто заборона обходу не допомагала `noindex`, а відбирала в нього єдиний
+ * запит, у відповіді на який він живе.
+ *
+ * Тому списки РІЗНІ: `HIDDEN_ROUTES` — сторінки поза індексом (їх закриває
+ * `noindex` у layout), `CRAWL_BLOCKED` — адреси, які не віддають краулеру
+ * взагалі. Другий зараз порожній, і рядків `Disallow` у файлі немає жодного.
+ *
+ * Кожна мова окремим рядком, а не шаблоном: `/draft` і `/uk/draft` — різні
+ * адреси, і правило, яке називає одну, лишає інші відкритими.
  */
-const disallowLines = HIDDEN_ROUTES.flatMap((path) =>
+const disallowLines = CRAWL_BLOCKED.flatMap((path) =>
 	LOCALES.map((locale) => `Disallow: ${SITE_BASE}${localeSegment(locale)}${path}`)
 ).join('\n');
 
