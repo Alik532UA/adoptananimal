@@ -72,6 +72,7 @@
 
 <style>
 	.row {
+		color-scheme: light dark;
 		--vote-fail: light-dark(#dc2626, #ef4444);
 		--vote-unclear: light-dark(#b45309, #fbbf24);
 		--vote-ok: light-dark(#15803d, #22c55e);

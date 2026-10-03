@@ -95,7 +95,7 @@ test.describe('the beta checklist', () => {
 
 	test('tells the states apart by more than colour (§ 3.2)', async ({ page }) => {
 		await page.goto(PAGE);
-		const button = page.getByTestId(`beta-vote-${tid(ITEM)}-weird-btn`);
+		const button = page.getByTestId(`beta-vote-${tid(ITEM)}-unclear-btn`);
 
 		const resting = await button.evaluate((el) => getComputedStyle(el).borderTopWidth);
 		await button.click();
