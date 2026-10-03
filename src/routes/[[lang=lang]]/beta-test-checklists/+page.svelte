@@ -29,6 +29,23 @@
 	const locale = $derived(chosenLang ?? (siteLocale === 'uk' ? 'uk' : 'en'));
 
 	let activeTab = $state(BETA_TABS[0].id);
+
+	$effect(() => {
+		const tabParam = page.url.searchParams.get('tab');
+		if (tabParam && BETA_TABS.some((t) => t.id === tabParam) && activeTab !== tabParam) {
+			activeTab = tabParam;
+		}
+	});
+
+	function selectTab(id: string) {
+		activeTab = id;
+		if (typeof window !== 'undefined') {
+			const url = new URL(window.location.href);
+			url.searchParams.set('tab', id);
+			window.history.replaceState(window.history.state, '', url.href);
+		}
+	}
+
 	let copied = $state(false);
 	let fallback = $state('');
 
@@ -169,18 +186,20 @@
 			гірше за його відсутність.
 		-->
 		{#if screens.length > 0}
-			<p class="beta__screens">
-				<span>{pick(BETA_UI.screens, locale)}</span>
-				{#each screens as route (route)}
-					<a
-						class="beta__link"
-						href={localePath(route)}
-						data-testid="beta-screen-{screenTid(route)}-link"
-					>
-						{route}
-					</a>
-				{/each}
-			</p>
+			<div class="beta__screens" data-sveltekit-preload-data="off">
+				<span class="beta__screens-label">{pick(BETA_UI.screens, locale)}</span>
+				<div class="beta__screens-list">
+					{#each screens as route (route)}
+						<a
+							class="beta__screen"
+							href={localePath(route)}
+							data-testid="beta-screen-{screenTid(route)}-link"
+						>
+							{route}
+						</a>
+					{/each}
+				</div>
+			</div>
 		{/if}
 
 		<nav class="beta__tabs" aria-label={pick(BETA_UI.title, locale)}>
@@ -191,7 +210,7 @@
 					class="beta__tab"
 					class:beta__tab--active={item.id === activeTab}
 					aria-current={item.id === activeTab ? 'true' : undefined}
-					onclick={() => (activeTab = item.id)}
+					onclick={() => selectTab(item.id)}
 					data-testid="beta-tab-{item.id}-btn"
 				>
 					{pick(item.title, locale)}
@@ -308,6 +327,36 @@
 		align-items: center;
 		gap: var(--space-sm);
 		color: var(--color-text);
+	}
+
+	.beta__screens-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	.beta__screen {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 44px;
+		min-width: 44px;
+		padding: 0.25rem var(--space-sm);
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--color-border);
+		background: var(--control-surface);
+		color: var(--color-text);
+		text-decoration: none;
+		font-family: monospace;
+		font-size: 0.85rem;
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	.beta__screen:hover {
+		background: var(--control-surface-hover);
+		border-color: var(--color-primary);
 	}
 
 	.beta__version {

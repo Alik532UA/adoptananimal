@@ -12,7 +12,7 @@
 
 	let { check, number, locale }: Props = $props();
 
-	const VOTES: Vote[] = ['fail', 'weird', 'ok'];
+	const VOTES: Vote[] = ['ok', 'fail', 'unclear', 'skip'];
 
 	const mark = $derived(betaProgress.marks[check.id]);
 	const stale = $derived(betaProgress.isStale(check.id));
@@ -30,7 +30,14 @@
 	const tid = $derived(check.id.replace(/_/g, '-'));
 </script>
 
-<li class="row" data-testid="beta-check-{tid}-item">
+<li
+	class="row"
+	class:vote-fail={mark?.vote === 'fail'}
+	class:vote-unclear={mark?.vote === 'unclear'}
+	class:vote-ok={mark?.vote === 'ok'}
+	class:vote-skip={mark?.vote === 'skip'}
+	data-testid="beta-check-{tid}-item"
+>
 	<p class="row__category" data-testid="beta-check-{tid}-category-text">
 		{number}. {pick(check.category, locale)}
 		{#if check.negative}
@@ -65,12 +72,32 @@
 
 <style>
 	.row {
+		--vote-fail: light-dark(#dc2626, #ef4444);
+		--vote-unclear: light-dark(#b45309, #fbbf24);
+		--vote-ok: light-dark(#15803d, #22c55e);
+		--vote-skip: light-dark(#0284c7, #38bdf8);
+
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-sm);
 		padding: var(--space-lg);
 		border-radius: var(--radius-md);
+		border: 1px solid var(--color-border);
 		background: var(--control-surface);
+		transition: border 0.15s ease;
+	}
+
+	.row.vote-fail {
+		border: 2px solid var(--vote-fail);
+	}
+	.row.vote-unclear {
+		border: 2px solid var(--vote-unclear);
+	}
+	.row.vote-ok {
+		border: 2px solid var(--vote-ok);
+	}
+	.row.vote-skip {
+		border: 2px solid var(--vote-skip);
 	}
 
 	.row__category {
@@ -107,15 +134,10 @@
 		gap: var(--space-sm);
 	}
 
-	/*
-	 * State is carried by border weight and font weight as well as colour: a middle
-	 * state told apart only by hue is not there at all for a reader who cannot
-	 * separate hues (ACCESSIBILITY-v8 § 6, WCAG 1.4.1).
-	 */
 	.row__vote {
 		min-height: 44px;
 		padding: 0 var(--space-md);
-		border: 2px solid var(--color-border);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-sm);
 		background: var(--color-bg-card);
 		color: var(--color-text);
@@ -123,28 +145,70 @@
 		font-size: 0.9rem;
 		transition:
 			border-color var(--transition-fast),
-			background var(--transition-fast);
+			background var(--transition-fast),
+			color var(--transition-fast);
 	}
 
-	.row__vote:hover {
-		border-color: var(--color-primary);
+	.row__vote--ok {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-ok) 8%);
+		border-color: color-mix(in srgb, var(--color-border), var(--vote-ok) 35%);
+	}
+	.row__vote--ok:hover {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-ok) 14%);
+		border-color: var(--vote-ok);
+	}
+
+	.row__vote--fail {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-fail) 8%);
+		border-color: color-mix(in srgb, var(--color-border), var(--vote-fail) 35%);
+	}
+	.row__vote--fail:hover {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-fail) 14%);
+		border-color: var(--vote-fail);
+	}
+
+	.row__vote--unclear {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-unclear) 8%);
+		border-color: color-mix(in srgb, var(--color-border), var(--vote-unclear) 35%);
+	}
+	.row__vote--unclear:hover {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-unclear) 14%);
+		border-color: var(--vote-unclear);
+	}
+
+	.row__vote--skip {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-skip) 8%);
+		border-color: color-mix(in srgb, var(--color-border), var(--vote-skip) 35%);
+	}
+	.row__vote--skip:hover {
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-skip) 14%);
+		border-color: var(--vote-skip);
 	}
 
 	.row__vote--chosen {
 		border-width: 4px;
 		font-weight: 800;
-		border-color: var(--color-primary);
-		background: var(--color-bg-warm);
 	}
 
+	.row__vote--chosen.row__vote--ok {
+		border-color: var(--vote-ok);
+		color: var(--vote-ok);
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-ok) 18%);
+	}
 	.row__vote--chosen.row__vote--fail {
-		border-style: solid;
-		text-decoration: underline;
-		text-decoration-thickness: 2px;
+		border-color: var(--vote-fail);
+		color: var(--vote-fail);
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-fail) 18%);
 	}
-
-	.row__vote--chosen.row__vote--weird {
-		border-style: dashed;
+	.row__vote--chosen.row__vote--unclear {
+		border-color: var(--vote-unclear);
+		color: var(--vote-unclear);
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-unclear) 18%);
+	}
+	.row__vote--chosen.row__vote--skip {
+		border-color: var(--vote-skip);
+		color: var(--vote-skip);
+		background: color-mix(in srgb, var(--color-bg-card), var(--vote-skip) 18%);
 	}
 
 	/* A mark from an older build reads as provisional rather than done. */

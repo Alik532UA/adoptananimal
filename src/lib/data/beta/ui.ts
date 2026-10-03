@@ -48,9 +48,10 @@ export const BETA_UI = {
 		}
 	},
 	votes: {
+		ok: { uk: 'Працює', en: 'Works' },
 		fail: { uk: 'Не працює', en: 'Does not work' },
-		weird: { uk: 'Працює, але дивно', en: 'Works, but oddly' },
-		ok: { uk: 'Працює', en: 'Works' }
+		unclear: { uk: 'Не зрозуміло', en: 'Unclear' },
+		skip: { uk: 'Пропустити', en: 'Skip' }
 	},
 	stale: {
 		uk: 'позначено на іншій версії',

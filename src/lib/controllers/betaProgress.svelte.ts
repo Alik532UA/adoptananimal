@@ -2,7 +2,7 @@ import { ALL_BETA_CHECKS, BETA_TABS } from '$lib/data/beta/tabs';
 import type { BetaCheck } from '$lib/data/beta/types';
 import { storage } from '$lib/services/storage';
 
-export type Vote = 'fail' | 'weird' | 'ok';
+export type Vote = 'ok' | 'fail' | 'unclear' | 'skip';
 
 /**
  * One answer, and the version it was given on (BETA-CHECKLIST-v8 § 3.1).
@@ -26,12 +26,12 @@ const STORAGE_KEY = 'beta_marks';
  * database, for data nobody reads yet. Cheap to reverse — aggregation can be glued on
  * later without rewriting the page.
  */
-const VOTES: readonly Vote[] = ['fail', 'weird', 'ok'];
+const VOTES: readonly Vote[] = ['ok', 'fail', 'unclear', 'skip'];
 
-function isMark(value: unknown): value is Mark {
-	if (typeof value !== 'object' || value === null) return false;
-	const m = value as Record<string, unknown>;
-	return VOTES.includes(m.vote as Vote) && typeof m.version === 'string';
+function normalizeVote(rawVote: unknown): Vote | null {
+	if (rawVote === 'weird') return 'unclear';
+	if (typeof rawVote === 'string' && VOTES.includes(rawVote as Vote)) return rawVote as Vote;
+	return null;
 }
 
 /**
@@ -50,7 +50,13 @@ function readMarks(): Record<string, Mark> {
 	const known = new Set(ALL_BETA_CHECKS.map((check) => check.id));
 	const out: Record<string, Mark> = {};
 	for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
-		if (known.has(id) && isMark(value)) out[id] = value;
+		if (known.has(id) && typeof value === 'object' && value !== null) {
+			const m = value as Record<string, unknown>;
+			const vote = normalizeVote(m.vote);
+			if (vote && typeof m.version === 'string') {
+				out[id] = { vote, version: m.version };
+			}
+		}
 	}
 	return out;
 }
@@ -171,11 +177,12 @@ class BetaProgress {
 	 * about the TEST, and it devalues every green run until someone looks at it.
 	 */
 	report(): string {
-		const order: Vote[] = ['fail', 'weird', 'ok'];
+		const order: Vote[] = ['fail', 'unclear', 'ok', 'skip'];
 		const label: Record<Vote, string> = {
+			ok: 'ПРАЦЮЄ',
 			fail: 'НЕ ПРАЦЮЄ',
-			weird: 'ПРАЦЮЄ, АЛЕ ДИВНО',
-			ok: 'ПРАЦЮЄ'
+			unclear: 'НЕ ЗРОЗУМІЛО',
+			skip: 'ПРОПУЩЕНО'
 		};
 
 		// A plain object rather than a Map: `svelte/prefer-svelte-reactivity` does not
@@ -208,7 +215,7 @@ class BetaProgress {
 				const stale = mark.version === __APP_VERSION__ ? '' : ` (v${mark.version})`;
 				lines.push(`[${label[vote]}] ${id} (${entry.tab})${stale}`);
 				lines.push(`    ${entry.check.text.uk}`);
-				if (vote !== 'ok' && entry.check.coverage === 'covered') {
+				if (vote === 'fail' && entry.check.coverage === 'covered') {
 					lines.push(
 						`    !!! ПУНКТ ПОКРИТО АВТОТЕСТОМ ${entry.check.test} — тест цього не побачив`
 					);
