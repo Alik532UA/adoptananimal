@@ -173,6 +173,29 @@
 			</button>
 		</p>
 
+		<nav class="beta__tabs" aria-label={pick(BETA_UI.title, locale)}>
+			{#each BETA_TABS as item (item.id)}
+				{@const tabProgress = betaProgress.progressOf(item.checks)}
+				<button
+					type="button"
+					class="beta__tab"
+					class:beta__tab--active={item.id === activeTab}
+					aria-current={item.id === activeTab ? 'true' : undefined}
+					onclick={() => selectTab(item.id)}
+					data-testid="beta-tab-{item.id}-btn"
+				>
+					{pick(item.title, locale)}
+					<span
+						class="beta__tab-count"
+						aria-label={pick(BETA_UI.tabProgress, locale)}
+						data-testid="beta-tab-{item.id}-progress-text"
+					>
+						{tabProgress.done}/{tabProgress.total}
+					</span>
+				</button>
+			{/each}
+		</nav>
+
 		<!--
 			КУДИ ЙТИ ПО ЦЮ ВКЛАДКУ (§ 8.4, `BETA-SCREEN-LINKS`).
 
@@ -201,29 +224,6 @@
 				</div>
 			</div>
 		{/if}
-
-		<nav class="beta__tabs" aria-label={pick(BETA_UI.title, locale)}>
-			{#each BETA_TABS as item (item.id)}
-				{@const tabProgress = betaProgress.progressOf(item.checks)}
-				<button
-					type="button"
-					class="beta__tab"
-					class:beta__tab--active={item.id === activeTab}
-					aria-current={item.id === activeTab ? 'true' : undefined}
-					onclick={() => selectTab(item.id)}
-					data-testid="beta-tab-{item.id}-btn"
-				>
-					{pick(item.title, locale)}
-					<span
-						class="beta__tab-count"
-						aria-label={pick(BETA_UI.tabProgress, locale)}
-						data-testid="beta-tab-{item.id}-progress-text"
-					>
-						{tabProgress.done}/{tabProgress.total}
-					</span>
-				</button>
-			{/each}
-		</nav>
 
 		<div class="beta__levels">
 			{#each byLevel as level, index (level.coverage)}
