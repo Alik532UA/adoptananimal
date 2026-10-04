@@ -50,10 +50,7 @@ const read = (path: string) => {
  * used from inside — but it is a content decision rather than a code one, and the
  * useful thing a gate can do with it is make it visible instead of settling it.
  */
-const KNOWN_ORPHANS: Record<string, string> = {
-	'static/images/social_media/Telegram-se-320px-50q.png':
-		'значок під акаунт у Telegram, якого немає в жодної з двох організацій у organizations.ts — або завести посилання, або прибрати файл'
-};
+const KNOWN_ORPHANS: Record<string, string> = {};
 
 describe('§ 2.1 — файл у static/, якого не просить ніхто', () => {
 	const assets = walk('static');

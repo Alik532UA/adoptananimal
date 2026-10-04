@@ -34,27 +34,27 @@ export const ORGANIZATIONS = [
 			{
 				id: 'inst',
 				url: 'https://www.instagram.com/notpfote/',
-				icon: '/images/social_media/instagram-se-512-50.png'
+				icon: '/images/social_media/social_media_instagram_se512.svg'
 			},
 			{
 				id: 'fb',
 				url: 'https://facebook.com/notpfote',
-				icon: '/images/social_media/facebook-se-512-50.png'
+				icon: '/images/social_media/social_media_facebook_se512.svg'
 			},
 			{
 				id: 'tt',
 				url: 'https://tiktok.com/@notpfote',
-				icon: '/images/social_media/TikTok-se-512-50.png'
+				icon: '/images/social_media/social_media_tiktok_se512.svg'
 			},
 			{
 				id: 'yt',
 				url: 'https://www.youtube.com/@notpfote',
-				icon: '/images/social_media/YouTube-se-512px-50q.png'
+				icon: '/images/social_media/social_media_youtube_se512.svg'
 			},
 			{
 				id: 'li',
 				url: 'https://www.linkedin.com/company/notpfoten/',
-				icon: '/images/social_media/linkedin-se-320px-q50.png'
+				icon: '/images/social_media/social_media_linkedin_se512.svg'
 			},
 			{
 				id: 'mail',
@@ -74,17 +74,17 @@ export const ORGANIZATIONS = [
 			{
 				id: 'inst',
 				url: 'https://www.instagram.com/vet.crew/',
-				icon: '/images/social_media/instagram-se-512-50.png'
+				icon: '/images/social_media/social_media_instagram_se512.svg'
 			},
 			{
 				id: 'fb',
 				url: 'https://www.facebook.com/vet.crew/',
-				icon: '/images/social_media/facebook-se-512-50.png'
+				icon: '/images/social_media/social_media_facebook_se512.svg'
 			},
 			{
 				id: 'tt',
 				url: 'https://www.tiktok.com/@vet.crew',
-				icon: '/images/social_media/TikTok-se-512-50.png'
+				icon: '/images/social_media/social_media_tiktok_se512.svg'
 			},
 			{
 				id: 'x',
