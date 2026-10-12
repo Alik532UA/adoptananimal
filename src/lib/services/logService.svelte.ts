@@ -97,6 +97,9 @@ function scrub(value: unknown, seen = new WeakSet<object>()): unknown {
 	return value;
 }
 
+/** Canonical scrubPII alias (OBSERVABILITY-v10 § 1.4) */
+export const scrubPII = scrub;
+
 class LogService {
 	logs = $state<LogEntry[]>([]);
 	errorCount = $state(0);

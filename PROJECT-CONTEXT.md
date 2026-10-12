@@ -22,7 +22,11 @@
 | Base path          | Не хардкодиться. `svelte.config.js` читає `process.env.BASE_PATH`; workflow бере його з `CUSTOM_DOMAIN`: на власному домені — порожній рядок, а без домену виводить із назви репозиторію (§ 4.40)                                                                      |
 | Абсолютні URL      | `SITE_ORIGIN` + `SITE_BASE` з `src/lib/config.ts`. `paths.relative: false` (§ 4.38), тож `base` теж абсолютний — але константа лишається незалежною від налаштування                                                                                                   |
 | Джерело контенту   | Каноном (Source of Truth) для даних, порядку тварин і статусів є **старий сайт на Google Sites** ([специфікація](.private/docs/specs/0001-content-source-of-truth-and-assets.md)). Адреса `adoptananimal.in.ua` більше його не називає — вона тепер наша (§ 4.40, § 5) |
-| Розділи `[server]` | Незастосовні: немає рантайму, form actions, сесій, `+server.ts` з логікою (два наявні ендпоінти пререндеряться у файли)                                                                                                                                                |
+## 1.1 Модель версіонування (VERSIONING-v10 § 1 & § 2)
+
+- **Модель бампа**: `npm version <patch|minor|major> --no-git-tag-version` (Версія на реліз).
+- **Впровадження версії**: константа `__APP_VERSION__` інжектується через Vite `define` під час збірки з `package.json`.
+- **Оновлення клієнта**: SvelteKit `updated.check()` та перевірка версії запобігають збоям застарілих чанків.
 
 ## 2. Сховище
 
