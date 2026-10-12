@@ -1737,3 +1737,22 @@ origin — тобто файл сусіднього репозиторію. Ва
 названої сторінки немає у `build/`, або якщо **жодна адреса у файлі не веде на
 цей сайт** (§ 4.33). Останню умову додано після того, як перших двох виявилося
 замало: файл із чужим хостом проходив обидві.
+
+## Реєстр префіксів на спільному origin
+
+Реєстр префіксів браузерного сховища (`localStorage` / `sessionStorage`) на спільному origin (`alik532ua.github.io`). Жоден префікс не є початком іншого (STORAGE-NAMESPACE-v10).
+
+| Проєкт               | Префікс (prod)      | Префікс (dev)           | Призначення                      |
+| -------------------- | ------------------- | ----------------------- | -------------------------------- |
+| adoptananimal        | `adoptananimal_`    | `adoptananimal-dev_`    | Притулок для тварин              |
+| VetCrewEmergency     | `vetcrewemergency_` | `vetcrewemergency-dev_` | Невідкладна ветеринарна допомога |
+| VetCrewGames         | `vetcrewgames_`     | `vetcrewgames-dev_`     | Навчальні ветеринарні ігри       |
+| DigitalWorkshop      | `digitalworkshop_`  | `digitalworkshop-dev_`  | Цифрова майстерня                |
+| MindStep             | `mindstep_`         | `mindstep-dev_`         | Психологічний супровід           |
+| Slovko               | `slovko_`           | `slovko-dev_`           | Гра в слова                      |
+| CV                   | `cv-svelte_`        | `cv-svelte-dev_`        | Резюме та портфоліо              |
+| as5.odesa.ua         | `as5.odesa.ua_`     | `as5.odesa.ua-dev_`     | Автостанція Одеса 5              |
+| teatralo4ka.odesa.ua | `teatralo4ka_`      | `teatralo4ka-dev_`      | Театралочка Одеса                |
+| HotPaste             | `hotpaste_`         | `hotpaste-dev_`         | Швидка вставка та нотатки        |
+| AudioRemote          | `audioremote_`      | `audioremote-dev_`      | Аудіодошка та пульт керування    |
+| DeviantBlaze         | `deviantblaze_`     | `deviantblaze-dev_`     | Медіа та графіка                 |
