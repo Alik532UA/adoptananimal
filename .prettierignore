@@ -5,5 +5,12 @@ yarn.lock
 bun.lock
 bun.lockb
 
+# Build & Test artifacts
+coverage
+coverage/**
+.svelte-kit
+build
+dist
+
 # Miscellaneous
 /static/
