@@ -147,12 +147,19 @@
 		const onScroll = () => (scrollY = window.scrollY);
 		window.addEventListener('scroll', onScroll, { passive: true });
 
+		let rafId = 0;
+		const scheduleMeasure = () => {
+			cancelAnimationFrame(rafId);
+			rafId = requestAnimationFrame(measure);
+		};
+
 		// The page height changes for more reasons than a resize: card images arrive,
 		// a filter empties the list, the carousel appears once it is shuffled.
-		const observer = new ResizeObserver(measure);
+		const observer = new ResizeObserver(scheduleMeasure);
 		observer.observe(document.documentElement);
 
 		return () => {
+			cancelAnimationFrame(rafId);
 			window.removeEventListener('scroll', onScroll);
 			observer.disconnect();
 		};

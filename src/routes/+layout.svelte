@@ -277,6 +277,7 @@
 		};
 
 		const handleError = (event: ErrorEvent) => {
+			if (event.message?.includes('ResizeObserver loop')) return;
 			logService.error(
 				'app',
 				`Global Error: ${event.message} at ${event.filename}:${event.lineno}`

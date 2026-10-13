@@ -160,17 +160,24 @@
 
 		place();
 
+		let rafId = 0;
+		const schedulePlace = () => {
+			cancelAnimationFrame(rafId);
+			rafId = requestAnimationFrame(place);
+		};
+
 		// Two things move it: the window, which moves the trigger, and the menu's own
 		// width. The second is watched on the menu rather than on the items that fill
 		// it — what decides the placement is how wide it came out, and that changes with
 		// the locale's labels as readily as with the length of the list.
-		const observer = new ResizeObserver(place);
+		const observer = new ResizeObserver(schedulePlace);
 		observer.observe(menuElement);
-		window.addEventListener('resize', place);
+		window.addEventListener('resize', schedulePlace);
 
 		return () => {
+			cancelAnimationFrame(rafId);
 			observer.disconnect();
-			window.removeEventListener('resize', place);
+			window.removeEventListener('resize', schedulePlace);
 		};
 	});
 </script>

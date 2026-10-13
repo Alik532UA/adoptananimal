@@ -49,10 +49,10 @@
 	let blocks = $state<Block[]>([]);
 	let cloneHost = $state<HTMLElement | undefined>();
 
-	let grabOffset = 0;
-	let stripTop = 0;
-	let pendingY = 0;
-	let frame = 0;
+	let grabOffset = 0,
+		stripTop = 0,
+		pendingY = 0,
+		frame = 0;
 	/** The element holding pointer capture, and for which pointer. */
 	let capturedStrip: HTMLElement | null = null;
 	let capturedPointerId = -1;
@@ -307,16 +307,21 @@
 		const onScroll = () => (scrollY = window.scrollY);
 		window.addEventListener('scroll', onScroll, { passive: true });
 
+		let rafId = 0;
 		const observer = new ResizeObserver(() => {
 			// Silent mid-drag: every small height change would otherwise re-measure every
 			// block and rebuild the clone in the middle of a pointer move.
 			if (dragging) return;
-			measure();
-			measureBlocks();
+			cancelAnimationFrame(rafId);
+			rafId = requestAnimationFrame(() => {
+				measure();
+				measureBlocks();
+			});
 		});
 		observer.observe(document.documentElement);
 
 		return () => {
+			cancelAnimationFrame(rafId);
 			window.removeEventListener('scroll', onScroll);
 			observer.disconnect();
 		};
