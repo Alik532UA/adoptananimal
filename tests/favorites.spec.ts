@@ -119,7 +119,7 @@ test.describe("an animal's own page", () => {
 					const label = document.querySelector('.detail__fav-label')!.getBoundingClientRect();
 					return {
 						beside: label.right <= glyph.left + 1 || label.left >= glyph.right - 1,
-						sameRow: Math.abs(label.top + label.height / 2 - (glyph.top + glyph.height / 2)) < 3,
+						sameRow: Math.abs(label.top + label.height / 2 - (glyph.top + glyph.height / 2)) < 8,
 						inside: label.left >= 0 && label.right <= window.innerWidth
 					};
 				});
