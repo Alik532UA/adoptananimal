@@ -1,4 +1,4 @@
-# adoptananimal
+﻿# adoptananimal
 
 Сайт прилаштування тварин: картки котів і собак, сторінка заявки, обране.
 Чотири мови — `en` (типова, без префікса), `uk`, `de`, `nl` (під префіксом).
@@ -73,11 +73,11 @@ npm run dev
 
 Адресу вирішує рядок `CUSTOM_DOMAIN` у [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): заповнений — база порожня й origin на домені; порожній — обидва виводяться з назви репозиторію. `base` ніде не вписаний константою: `svelte.config.js` читає `process.env.BASE_PATH ?? ''`.
 
-Саме це зробило переїзд дешевим. У сусідніх проєктах база вписана константою, і через це `as5.odesa.ua` після купівлі домену місяцями показувався системними шрифтами. Що змінюється разом і що при цьому мовчить — [PROJECT-CONTEXT § 4.40](PROJECT-CONTEXT.md) і [CUSTOM-DOMAIN-v8.md](../sveltekit-canon/selection_criteria/v8/ops/CUSTOM-DOMAIN-v8.md).
+Саме це зробило переїзд дешевим. У сусідніх проєктах база вписана константою, і через це `as5.odesa.ua` після купівлі домену місяцями показувався системними шрифтами. Що змінюється разом і що при цьому мовчить — [PROJECT-CONTEXT § 4.40](PROJECT-CONTEXT.md) і [CUSTOM-DOMAIN-v8.md](../../sveltekit-canon/selection_criteria/v8/ops/CUSTOM-DOMAIN-v8.md).
 
 ## Стандарти
 
-Загальні правила — у пакеті [`sveltekit-canon/selection_criteria/v8`](../sveltekit-canon/selection_criteria/v8/README.md).
+Загальні правила — у пакеті [`sveltekit-canon/selection_criteria/v8`](../../sveltekit-canon/selection_criteria/v8/README.md).
 Специфіка цього проєкту — в [PROJECT-CONTEXT.md](PROJECT-CONTEXT.md).
 Інструкції для AI-асистентів — в [AGENTS.md](AGENTS.md).
 Внутрішня документація — `.private/docs/` (`adr/`, `specs/`, `analysis/`, `notes/`).

@@ -155,7 +155,7 @@
 		   the height of the list hid the whole thing. The cat and dog lists lost theirs
 		   two versions ago; this one was missed because the test only knew about those
 		   two pages. */
-		min-height: 40vh;
+		min-height: 40dvh;
 		padding-top: var(--space-lg);
 	}
 

@@ -41,7 +41,7 @@
 
 <style>
 	.error-page {
-		min-height: 70vh;
+		min-height: 70dvh;
 		display: flex;
 		align-items: center;
 		justify-content: center;

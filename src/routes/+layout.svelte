@@ -431,7 +431,7 @@
 	.app-shell {
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
+		min-height: 100dvh;
 		min-height: 100dvh;
 	}
 
@@ -496,7 +496,7 @@
 	   decoration — the image stays, it simply stops travelling. */
 	@media (prefers-reduced-motion: reduce) {
 		.site-bg {
-			height: 100vh;
+			height: 100dvh;
 			transform: scale(1.03);
 		}
 	}

@@ -332,7 +332,7 @@
 		position: fixed;
 		top: 0;
 		right: 0;
-		height: 100vh;
+		height: 100dvh;
 		/* Above the header (1000), below the log button (9999). */
 		z-index: 1500;
 		background: color-mix(in srgb, var(--scrollbar-track), transparent 40%);
