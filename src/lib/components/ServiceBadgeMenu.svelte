@@ -61,9 +61,9 @@
 		bottom: calc(100% + 8px);
 		left: 0;
 		min-width: 220px;
-		background: var(--control-surface, rgba(20, 20, 20, 0.95));
+		background: var(--control-surface);
 		backdrop-filter: blur(16px);
-		border: 1px solid var(--color-border-alpha, rgba(255, 255, 255, 0.15));
+		border: 1px solid var(--color-border-alpha);
 		border-radius: 12px;
 		padding: 6px;
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
@@ -82,7 +82,7 @@
 		border-radius: 8px;
 		border: none;
 		background: transparent;
-		color: var(--color-text, #ffffff);
+		color: var(--color-text);
 		font-size: 0.75rem;
 		font-weight: 500;
 		text-align: left;

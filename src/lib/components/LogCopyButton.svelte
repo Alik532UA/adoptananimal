@@ -5,9 +5,9 @@
 	import { logService } from '$lib/services/logService.svelte';
 	import { copyText } from '$lib/utils/copyText';
 	import { t } from '$lib/i18n';
+	import { isTypingTarget } from '$lib/services/keyboard';
 	import { Check, Copy } from 'lucide-svelte';
 	import ServiceBadgeMenu from './ServiceBadgeMenu.svelte';
-	import ErrorLogModal from './ErrorLogModal.svelte';
 
 	let copied = $state(false);
 	let fallback = $state('');
@@ -52,6 +52,7 @@
 	}
 
 	function handleWindowKeydown(e: KeyboardEvent) {
+		if (isTypingTarget(e)) return;
 		if (e.key === 'Escape' && menuOpen) {
 			menuOpen = false;
 		}
@@ -131,7 +132,11 @@
 	</div>
 {/if}
 
-<ErrorLogModal isOpen={modalOpen} onclose={() => (modalOpen = false)} />
+{#if modalOpen}
+	{#await import('./ErrorLogModal.svelte') then { default: ErrorLogModal }}
+		<ErrorLogModal isOpen={modalOpen} onclose={() => (modalOpen = false)} />
+	{/await}
+{/if}
 
 <style>
 	.log-fab-wrap {

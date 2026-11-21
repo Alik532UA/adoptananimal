@@ -77,7 +77,7 @@
 					type="button"
 					class="btn-close"
 					onclick={onclose}
-					aria-label="Закрити"
+					aria-label={t('a11y.dismissNotification')}
 					data-testid="error-log-modal-close-btn"
 				>
 					<X size={18} />
@@ -108,7 +108,6 @@
 						class:btn-action--copied={copied}
 						onclick={handleCopy}
 						data-testid="error-log-modal-copy-btn"
-						aria-label="Скопіювати звіт"
 					>
 						{#if copied}<Check size={14} /><span>Скопійовано</span>{:else}<Copy size={14} /><span
 								>Копіювати звіт</span
@@ -120,7 +119,6 @@
 						onclick={() => logService.clear()}
 						disabled={logs.length === 0}
 						data-testid="error-log-modal-clear-btn"
-						aria-label="Очистити журнал"
 					>
 						<Trash2 size={14} /><span>Очистити</span>
 					</button>
