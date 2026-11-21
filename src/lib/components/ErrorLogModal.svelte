@@ -2,6 +2,7 @@
 	import { focusTrap } from '$lib/utils/focusTrap';
 	import { logService, type LogLevel } from '$lib/services/logService.svelte';
 	import { copyText } from '$lib/utils/copyText';
+	import { t } from '$lib/i18n';
 	import { Bug, Check, Copy, Trash2, X } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
 	import ErrorLogItem from './ErrorLogItem.svelte';

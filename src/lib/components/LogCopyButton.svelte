@@ -52,7 +52,7 @@
 	}
 
 	function handleWindowKeydown(e: KeyboardEvent) {
-		if (isTypingTarget(e)) return;
+		if (isTypingTarget(e.target)) return;
 		if (e.key === 'Escape' && menuOpen) {
 			menuOpen = false;
 		}
