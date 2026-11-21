@@ -6,56 +6,20 @@
 	import { copyText } from '$lib/utils/copyText';
 	import { t } from '$lib/i18n';
 	import { Check, Copy } from 'lucide-svelte';
+	import ServiceBadgeMenu from './ServiceBadgeMenu.svelte';
+	import ErrorLogModal from './ErrorLogModal.svelte';
 
-	/**
-	 * The service badge: version number, error count and report copying — ONE element.
-	 *
-	 * **Shape changes, position does not.** At rest it is a pill carrying the version;
-	 * with errors it is a red circle carrying their count; after copying, a tick.
-	 *
-	 * **Visibility (DEBUGGING-v8 § 2.1, with a deviation).** In dev the badge is ALWAYS
-	 * visible rather than only when errors exist, as the canon prescribes: it now carries
-	 * the version number, and hiding that makes no sense — dev is exactly where it is
-	 * wanted. Before this the version was nowhere on screen, so a screenshot of a bug
-	 * never said which build produced it.
-	 *
-	 * **In production it used to be unreachable.** `dev && errorCount > 0` meant the log
-	 * buffer was collected on visitors' devices and could never be retrieved — the
-	 * feature existed on paper. Now there are two ways in, deliberately different in
-	 * nature: `?debug=1` (works by touch, survives being sent as a link) and a run of `V`
-	 * presses (for whoever is already at a keyboard, persists between sessions).
-	 *
-	 * **The run itself lives in the header controls, not here** — in production this
-	 * component is not rendered until the gesture has fired, so a listener inside it
-	 * could never see the gesture that reveals it.
-	 */
 	let copied = $state(false);
-	/** The report itself, shown only when the clipboard refused it. */
 	let fallback = $state('');
+	let menuOpen = $state(false);
+	let modalOpen = $state(false);
+	let hidden = $state(false);
 
 	const appVersion = logService.appVersion;
 
-	/*
-	 * `browser &&` is required, not defensive: during prerender, touching
-	 * `page.url.searchParams` throws and fails the build outright. Every page here is
-	 * prerendered, so this is the normal path rather than an edge case.
-	 */
 	const urlDebug = $derived(browser && page.url.searchParams.get('debug') === '1');
-	/*
-	 * `?debug=1` applies ON TOP of the stored state: a link carrying it has to reveal the
-	 * badge even for somebody who previously hid it with a run of presses. Otherwise the
-	 * only route available by touch could be locked out permanently.
-	 */
 	const isVisible = $derived(urlDebug || debugMode.enabled);
 
-	/**
-	 * DEBUGGING-v8 § 2.3 and BETA-CHECKLIST-v8 § 6.2: the copy needs a way out.
-	 *
-	 * `writeText` refuses for reasons that are not defects — the tab is not focused, the
-	 * permission was denied, the page is not on https. Before this the promise was left
-	 * unhandled: the button stayed red, the report existed NOWHERE, and the only trace
-	 * was an unhandled rejection landing in the very log nobody could now read.
-	 */
 	async function copyReport() {
 		const report = logService.getReport();
 
@@ -68,11 +32,55 @@
 
 		fallback = report;
 	}
+
+	function toggleMenu(e: MouseEvent) {
+		e.stopPropagation();
+		menuOpen = !menuOpen;
+	}
+
+	function handleContextMenu(e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		menuOpen = true;
+	}
+
+	function handleWindowClick(e: MouseEvent) {
+		if (!menuOpen) return;
+		const target = e.target as HTMLElement | null;
+		if (target?.closest('.log-fab-wrap')) return;
+		menuOpen = false;
+	}
+
+	function handleWindowKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && menuOpen) {
+			menuOpen = false;
+		}
+	}
+
+	async function handleCopyReport() {
+		menuOpen = false;
+		await copyReport();
+	}
+
+	function handleViewErrors() {
+		menuOpen = false;
+		modalOpen = true;
+	}
+
+	function handleClearLogs() {
+		menuOpen = false;
+		logService.clear();
+	}
+
+	function handleHideBadge() {
+		menuOpen = false;
+		hidden = true;
+	}
 </script>
 
+<svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
+
 {#if fallback}
-	<!-- Beside the button rather than in a toast: a log report is hundreds of lines, and
-		 it has to be selectable, not readable. -->
 	<textarea
 		class="log-fallback"
 		readonly
@@ -82,57 +90,60 @@
 	></textarea>
 {/if}
 
-{#if isVisible}
-	<button
-		type="button"
-		class="log-fab control-shape"
-		class:log-fab--has-errors={logService.errorCount > 0}
-		class:log-fab--copied={copied}
-		onclick={copyReport}
-		oncontextmenu={(e) => {
-			e.preventDefault();
-			logService.clear();
-		}}
-		title="Click to copy, right-click to clear — {appVersion} ({logService.errorCount} errors)"
-		aria-label={`${t('a11y.copyDebugReport')} — ${appVersion}`}
-		data-testid="debug-log-copy-btn"
-	>
-		<div class="log-fab__icon">
-			<!-- The version sits OUTSIDE the branches: the error count is ADDED to it rather
-			     than replacing it. Otherwise, in dev — where an error is almost always
-			     present — the version would never be on screen at all. -->
-			{#if copied}
-				<Check size={14} class="log-fab__hint" />
-			{:else if logService.errorCount > 0}
-				<span class="log-fab__count"
-					>{logService.errorCount > 99 ? '99+' : logService.errorCount}</span
-				>
-			{:else}
-				<Copy size={12} class="log-fab__hint" />
-			{/if}
-			<span class="log-fab__version" data-testid="app-version-value">{appVersion}</span>
-		</div>
-	</button>
+{#if isVisible && !hidden}
+	<div class="log-fab-wrap">
+		{#if menuOpen}
+			<ServiceBadgeMenu
+				errorCount={logService.errorCount}
+				onclick={handleCopyReport}
+				onview={handleViewErrors}
+				onclear={handleClearLogs}
+				onhide={handleHideBadge}
+			/>
+		{/if}
+
+		<button
+			type="button"
+			class="log-fab control-shape"
+			class:log-fab--has-errors={logService.errorCount > 0}
+			class:log-fab--copied={copied}
+			onclick={toggleMenu}
+			oncontextmenu={handleContextMenu}
+			title="Меню табла — {appVersion} ({logService.errorCount} помилок)"
+			aria-label={`${t('a11y.copyDebugReport')} — ${appVersion}`}
+			aria-haspopup="menu"
+			aria-expanded={menuOpen}
+			data-testid="debug-log-copy-btn"
+		>
+			<div class="log-fab__icon">
+				{#if copied}
+					<Check size={14} class="log-fab__hint" />
+				{:else if logService.errorCount > 0}
+					<span class="log-fab__count"
+						>{logService.errorCount > 99 ? '99+' : logService.errorCount}</span
+					>
+				{:else}
+					<Copy size={12} class="log-fab__hint" />
+				{/if}
+				<span class="log-fab__version" data-testid="app-version-value">{appVersion}</span>
+			</div>
+		</button>
+	</div>
 {/if}
 
+<ErrorLogModal isOpen={modalOpen} onclose={() => (modalOpen = false)} />
+
 <style>
-	.log-fab {
+	.log-fab-wrap {
 		position: fixed;
 		bottom: 16px;
 		left: 16px;
 		z-index: 9999;
+	}
 
-		/* A pill: a version number does not fit inside a 48px circle. */
+	.log-fab {
 		min-height: 32px;
 		padding: 0 8px;
-
-		/*
-		 * `--control-surface`, not `--color-bg-card`: this sits ON a page whose
-		 * background IS the card colour in some themes, and the badge has to be findable.
-		 * The edge uses `--color-border-alpha` for the same reason — `--color-border` is
-		 * literally `transparent` in all four themes here, so a border on it would draw
-		 * nothing.
-		 */
 		background: var(--control-surface);
 		color: var(--color-text);
 		border: 2px solid var(--color-border-alpha);
@@ -144,19 +155,6 @@
 		transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 	}
 
-	/*
-	 * The shape does NOT change between states: the pill stays a pill, because the
-	 * version stays in place. Errors used to shrink it to a 32px square, which lost not
-	 * just the version but the element's recognisability.
-	 */
-
-	/*
-	 * Darker than #ef4444 for WCAG AA rather than for taste: white text on the old colour
-	 * gave 3.76:1 where 4.5 is required, and it gave that in all four themes. The error
-	 * count is read precisely when something has gone wrong — the worst possible
-	 * candidate for "almost legible". Literals rather than theme tokens on purpose: the
-	 * "there are errors" signal must look the same in every theme.
-	 */
 	.log-fab--has-errors {
 		background: #c92a2a;
 		color: white;
@@ -167,14 +165,9 @@
 		font-size: 10px;
 		font-family: monospace;
 		line-height: 1;
-		/* The number is read off a screenshot, so it must not wrap. */
 		white-space: nowrap;
 	}
 
-	/*
-	 * The copy icon is a hint that the pill is clickable, not an action of its own — hence
-	 * smaller than the number, and faded.
-	 */
 	.log-fab :global(.log-fab__hint) {
 		opacity: 0.6;
 		flex: none;
@@ -202,7 +195,6 @@
 		transform: scale(1.05);
 	}
 
-	/* The green follows the same rule: #2f9e44 gave 3.45:1 under white text, #237a35 gives 5.38:1. */
 	.log-fab--copied {
 		background: #237a35 !important;
 		color: white;
@@ -216,12 +208,6 @@
 		gap: 4px;
 	}
 
-	/*
-	 * The count is a chip in the row, not a floating bubble on an icon. Darker red than
-	 * the capsule itself (#7f1d1d on #c92a2a): white on it gives 10:1. The old absolute
-	 * bubble had to be positioned against an icon — and that icon is what the version
-	 * replaced.
-	 */
 	.log-fab__count {
 		background: #7f1d1d;
 		color: white;
@@ -232,19 +218,21 @@
 		border-radius: 8px;
 	}
 
-	/*
-	 * Size follows the INPUT METHOD, not the window width: on a 900px desktop the control
-	 * would stay mouse-sized, and on a 1024px tablet it would stay touch-hostile
-	 * (ACCESSIBILITY-v8 § 8, DEBUGGING-v8 § 2.2). The old rule keyed on `max-width: 600px`,
-	 * which is neither.
-	 */
-	@media (hover: none) {
+	@media (prefers-reduced-motion: reduce) {
 		.log-fab {
-			/* 44px, not 40: WCAG 2.5.8 target size applies most on touch screens */
-			min-height: 44px;
-			padding: 0 12px;
+			transition: none;
+		}
+	}
+
+	@media (hover: none) {
+		.log-fab-wrap {
 			bottom: 12px;
 			left: 12px;
+		}
+
+		.log-fab {
+			min-height: 44px;
+			padding: 0 12px;
 		}
 
 		.log-fab__version {
